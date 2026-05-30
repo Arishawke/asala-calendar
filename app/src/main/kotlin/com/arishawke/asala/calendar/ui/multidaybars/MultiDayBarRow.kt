@@ -1,0 +1,126 @@
+/*
+ * Copyright (C) 2026 Arishawke
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+package com.arishawke.asala.calendar.ui.multidaybars
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+
+private const val DaysPerWeek = 7
+private const val LuminanceMidpoint = 0.5f
+private val BarHeight = 16.dp
+private val BarVerticalGap = 2.dp
+private val NaturalCorner = 6.dp
+private val CutCorner = 0.dp
+
+// Renders a horizontal strip of multi-day all-day event bars for one week.
+// Lanes stack vertically; each lane is BarHeight + BarVerticalGap tall.
+// Bars are absolutely positioned with offset() so they span the days they
+// cover. Corner radii are rounded on natural ends, square on cut edges
+// (week-boundary continuations).
+//
+// LongMethod: lane assignment + corner shape + foreground/background
+// color picking + cake-icon prepend live together because they all
+// produce one Box per segment; splitting would just move the per-
+// segment state around.
+@Composable
+@Suppress("LongMethod")
+fun MultiDayBarRow(
+    segments: List<WeekSegment>,
+    rowWidth: Dp,
+    maxLanes: Int,
+    modifier: Modifier = Modifier,
+    onSegmentClick: ((eventId: Long) -> Unit)? = null,
+) {
+    if (segments.isEmpty()) return
+    val cellWidth = rowWidth / DaysPerWeek
+    val laneSpan = BarHeight + BarVerticalGap
+    val visibleLanes = (segments.maxOfOrNull { it.lane }?.plus(1) ?: 0).coerceAtMost(maxLanes)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(laneSpan * visibleLanes),
+    ) {
+        segments.forEach { s ->
+            if (s.lane >= maxLanes) return@forEach
+            val shape = remember(s.isContinuedLeft, s.isContinuedRight) {
+                RoundedCornerShape(
+                    topStart = if (s.isContinuedLeft) CutCorner else NaturalCorner,
+                    bottomStart = if (s.isContinuedLeft) CutCorner else NaturalCorner,
+                    topEnd = if (s.isContinuedRight) CutCorner else NaturalCorner,
+                    bottomEnd = if (s.isContinuedRight) CutCorner else NaturalCorner,
+                )
+            }
+            val bg = Color(s.color)
+            val fg = if (bg.luminance() < LuminanceMidpoint) Color.White else Color.Black
+            Box(
+                modifier = Modifier
+                    .offset(
+                        x = cellWidth * s.startCol,
+                        y = laneSpan * s.lane,
+                    )
+                    .width(cellWidth * (s.endCol - s.startCol + 1))
+                    .height(BarHeight)
+                    .padding(horizontal = 1.dp)
+                    .clip(shape)
+                    .background(bg)
+                    .then(
+                        if (onSegmentClick != null) {
+                            Modifier.clickable { onSegmentClick(s.eventId) }
+                        } else {
+                            Modifier
+                        },
+                    ),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                // title repeats on every segment so a continuation row is
+                // identifiable on its own; cake icon prefixes a birthday-
+                // typed segment, tinted to the bar's contrast color
+                Row(
+                    modifier = Modifier.padding(horizontal = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (s.isBirthday) {
+                        BirthdayLeadingIcon(size = 10.dp, tint = fg)
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                    Text(
+                        text = s.title,
+                        style = MaterialTheme.typography.labelSmall.copy(color = fg),
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}

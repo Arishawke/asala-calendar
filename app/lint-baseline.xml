@@ -1,0 +1,671 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.1.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.1)" variant="all" version="9.1.1">
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: AppViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/App.kt"
+            line="39"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: DayViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
+            line="99"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: EventEditViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventEditScreen.kt"
+            line="85"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="            val vm: MiniMonthViewModel = viewModel("
+        errorLine2="            ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/header/HeaderDropdownPanel.kt"
+            line="59"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: MonthViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/MonthScreen.kt"
+            line="65"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: ScheduleViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/schedule/ScheduleScreen.kt"
+            line="73"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: SearchViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/search/SearchScreen.kt"
+            line="66"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(ctx.applicationContext))"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/settings/SettingsScreen.kt"
+            line="53"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: ThreeDayViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/threeday/ThreeDayScreen.kt"
+            line="61"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: WeekViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/WeekScreen.kt"
+            line="88"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="DataExtractionRules"
+        message="The attribute `android:allowBackup` is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute `android:dataExtractionRules` specifying an `@xml` resource which configures cloud backups and device transfers on Android 12 and higher."
+        errorLine1="        android:allowBackup=&quot;false&quot;"
+        errorLine2="                             ~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="15"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 28. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <location
+            file="src/main/res/mipmap-anydpi-v26"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive icon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive roundIcon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="ComposeCompositionLocalUsage"
+        message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
+        errorLine1="// Ambient SharedFlow of event ids that should drop their in-flight drag"
+        errorLine2="^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/LocalDragRevertSignal.kt"
+            line="15"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="ComposeCompositionLocalUsage"
+        message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
+        errorLine1="val LocalIs24Hour: ProvidableCompositionLocal&lt;Boolean> = compositionLocalOf { false }"
+        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/theme/Theme.kt"
+            line="29"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierMissing"
+        message="This @Composable function emits content but doesn&apos;t have a modifier parameter.See https://slackhq.github.io/compose-lints/rules/#when-should-i-expose-modifier-parameters for more information."
+        errorLine1="fun DateTimePickerRow("
+        errorLine2="    ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/DateTimePickerRow.kt"
+            line="47"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierMissing"
+        message="This @Composable function emits content but doesn&apos;t have a modifier parameter.See https://slackhq.github.io/compose-lints/rules/#when-should-i-expose-modifier-parameters for more information."
+        errorLine1="fun EventDetailSheet("
+        errorLine2="    ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventdetail/EventDetailSheet.kt"
+            line="56"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierMissing"
+        message="This @Composable function emits content but doesn&apos;t have a modifier parameter.See https://slackhq.github.io/compose-lints/rules/#when-should-i-expose-modifier-parameters for more information."
+        errorLine1="fun EventEditScreen("
+        errorLine2="    ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventEditScreen.kt"
+            line="49"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierMissing"
+        message="This @Composable function emits content but doesn&apos;t have a modifier parameter.See https://slackhq.github.io/compose-lints/rules/#when-should-i-expose-modifier-parameters for more information."
+        errorLine1="fun RecurrenceSection(state: EventEditFormState, onChange: (EventEditFormState) -> Unit) {"
+        errorLine2="    ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/RecurrenceSection.kt"
+            line="47"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierMissing"
+        message="This @Composable function emits content but doesn&apos;t have a modifier parameter.See https://slackhq.github.io/compose-lints/rules/#when-should-i-expose-modifier-parameters for more information."
+        errorLine1="fun SearchScreen("
+        errorLine2="    ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/search/SearchScreen.kt"
+            line="58"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierMissing"
+        message="This @Composable function emits content but doesn&apos;t have a modifier parameter.See https://slackhq.github.io/compose-lints/rules/#when-should-i-expose-modifier-parameters for more information."
+        errorLine1="fun SettingsScreen("
+        errorLine2="    ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/settings/SettingsScreen.kt"
+            line="45"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierWithoutDefault"
+        message="This @Composable function has a modifier parameter but it doesn&apos;t have a default value.See https://slackhq.github.io/compose-lints/rules/#modifiers-should-have-default-parameters for more information."
+        errorLine1="private fun LoadingScreen(modifier: Modifier) {"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/permissions/CalendarPermissionGate.kt"
+            line="155"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="ComposeModifierWithoutDefault"
+        message="This @Composable function has a modifier parameter but it doesn&apos;t have a default value.See https://slackhq.github.io/compose-lints/rules/#modifiers-should-have-default-parameters for more information."
+        errorLine1="private fun RationaleScreen(modifier: Modifier, onGrant: () -> Unit) {"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/permissions/CalendarPermissionGate.kt"
+            line="167"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="ComposeParameterOrder"
+        message="Parameters in a composable function should be ordered following this pattern: params without defaults, modifiers, params with defaults and optionally, a trailing function that might not have a default param.&#xA;Current params are: [label: String, date: LocalDate, time: LocalTime, showTime: Boolean, is24Hour: Boolean = false, onDateChange: (LocalDate) -> Unit, onTimeChange: (LocalTime) -> Unit] but should be [label: String, date: LocalDate, time: LocalTime, showTime: Boolean, onDateChange: (LocalDate) -> Unit, is24Hour: Boolean = false, onTimeChange: (LocalTime) -> Unit].&#xA;See https://slackhq.github.io/compose-lints/rules/#ordering-composable-parameters-properly for more information."
+        errorLine1="fun DateTimePickerRow("
+        errorLine2="                     ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/DateTimePickerRow.kt"
+            line="47"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="ComposeParameterOrder"
+        message="Parameters in a composable function should be ordered following this pattern: params without defaults, modifiers, params with defaults and optionally, a trailing function that might not have a default param.&#xA;Current params are: [detail: EventDetail?, instanceMillis: Long?, notificationPermissionGranted: Boolean = true, onRequestNotificationPermission: () -> Unit = {}, onDismiss: () -> Unit, onEdit: (Long) -> Unit, onDelete: (Long, RecurringEditScope) -> Unit] but should be [detail: EventDetail?, instanceMillis: Long?, onDismiss: () -> Unit, onEdit: (Long) -> Unit, notificationPermissionGranted: Boolean = true, onRequestNotificationPermission: () -> Unit = {}, onDelete: (Long, RecurringEditScope) -> Unit].&#xA;See https://slackhq.github.io/compose-lints/rules/#ordering-composable-parameters-properly for more information."
+        errorLine1="fun EventDetailSheet("
+        errorLine2="                    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventdetail/EventDetailSheet.kt"
+            line="56"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="ComposeParameterOrder"
+        message="Parameters in a composable function should be ordered following this pattern: params without defaults, modifiers, params with defaults and optionally, a trailing function that might not have a default param.&#xA;Current params are: [eventId: Long? = null, instanceMillis: Long? = null, is24Hour: Boolean = false, appViewModel: AppViewModel, onClose: () -> Unit, onSaved: (Long) -> Unit] but should be [appViewModel: AppViewModel, onClose: () -> Unit, eventId: Long? = null, instanceMillis: Long? = null, is24Hour: Boolean = false, onSaved: (Long) -> Unit].&#xA;See https://slackhq.github.io/compose-lints/rules/#ordering-composable-parameters-properly for more information."
+        errorLine1="fun EventEditScreen("
+        errorLine2="                   ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventEditScreen.kt"
+            line="49"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/AllDayRow.kt"
+            line="31"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;LocalDate> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `days: ImmutableList&lt;LocalDate>` or create an `@Immutable` wrapper for this class: `@Immutable data class DaysList(val items: List&lt;LocalDate>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    days: List&lt;LocalDate>,"
+        errorLine2="          ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/AllDayRow.kt"
+            line="32"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;CalendarItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `calendars: ImmutableList&lt;CalendarItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class CalendarsList(val items: List&lt;CalendarItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    calendars: List&lt;CalendarItem>,"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/CalendarDrawer.kt"
+            line="56"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Set&lt;Long> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `hiddenCalendarIds: ImmutableSet&lt;Long>` or create an `@Immutable` wrapper for this class: `@Immutable data class HiddenCalendarIdsSet(val items: Set&lt;Long>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    hiddenCalendarIds: Set&lt;Long>,"
+        errorLine2="                       ~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/CalendarDrawer.kt"
+            line="57"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Set&lt;String> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `drawerHiddenAccountKeys: ImmutableSet&lt;String>` or create an `@Immutable` wrapper for this class: `@Immutable data class DrawerHiddenAccountKeysSet(val items: Set&lt;String>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    drawerHiddenAccountKeys: Set&lt;String>,"
+        errorLine2="                             ~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/CalendarDrawer.kt"
+            line="58"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Set&lt;String> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `collapsedAccounts: ImmutableSet&lt;String>` or create an `@Immutable` wrapper for this class: `@Immutable data class CollapsedAccountsSet(val items: Set&lt;String>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    collapsedAccounts: Set&lt;String>,"
+        errorLine2="                       ~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/CalendarDrawer.kt"
+            line="59"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;CalendarItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `calendars: ImmutableList&lt;CalendarItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class CalendarsList(val items: List&lt;CalendarItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    calendars: List&lt;CalendarItem>,"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/CalendarSelector.kt"
+            line="53"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;CalendarAccountGroup> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `groups: ImmutableList&lt;CalendarAccountGroup>` or create an `@Immutable` wrapper for this class: `@Immutable data class GroupsList(val items: List&lt;CalendarAccountGroup>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    groups: List&lt;CalendarAccountGroup>,"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/CalendarSelector.kt"
+            line="95"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/DayCell.kt"
+            line="31"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/DayOverflowSheet.kt"
+            line="65"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
+            line="180"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="private fun AllDayList(events: List&lt;EventItem>, onEventClick: (eventId: Long, instanceMillis: Long) -> Unit) {"
+        errorLine2="                               ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
+            line="226"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;DayClippedEvent> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;DayClippedEvent>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;DayClippedEvent>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;DayClippedEvent>,"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
+            line="280"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/EventChips.kt"
+            line="53"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Map&lt;LocalDate, List&lt;EventItem>> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `eventsByDate: ImmutableMap&lt;LocalDate, List&lt;EventItem>>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsByDateMap(val items: Map&lt;LocalDate, List&lt;EventItem>>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    eventsByDate: Map&lt;LocalDate, List&lt;EventItem>>,"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/header/MiniMonthPanel.kt"
+            line="62"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Map&lt;LocalDate, List&lt;EventItem>> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `eventsByDate: ImmutableMap&lt;LocalDate, List&lt;EventItem>>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsByDateMap(val items: Map&lt;LocalDate, List&lt;EventItem>>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    eventsByDate: Map&lt;LocalDate, List&lt;EventItem>>,"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/header/MiniMonthPanel.kt"
+            line="147"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/header/MiniMonthPanel.kt"
+            line="184"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="private fun DotRow(events: List&lt;EventItem>) {"
+        errorLine2="                           ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/header/MiniMonthPanel.kt"
+            line="228"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Map&lt;LocalDate, List&lt;EventItem>> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `eventsByDate: ImmutableMap&lt;LocalDate, List&lt;EventItem>>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsByDateMap(val items: Map&lt;LocalDate, List&lt;EventItem>>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    eventsByDate: Map&lt;LocalDate, List&lt;EventItem>>,"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/MonthGrid.kt"
+            line="44"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `allEvents: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class AllEventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    allEvents: List&lt;EventItem>,"
+        errorLine2="               ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/MonthGrid.kt"
+            line="45"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;WeekSegment> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `segments: ImmutableList&lt;WeekSegment>` or create an `@Immutable` wrapper for this class: `@Immutable data class SegmentsList(val items: List&lt;WeekSegment>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    segments: List&lt;WeekSegment>,"
+        errorLine2="              ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/multidaybars/MultiDayBarRow.kt"
+            line="57"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;ScheduleRow> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `rows: ImmutableList&lt;ScheduleRow>` or create an `@Immutable` wrapper for this class: `@Immutable data class RowsList(val items: List&lt;ScheduleRow>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    rows: List&lt;ScheduleRow>,"
+        errorLine2="          ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/schedule/ScheduleScreen.kt"
+            line="189"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;DrawerHiddenAccount> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `drawerHiddenAccounts: ImmutableList&lt;DrawerHiddenAccount>` or create an `@Immutable` wrapper for this class: `@Immutable data class DrawerHiddenAccountsList(val items: List&lt;DrawerHiddenAccount>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    drawerHiddenAccounts: List&lt;DrawerHiddenAccount> = emptyList(),"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/settings/SettingsScreen.kt"
+            line="47"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;LocalDate> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `days: ImmutableList&lt;LocalDate>` or create an `@Immutable` wrapper for this class: `@Immutable data class DaysList(val items: List&lt;LocalDate>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    days: List&lt;LocalDate>,"
+        errorLine2="          ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/TimelineGrid.kt"
+            line="65"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/TimelineGrid.kt"
+            line="67"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;DayClippedEvent> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;DayClippedEvent>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;DayClippedEvent>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;DayClippedEvent>,"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/TimelineGrid.kt"
+            line="164"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;CalendarDay> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `weekDays: ImmutableList&lt;CalendarDay>` or create an `@Immutable` wrapper for this class: `@Immutable data class WeekDaysList(val items: List&lt;CalendarDay>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    weekDays: List&lt;CalendarDay>,"
+        errorLine2="              ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/WeekLayoutRow.kt"
+            line="42"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;WeekSegment> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `segments: ImmutableList&lt;WeekSegment>` or create an `@Immutable` wrapper for this class: `@Immutable data class SegmentsList(val items: List&lt;WeekSegment>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    segments: List&lt;WeekSegment>,"
+        errorLine2="              ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/WeekLayoutRow.kt"
+            line="44"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Map&lt;LocalDate, List&lt;EventItem>> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `eventsByDate: ImmutableMap&lt;LocalDate, List&lt;EventItem>>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsByDateMap(val items: Map&lt;LocalDate, List&lt;EventItem>>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    eventsByDate: Map&lt;LocalDate, List&lt;EventItem>>,"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/WeekLayoutRow.kt"
+            line="45"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;CalendarDay> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `weekDays: ImmutableList&lt;CalendarDay>` or create an `@Immutable` wrapper for this class: `@Immutable data class WeekDaysList(val items: List&lt;CalendarDay>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    weekDays: List&lt;CalendarDay>,"
+        errorLine2="              ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/WeekLayoutRow.kt"
+            line="110"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;WeekSegment> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `segments: ImmutableList&lt;WeekSegment>` or create an `@Immutable` wrapper for this class: `@Immutable data class SegmentsList(val items: List&lt;WeekSegment>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    segments: List&lt;WeekSegment>,"
+        errorLine2="              ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/WeekLayoutRow.kt"
+            line="112"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a Map&lt;LocalDate, List&lt;EventItem>> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `eventsByDate: ImmutableMap&lt;LocalDate, List&lt;EventItem>>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsByDateMap(val items: Map&lt;LocalDate, List&lt;EventItem>>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    eventsByDate: Map&lt;LocalDate, List&lt;EventItem>>,"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/month/WeekLayoutRow.kt"
+            line="113"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;LocalDate> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `days: ImmutableList&lt;LocalDate>` or create an `@Immutable` wrapper for this class: `@Immutable data class DaysList(val items: List&lt;LocalDate>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    days: List&lt;LocalDate>,"
+        errorLine2="          ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/WeekScreen.kt"
+            line="186"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    events: List&lt;EventItem>,"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/WeekScreen.kt"
+            line="188"
+            column="13"/>
+    </issue>
+
+</issues>

@@ -1,0 +1,22 @@
+Asala Calendar
+Copyright (C) 2026 Arishawke
+
+This product bundles third-party open source software, used under the
+following licenses.
+
+Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
+  - AndroidX / Jetpack libraries: core-ktx, lifecycle-runtime-ktx,
+    lifecycle-viewmodel-compose, activity-compose, datastore-preferences.
+    Copyright The Android Open Source Project.
+  - Jetpack Compose: compose-bom, ui, ui-graphics, ui-tooling-preview,
+    foundation, material3, material-icons-core.
+    Copyright The Android Open Source Project.
+  - kotlinx.serialization. Copyright JetBrains s.r.o.
+  - Kotlin standard library and kotlinx.coroutines. Copyright JetBrains s.r.o.
+  - Timber. Copyright Jake Wharton.
+
+MIT License (https://opensource.org/licenses/MIT):
+  - Calendar (com.kizitonwose.calendar). Copyright Kizito Nwose.
+
+Build- and test-only tools, not distributed in the application binary:
+  JUnit (EPL-1.0), detekt, ktlint, Spotless, Kover, compose-lint-checks.

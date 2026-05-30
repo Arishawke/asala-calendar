@@ -1,0 +1,52 @@
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [main]
+
+# `contents: read` is enough; the action only needs to read the dep
+# graph and the PR diff. `pull-requests: write` would let it post a
+# PR comment summary, but the action's failure already shows up as a
+# check on the PR, and we prefer fewer bot-comment surfaces.
+permissions:
+  contents: read
+
+concurrency:
+  # See dependency-graph.yml: github.ref alone collides across event types.
+  group: dependency-review-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Review PR dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          # Block merges that introduce a moderate-or-higher CVE.
+          # Tighten to `low` if a CVE that matters slips through, or
+          # loosen to `high` for grouped Dependabot PRs if fatigue
+          # surfaces (handoff guidance).
+          fail-on-severity: moderate
+          # Whitelist of acceptable SPDX licenses. GPL-3.0-or-later is
+          # Asala's own license; the permissives below are GPL-3.0
+          # compatible. AGPL and other copyleft variants intentionally
+          # fail closed: a new AGPL transitive needs an explicit ADR
+          # conversation, not a silent accept.
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, GPL-3.0-or-later
+          # The graph for the PR's base ref may still be uploading from
+          # the dependency-graph workflow when this job starts. Retry
+          # so we don't false-fail on the race. 3600s timeout is the
+          # current-docs recommendation; without it the default 120s
+          # retry can complete before the upload finishes.
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 3600
+          # `deny-packages` is empty for now. Add `pkg:maven/<group>/<artifact>@<version>`
+          # entries when a known-broken-but-unupgradable dep surfaces,
+          # with a comment naming the CVE and the ADR or issue that
+          # documented the acceptance.
+          deny-packages: ''

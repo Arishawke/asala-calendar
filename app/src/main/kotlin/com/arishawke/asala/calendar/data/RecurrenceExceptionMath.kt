@@ -1,0 +1,50 @@
+/*
+ * Copyright (C) 2026 Arishawke
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+package com.arishawke.asala.calendar.data
+
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+object RecurrenceExceptionMath {
+    // RFC 5545 §3.3.10: UNTIL value type must match the series' DTSTART.
+    // All-day parent: date-form UNTIL=YYYYMMDD of the day BEFORE the truncated
+    // instance. Timed parent: datetime UNTIL=YYYYMMDDTHHMMSSZ one second before
+    // the instance.
+    fun untilUtcForTruncation(instanceUtcMillis: Long, allDay: Boolean = false): String {
+        if (allDay) {
+            val cutoff = Instant.ofEpochMilli(instanceUtcMillis)
+                .atOffset(ZoneOffset.UTC)
+                .toLocalDate()
+                .minusDays(1)
+            return "UNTIL=${cutoff.format(UTC_DATE_FORMAT)}"
+        }
+        val cutoff =
+            Instant.ofEpochMilli(instanceUtcMillis - MILLIS_PER_SECOND)
+                .atOffset(ZoneOffset.UTC)
+        return "UNTIL=${cutoff.format(UTC_ICAL_FORMAT)}"
+    }
+
+    private const val MILLIS_PER_SECOND = 1000L
+
+    /** Splice an `UNTIL=...` segment into an existing RRULE, replacing any
+     *  existing UNTIL or COUNT.
+     */
+    fun appendUntil(rrule: String, untilSegment: String): String {
+        val parts =
+            rrule.split(";").filter {
+                !it.startsWith("UNTIL=") && !it.startsWith("COUNT=")
+            }
+        return (parts + untilSegment).joinToString(";")
+    }
+
+    private val UTC_ICAL_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'", Locale.ROOT)
+    private val UTC_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT)
+}

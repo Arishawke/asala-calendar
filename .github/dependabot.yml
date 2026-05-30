@@ -1,0 +1,49 @@
+version: 2
+
+updates:
+  # Android / Kotlin dependencies declared via Gradle.
+  - package-ecosystem: gradle
+    directory: /app
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    labels:
+      - dependencies
+    groups:
+      androidx:
+        patterns:
+          - "androidx.*"
+        # androidx.compose.* belongs to the compose group below.
+        # Dependabot resolves overlapping group patterns by first match,
+        # which is YAML-order-dependent and not authoritative; the
+        # exclude here makes the partition deterministic.
+        exclude-patterns:
+          - "androidx.compose.*"
+      compose:
+        patterns:
+          - "androidx.compose.*"
+          - "*compose*"
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.kotlinx*"
+
+  # Pinned-by-SHA GitHub Actions in .github/workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(ci)
+    labels:
+      - dependencies
+      - github-actions

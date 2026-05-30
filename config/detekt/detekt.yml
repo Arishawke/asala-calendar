@@ -1,0 +1,52 @@
+# detekt config for Asala Calendar (ADR-0004 Phase A2).
+# buildUponDefaultConfig = true in root build.gradle.kts means this file
+# overlays the detekt defaults; only the rules below are tuned. Anything
+# unmentioned uses detekt's default severity and threshold.
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 60
+  LongParameterList:
+    active: true
+    functionThreshold: 6
+    constructorThreshold: 7
+  ComplexCondition:
+    active: true
+    threshold: 4
+  NestedBlockDepth:
+    active: true
+    threshold: 4
+
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+    ignoreAnnotation: true
+    ignoreEnums: true
+    ignoreCompanionObjectPropertyDeclaration: true
+
+exceptions:
+  SwallowedException:
+    active: true
+  TooGenericExceptionCaught:
+    active: true
+
+# detekt does not read .editorconfig, so the Compose-convention exemptions
+# that .editorconfig grants to ktlint must be re-stated here for detekt.
+# Without this, every new @Composable function (PascalCase per Compose
+# convention) would fail FunctionNaming, every new top-level theme val
+# (PascalCase) would fail TopLevelPropertyNaming, and any helper file
+# whose name does not match its single class would fail MatchingDeclarationName.
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    active: false
+  MatchingDeclarationName:
+    active: false

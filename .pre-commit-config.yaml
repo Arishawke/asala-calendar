@@ -1,0 +1,23 @@
+# Local secret-scan and basic hygiene checks.
+# Install once per clone:
+#   pip install --user pre-commit && pre-commit install
+# Then commits trigger the hooks automatically. CI re-runs gitleaks
+# regardless, so this is fast local feedback, not the trust boundary.
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+        name: gitleaks (scan staged changes)
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key

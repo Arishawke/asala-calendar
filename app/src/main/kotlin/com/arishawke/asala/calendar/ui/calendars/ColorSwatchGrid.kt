@@ -1,0 +1,119 @@
+/*
+ * Copyright (C) 2026 Arishawke
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+package com.arishawke.asala.calendar.ui.calendars
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import com.arishawke.asala.calendar.R
+import com.arishawke.asala.calendar.ui.theme.PaletteId
+import com.arishawke.asala.calendar.ui.theme.Spacing
+
+// Shared swatch grid backing the create-calendar dialog, the recolor
+// dialog (account avatar + per-calendar), and the new per-event Color
+// row. The currently selected color gets a ring around its swatch. If
+// the selected color isn't in the active palette (because the user
+// switched palettes after saving an override), a "Custom" pip is
+// appended showing the saved hex so the picker is honest about state.
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ColorSwatchGrid(
+    palette: PaletteId,
+    selectedArgb: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val swatches = palette.swatches
+    val selectedInPalette = swatches.any { it.toArgb() == selectedArgb }
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+    ) {
+        swatches.forEach { color ->
+            Swatch(
+                color = color,
+                argb = color.toArgb(),
+                selected = color.toArgb() == selectedArgb,
+                onSelect = onSelect,
+            )
+        }
+        if (!selectedInPalette) {
+            CustomSwatch(argb = selectedArgb, onSelect = onSelect)
+        }
+    }
+}
+
+@Composable
+private fun Swatch(color: Color, argb: Int, selected: Boolean, onSelect: (Int) -> Unit) {
+    // visual 28dp, tap region rounded up to 48dp via
+    // minimumInteractiveComponentSize so a dense palette grid still meets the
+    // Android touch-target floor without enlarging the swatches.
+    Box(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(color)
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        width = 3.dp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        shape = CircleShape,
+                    )
+                } else {
+                    Modifier
+                },
+            )
+            .clickable { onSelect(argb) },
+    )
+}
+
+// The "Custom" pip. Renders when the saved color isn't in the active
+// palette (typically because the user switched palettes after saving
+// an override). Selection-style ring draws because the current value
+// is the saved hex by definition.
+@Composable
+private fun CustomSwatch(argb: Int, onSelect: (Int) -> Unit) {
+    val label = stringResource(R.string.swatch_custom)
+    val hex = "#%06X".format(argb and 0xFFFFFF)
+    Box(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(Color(argb))
+            .border(
+                width = 3.dp,
+                color = MaterialTheme.colorScheme.onSurface,
+                shape = CircleShape,
+            )
+            .clickable { onSelect(argb) }
+            .semantics { contentDescription = "$label $hex" },
+    )
+}

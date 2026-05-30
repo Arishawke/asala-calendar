@@ -1,0 +1,16 @@
+<!--
+  Status-bar notification icon. Must be white-on-transparent: Android 5+
+  uses the alpha channel only and tints it for the system theme. The path
+  is the standard Material calendar-with-day-marker; same as ic_today, but
+  kept as a separate drawable so the in-app "Today" icon and the status
+  bar notification icon can diverge if needed without affecting each other.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M19,3h-1V1h-2v2H8V1H6v2H5c-1.11,0 -2,0.9 -2,2v14c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM19,19H5V8h14v11zM7,10h5v5L7,15z" />
+</vector>

@@ -1,0 +1,25 @@
+# <type>(<scope>): <subject>
+#
+# Subject: imperative, lowercase, no trailing period, <= 72 chars.
+#
+# Body: what changed and why. Wrap at 72. Skip the body for trivial
+# commits where the subject is self-explanatory.
+#
+# Footer (optional): one trailer per line.
+#   BREAKING CHANGE: <description>
+#   Refs: #<issue>
+#   AI-assisted: yes | partial | no
+#
+# Types
+#   feat      new user-visible behavior
+#   fix       bug fix
+#   docs      documentation only
+#   refactor  no behavior change
+#   perf      performance, no behavior change
+#   test      add or fix tests
+#   chore     toolchain, build, deps, config
+#   ci        CI configuration
+#   style     formatting only
+#   build     build system or external deps
+#
+# Scopes (free-form). Common: a11y, data, ui, ci, deps, docs, theme.

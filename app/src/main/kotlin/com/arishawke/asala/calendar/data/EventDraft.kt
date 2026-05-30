@@ -1,0 +1,106 @@
+/*
+ * Copyright (C) 2026 Arishawke
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+package com.arishawke.asala.calendar.data
+
+import android.content.ContentValues
+import android.provider.CalendarContract
+
+data class EventDraft(
+    val calendarId: Long,
+    val title: String,
+    val description: String?,
+    val location: String?,
+    val startMillis: Long,
+    val endMillis: Long,
+    val allDay: Boolean,
+    val eventTimezone: String,
+    val rrule: String?,
+    // STATUS_CONFIRMED / STATUS_TENTATIVE / STATUS_CANCELED. Null falls
+    // back to STATUS_CONFIRMED so inserts still satisfy the CalDAV-backed
+    // accounts that reject rows without it. On edit, callers pass the
+    // loaded EventDetail value so a Tentative event the user set on the
+    // server is not overwritten with Confirmed by a local title edit.
+    val status: Int? = null,
+    // Same preservation contract as `status`. AVAILABILITY_BUSY is the
+    // fallback for inserts; updates pass the loaded value through.
+    val availability: Int? = null,
+) {
+    // Converts to a plain map so the field-mapping logic can be tested in JVM unit tests
+    // without a ContentValues stub.
+    internal fun toMap(): Map<String, Any?> = buildMap {
+        put(CalendarContract.Events.CALENDAR_ID, calendarId)
+        put(CalendarContract.Events.TITLE, title.ifBlank { "(No title)" })
+        put(CalendarContract.Events.DESCRIPTION, description)
+        put(CalendarContract.Events.EVENT_LOCATION, location)
+        put(CalendarContract.Events.DTSTART, startMillis)
+        put(CalendarContract.Events.ALL_DAY, if (allDay) 1 else 0)
+        put(CalendarContract.Events.EVENT_TIMEZONE, eventTimezone)
+        // some CalDAV-backed accounts reject inserts without these fields
+        put(CalendarContract.Events.STATUS, status ?: CalendarContract.Events.STATUS_CONFIRMED)
+        put(CalendarContract.Events.AVAILABILITY, availability ?: CalendarContract.Events.AVAILABILITY_BUSY)
+
+        if (rrule != null) {
+            // recurring events must use DURATION, not DTEND. Provider's RFC 2445
+            // parser rejects the PT{n}S seconds-only form for some account types,
+            // so emit the full P{d}DT{h}H{m}M0S shape.
+            put(CalendarContract.Events.RRULE, rrule)
+            put(CalendarContract.Events.DURATION, iso8601Duration(endMillis - startMillis))
+        } else {
+            put(CalendarContract.Events.DTEND, endMillis)
+        }
+    }
+
+    fun toContentValues(): ContentValues {
+        val cv = ContentValues()
+        toMap().forEach { (key, value) ->
+            when (value) {
+                null -> cv.putNull(key)
+                is Long -> cv.put(key, value)
+                is Int -> cv.put(key, value)
+                is String -> cv.put(key, value)
+                else -> cv.put(key, value.toString())
+            }
+        }
+        return cv
+    }
+
+    private fun iso8601Duration(durationMillis: Long): String {
+        val totalSeconds = (durationMillis / 1000).coerceAtLeast(60)
+        val days = totalSeconds / 86_400
+        val hours = (totalSeconds % 86_400) / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        return "P${days}DT${hours}H${minutes}M0S"
+    }
+
+    companion object {
+        // Inverse of iso8601Duration. Tolerant of:
+        // - our own `P{d}DT{h}H{m}M{s}S` writes
+        // - other RFC 5545 shorter forms: `P1D`, `PT1H`, `P1W`
+        // - the `P3600S` post-sync form (no `T`; not strict RFC 5545,
+        //   but what some sync adapters write back into the row)
+        // The `T` separator is optional regardless of which units are present.
+        private val DURATION_RE =
+            Regex(
+                "^P(?:(\\d+)W)?(?:(\\d+)D)?T?(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$",
+            )
+
+        fun parseIso8601DurationMs(raw: String?): Long? {
+            if (raw.isNullOrBlank()) return null
+            val m = DURATION_RE.matchEntire(raw) ?: return null
+            val (w, d, h, mn, s) = m.destructured
+            if (w.isEmpty() && d.isEmpty() && h.isEmpty() && mn.isEmpty() && s.isEmpty()) return null
+            val weeks = w.toLongOrNull() ?: 0L
+            val days = d.toLongOrNull() ?: 0L
+            val hours = h.toLongOrNull() ?: 0L
+            val minutes = mn.toLongOrNull() ?: 0L
+            val seconds = s.toLongOrNull() ?: 0L
+            return ((weeks * 7 + days) * 86_400 + hours * 3600 + minutes * 60 + seconds) * 1000L
+        }
+    }
+}
