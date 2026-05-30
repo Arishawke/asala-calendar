@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-05-30
+
 ### Changed
 - Events that cross midnight now read as one event in two parts. Each piece shows a "1/2" / "2/2" continuation badge, the first piece its start time and the second piece its end time, instead of the next-day slice looking like a separate event starting at midnight. Applies to Week, Day, 3-Day, and Schedule views.
 - The calendar picker in the event editor now shows each calendar as a color-dotted chip in a side-scrolling row, with an account selector above it when more than one account has calendars. Replaces the plain dropdown so the chosen calendar and its color are visible at a glance.
@@ -1452,7 +1454,8 @@ notification firing from this app lands in M4.
 - Live updates from the Calendar Provider via ContentObserver.
 - Branding as Asala Calendar; GPL v3 license; README.
 
-[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.15.1...HEAD
+[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.16.0
 [0.15.1]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.15.1
 [0.15.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.15.0
 [0.14.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.14.0

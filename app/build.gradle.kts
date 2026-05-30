@@ -32,8 +32,8 @@ android {
         applicationId = "com.arishawke.asala.calendar"
         minSdk = 28
         targetSdk = 36
-        versionCode = 18
-        versionName = "0.15.1"
+        versionCode = 19
+        versionName = "0.16.0"
     }
 
     buildFeatures {
