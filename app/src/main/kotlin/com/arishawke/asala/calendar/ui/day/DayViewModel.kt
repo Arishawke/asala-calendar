@@ -35,11 +35,9 @@ class DayViewModel(
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
 
-    // Initial today is captured for the event-fetch window: shifting the
-    // window dynamically would re-subscribe the upstream observer every
-    // midnight, churning the ContentObserver. The today-highlight inside
-    // UiState refreshes via todayFlow regardless, which is the consumer
-    // the user actually sees.
+    // fetch window pinned to initial today; a shifting window would
+    // re-subscribe the ContentObserver every midnight. the today-highlight
+    // still refreshes via todayFlow.
     private val initialToday: LocalDate = todayFlow.value
     private val selectedDate = MutableStateFlow(initialToday)
     private val windowStart = initialToday.minusDays(WindowDaysEachSide)

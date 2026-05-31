@@ -12,9 +12,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-// WCAG 2.1 contrast ratio between two opaque sRGB colors. Pure-int input,
-// pure-double output, no Android dependencies so the helper runs on JVM
-// tests. Used by RadixPaletteContrastTest to guard the curated palette.
+// WCAG 2.1 contrast ratio between two opaque sRGB colors. no Android deps
+// so it runs in JVM tests; used by RadixPaletteContrastTest.
 internal object WcagContrast {
     fun ratio(argbA: Int, argbB: Int): Double {
         val la = relativeLuminance(argbA)

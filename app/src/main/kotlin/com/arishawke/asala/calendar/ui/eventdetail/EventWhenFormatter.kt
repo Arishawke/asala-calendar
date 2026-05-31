@@ -42,16 +42,12 @@ internal fun reminderLabel(minutesBefore: Int): String = when (minutesBefore) {
 
 internal fun formatWhen(d: EventDetail, instanceMillis: Long?, is24Hour: Boolean): String {
     val locale = Locale.getDefault()
-    // For a recurring event opened from a specific occurrence, shift the
-    // displayed range by (instance - parent dtstart) so the sheet describes
-    // the tapped instance instead of the series anchor.
+    // recurring opened from an occurrence: shift the range by (instance -
+    // parent dtstart) so the sheet describes the tapped instance.
     val offset = if (d.rrule != null && instanceMillis != null) instanceMillis - d.startMillis else 0L
     val startMillis = d.startMillis + offset
     val endMillis = d.endMillis + offset
     return if (d.allDay) {
-        // all-day rows: dtstart is 00:00 UTC, dtend is 00:00 UTC of the day
-        // after. Render in UTC and subtract a day from the end so the range
-        // closes on the last visible date.
         formatAllDayRange(startMillis, endMillis, locale)
     } else {
         formatTimedRange(startMillis, endMillis, ZoneId.systemDefault(), is24Hour, locale)
@@ -61,8 +57,8 @@ internal fun formatWhen(d: EventDetail, instanceMillis: Long?, is24Hour: Boolean
 private fun formatAllDayRange(startMillis: Long, endMillisExclusive: Long, locale: Locale): String {
     val utc = IcuTimeZone.getTimeZone("UTC")
     val startCal = IcuCalendar.getInstance(utc, locale).apply { timeInMillis = startMillis }
-    // CalendarContract end is exclusive (00:00 of the day after); roll back one
-    // day so the range closes on the last visible date.
+    // end is exclusive (00:00 next day); roll back so the range closes on
+    // the last visible date. UTC throughout, dtstart is 00:00 UTC.
     val endCal = IcuCalendar.getInstance(utc, locale).apply {
         timeInMillis = endMillisExclusive
         add(IcuCalendar.DATE, -1)
@@ -86,15 +82,12 @@ private fun formatTimedRange(
     val endCal = IcuCalendar.getInstance(icuZone, locale).apply { timeInMillis = endMillis }
     val timeSkeleton = if (is24Hour) "Hm" else "hm"
     return if (sameDay(startCal, endCal)) {
-        // same-day timed: full date on the first line, locale-aware time
-        // range on the second.
         val dateLine = IcuDateFormat.getPatternInstance(DateSkeleton, locale).format(startCal)
         val timeLine = formatInterval(DateIntervalFormat.getInstance(timeSkeleton, locale), startCal, endCal)
         "$dateLine\n$timeLine"
     } else {
-        // multi-day timed: each side rendered as locale-full date + time on
-        // its own line. The interval formatter does not produce a two-line
-        // layout, so compose the connector via newline ourselves.
+        // interval formatter has no two-line layout, so compose the newline
+        // between date+time sides ourselves.
         val dateFmt = IcuDateFormat.getPatternInstance(DateSkeleton, locale)
         val timeFmt = IcuDateFormat.getPatternInstance(timeSkeleton, locale)
         val startSide = "${dateFmt.format(startCal)} ${timeFmt.format(startCal)}"
@@ -106,7 +99,6 @@ private fun formatTimedRange(
 private fun sameDay(a: IcuCalendar, b: IcuCalendar): Boolean = a.get(IcuCalendar.YEAR) == b.get(IcuCalendar.YEAR) &&
     a.get(IcuCalendar.DAY_OF_YEAR) == b.get(IcuCalendar.DAY_OF_YEAR)
 
-// ICU's two-Calendar format overload requires a StringBuffer and
-// FieldPosition; wrap the boilerplate.
+// wraps ICU's StringBuffer + FieldPosition boilerplate.
 private fun formatInterval(fmt: DateIntervalFormat, a: IcuCalendar, b: IcuCalendar): String =
     fmt.format(a, b, StringBuffer(), FieldPosition(0)).toString()

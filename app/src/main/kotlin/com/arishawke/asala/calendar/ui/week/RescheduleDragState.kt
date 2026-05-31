@@ -27,13 +27,9 @@ import com.arishawke.asala.calendar.ui.timeline.pxToMinutes
 import com.arishawke.asala.calendar.ui.timeline.snapToGrid
 import java.time.ZoneId
 
-// In-flight vertical + horizontal drag offset for a single EventBlock,
-// plus a pointerInput modifier that emits onReschedule with the new
-// start millis (snapped to 15 minutes vertically and to the day column
-// horizontally) when the gesture ends. The remember key on
-// event.startMillis resets the offsets atomically when save lands.
-// Horizontal shift is clamped to the visible week so drag never
-// silently scrolls into the adjacent week.
+// drag offset + pointerInput that emits onReschedule on gesture end (snap
+// 15min vertical, day-column horizontal). remember key on startMillis resets
+// offsets atomically when save lands. horizontal shift clamped to visible week.
 internal class RescheduleDragState(
     val dragModifier: Modifier,
     val tapModifier: Modifier,
@@ -69,10 +65,8 @@ internal fun rememberRescheduleDragState(
         }
     }
 
-    // Pass a non-null onLongPress (empty) so detectTapGestures actually
-    // honors the platform long-press timeout. Without it the tap detector
-    // sets the timeout to MAX_VALUE / 2 and fires onTap on release
-    // regardless of how long the press was held.
+    // non-null onLongPress so detectTapGestures honors the long-press timeout;
+    // without it the tap fires on release regardless of hold duration.
     val tapModifier = if (onTap == null) {
         Modifier
     } else {
@@ -112,11 +106,8 @@ internal fun rememberRescheduleDragState(
                         dragDeltaXPx = 0f
                         dragDeltaYPx = 0f
                     } else {
-                        // Snap visually to the resolved grid position so the
-                        // chip rests where the save will land. Hold the offset
-                        // through the Calendar Provider round-trip; the
-                        // remember key resets to zero when event.startMillis
-                        // updates, atomically swapping base + delta.
+                        // hold the snapped offset through the provider round-trip;
+                        // remember key zeroes it when startMillis updates.
                         dragDeltaYPx = snappedMinutes * hourHeightPx / MinutesPerHour
                         dragDeltaXPx = snappedDayDelta.toFloat() * columnWidthPx
                         onReschedule(

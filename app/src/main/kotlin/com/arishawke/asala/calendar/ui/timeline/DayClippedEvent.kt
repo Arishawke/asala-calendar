@@ -14,13 +14,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-// A timed event projected onto a single day. displayStartMillis /
-// displayEndMillis are clipped to [day start, next day start) so an event
-// crossing midnight renders one chip per covered day; continuedFromPrev /
-// continuedToNext flag the cut edges for square-corner styling. event
-// remains the original so click handlers keep the true instance id and
-// start millis. segmentIndex / segmentCount number this piece among the
-// event's covered days (1/1 for a single-day event) so the chip can show a
+// A timed event projected onto one day: display millis clipped to
+// [day start, next day start) so a midnight-crossing event renders one chip
+// per day. continued flags mark cut edges for square corners; event stays the
+// original so clicks keep the true id/start; segmentIndex/Count drive the
 // "N/total" continuation badge.
 @Immutable
 internal data class DayClippedEvent(
@@ -33,17 +30,15 @@ internal data class DayClippedEvent(
     val segmentCount: Int,
 )
 
-// Returns null when the event does not touch the day. All-day events are
-// not handled here; see WeekBucketer for the all-day bar pipeline.
+// null when the event doesn't touch the day. all-day handled by WeekBucketer.
 internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClippedEvent? {
     if (event.allDay) return null
     val dayStart = date.atStartOfDay(zone).toInstant().toEpochMilli()
     val nextDayStart = date.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
     if (event.endMillis <= dayStart || event.startMillis >= nextDayStart) return null
     val startDay = Instant.ofEpochMilli(event.startMillis).atZone(zone).toLocalDate()
-    // The last instant the event is active. The -1ms keeps an event ending
-    // exactly at midnight on the prior day, matching the clip null-boundary
-    // above (an event that ends at 00:00 does not occupy the new day).
+    // -1ms keeps an event ending at midnight on the prior day, matching the
+    // null-boundary above: a 00:00 end does not occupy the new day.
     val lastDay = Instant.ofEpochMilli(maxOf(event.endMillis - 1, event.startMillis))
         .atZone(zone)
         .toLocalDate()
@@ -58,9 +53,8 @@ internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClip
     )
 }
 
-// The single time to show on a multi-day piece: the real start on the first
-// piece, the real end on the last, null for a single-day event or a middle
-// piece (which fills a whole column and shows only the segment badge).
+// time to show on a multi-day piece: real start on the first, real end on the
+// last, null for single-day or middle pieces (which show only the badge).
 internal fun segmentAnchorMillis(clip: DayClippedEvent): Long? = when {
     clip.segmentCount <= 1 -> null
     clip.segmentIndex == 1 -> clip.event.startMillis
@@ -68,10 +62,8 @@ internal fun segmentAnchorMillis(clip: DayClippedEvent): Long? = when {
     else -> null
 }
 
-// Clips timed events to each day once, so callers can memoize a stable
-// per-day map instead of re-filtering every column on recomposition.
-// The allDay filter is the contract: all-day events are laid out separately,
-// never on the timed grid.
+// clips timed events per day once so callers memoize a stable per-day map.
+// allDay filter is the contract: all-day never reaches the timed grid.
 internal fun clipEventsByDay(
     events: List<EventItem>,
     days: List<LocalDate>,

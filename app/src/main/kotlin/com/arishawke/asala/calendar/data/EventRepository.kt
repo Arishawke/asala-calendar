@@ -22,8 +22,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 class EventRepository(private val contentResolver: ContentResolver) {
-    // Streams events whose instances overlap [startDate, endExclusive) in the given zone.
-    // Re-emits whenever the Calendar Provider reports a change.
+    // streams instances overlapping [startDate, endExclusive); re-emits on provider change.
     fun observeEvents(
         startDate: LocalDate,
         endExclusive: LocalDate,
@@ -89,9 +88,8 @@ class EventRepository(private val contentResolver: ContentResolver) {
         cursor.use { it.readEventItems() }
     }
 
-    // Shared reader for queries against CalendarContract.Instances with the
-    // Projection above; queryInstances and searchEvents differ only in
-    // selection clauses but consume identical row shapes.
+    // shared reader for the Projection above; queryInstances and searchEvents
+    // differ only in selection but read identical row shapes.
     private fun Cursor.readEventItems(): List<EventItem> {
         val items = mutableListOf<EventItem>()
         val instanceIdIdx = getColumnIndexOrThrow(CalendarContract.Instances._ID)
@@ -115,9 +113,8 @@ class EventRepository(private val contentResolver: ContentResolver) {
                     endMillis = getLong(endIdx),
                     allDay = getInt(allDayIdx) == 1,
                     displayColor = getInt(colorIdx),
-                    // Older CalDAV imports may leave STATUS unset; default to
-                    // CONFIRMED so the chip renders normally rather than as
-                    // tentative-by-accident.
+                    // older CalDAV imports may leave STATUS unset; default
+                    // CONFIRMED so the chip isn't rendered tentative-by-accident.
                     status = if (isNull(statusIdx)) {
                         CalendarContract.Events.STATUS_CONFIRMED
                     } else {

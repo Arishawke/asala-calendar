@@ -11,18 +11,13 @@ package com.arishawke.asala.calendar.data
 import android.provider.CalendarContract
 import androidx.compose.runtime.Immutable
 
-// One account's selectable calendars, for the event editor's account +
-// chip-row selector. Grouping is presentation only; selectability is still
-// decided by `filter`. @Immutable so it passes as a stable Compose param.
+// one account's selectable calendars for the editor's chip-row selector.
+// grouping is presentation only; selectability is decided by `filter`.
 @Immutable
 data class CalendarAccountGroup(val accountName: String, val calendars: List<CalendarItem>)
 
-// Picker contract for the event editor's calendar dropdown: only writable
-// rows, narrowed by storage mode so the user cannot create an event on a
-// calendar the chosen mode is meant to hide, and finally narrowed by the
-// effective hide set (manual drawer-toggles plus account-level hides
-// from `drawerHiddenAccountKeys`) so calendars the user has chosen to
-// hide from the drawer don't reappear as create targets here.
+// editor calendar dropdown: writable rows only, narrowed by storage mode and
+// by the hide set so drawer-hidden calendars don't reappear as create targets.
 object EventEditCalendarPicker {
     fun filter(
         calendars: List<CalendarItem>,
@@ -41,9 +36,8 @@ object EventEditCalendarPicker {
             }
         }
 
-    // Groups already-filtered calendars by account for the chip-row selector.
-    // groupBy preserves first-seen account order and each account's input
-    // order, so the repo's ordering carries through to the UI unchanged.
+    // groupBy preserves first-seen account order and input order, so the
+    // repo's ordering carries through to the UI unchanged.
     fun groupByAccount(calendars: List<CalendarItem>): List<CalendarAccountGroup> = calendars
         .groupBy { it.accountName }
         .map { (account, cals) -> CalendarAccountGroup(account, cals) }

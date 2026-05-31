@@ -32,10 +32,8 @@ import java.time.DayOfWeek
 
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-// Mon-Fri matches the most common office baseline; the reader coerces
-// empty / null / fully-invalid stored values to this set so a corrupt
-// write can't dim every day in the calendar. Public so SettingsViewModel
-// can use it for the initial state.
+// Mon-Fri office baseline; the reader coerces empty/null/invalid stored
+// values to this so a corrupt write can't dim every day.
 internal val WorkingDaysDefault: Set<DayOfWeek> = setOf(
     DayOfWeek.MONDAY,
     DayOfWeek.TUESDAY,
@@ -44,9 +42,8 @@ internal val WorkingDaysDefault: Set<DayOfWeek> = setOf(
     DayOfWeek.FRIDAY,
 )
 
-// Set<DayOfWeek> isn't stable as a Compose parameter (collection-generic
-// stability is not inferable), so the screens take a Long bitmask
-// instead. Each DayOfWeek.ordinal is a bit position 0-6.
+// Set<DayOfWeek> isn't Compose-stable (collection generics aren't
+// inferable), so screens take a Long bitmask. bit position = ordinal 0-6.
 internal fun Set<DayOfWeek>.toWorkingDaysMask(): Long {
     var mask = 0L
     for (day in this) mask = mask or (1L shl day.ordinal)
@@ -55,25 +52,19 @@ internal fun Set<DayOfWeek>.toWorkingDaysMask(): Long {
 
 internal fun Long.containsWorkingDay(day: DayOfWeek): Boolean = (this and (1L shl day.ordinal)) != 0L
 
-// Compose-stability marker: every emission of `userPreferences.prefs`
-// is a freshly constructed `UserPrefs` whose `Map` / `Set` fields are
-// never mutated in place, so the maps are effectively immutable and
-// the smart-recomposer can skip on equality for downstream consumers.
+// @Immutable is safe: each emission is a fresh UserPrefs whose map/set
+// fields are never mutated in place, so recompose can skip on equality.
 @Immutable
 data class UserPrefs(
     val themeMode: ThemeMode,
     val defaultView: CalendarView,
     val weekStartsOn: DayOfWeek?,
-    // Tri-state: null means "follow Android system 24-hour setting,"
-    // true forces 24-hour, false forces 12-hour. New installs start null
-    // so a German/French/24-hour-region user sees the system default
-    // until they explicitly override in Settings.
+    // tri-state: null follows the system 24-hour setting, true/false force
+    // it. starts null so 24-hour-region users see their default unoverridden.
     val is24HourOverride: Boolean?,
     val hiddenCalendarIds: Set<Long>,
-    // Accounts the user has hidden from the drawer list entirely. Keyed by
-    // "<accountType>:<accountName>" (matches accountOverrideKey). When an
-    // account is in this set, the whole AccountGroup vanishes from the
-    // drawer and all of its calendars' events stop rendering. Restoring it
+    // accounts hidden from the drawer entirely. key "<type>:<name>" (matches
+    // accountOverrideKey). hiding drops the group and its events; restoring
     // preserves each calendar's prior checkbox state.
     val drawerHiddenAccountKeys: Set<String>,
     val collapsedAccounts: Set<String>,
@@ -82,52 +73,37 @@ data class UserPrefs(
     val oemAdvisoryShown: Boolean,
     val storageMode: StorageMode,
     val tasksEnabled: Boolean,
-    // Per-account avatar color override. Key is "<accountType>:<accountName>";
-    // value is an ARGB color int. Empty by default; populated by the user via
-    // the long-press recolor dialog on the account avatar.
+    // per-account avatar color. key "<type>:<name>", value ARGB int.
     val accountAvatarColors: Map<String, Int>,
-    // Per-calendar color override keyed by Calendars._ID. Empty by default;
-    // populated by the user via the "Change color" entry on each calendar's
-    // 3-dot menu. For synced calendars this is the only persistence; for
-    // local calendars we also write CALENDAR_COLOR (see CalendarRepository).
+    // per-calendar color keyed by Calendars._ID. only persistence for synced
+    // calendars; local ones also write CALENDAR_COLOR (see CalendarRepository).
     val calendarColorOverrides: Map<Long, Int>,
     val defaultDurationMinutes: Int,
-    // Per-event color override keyed by Events._ID (the event's row, not an
-    // instance id) so the override applies to every instance of a recurring
-    // event. Stays in DataStore only, never written to CalendarContract, so
-    // sync adapters cannot clobber it and the override works on read-only
-    // synced calendars.
+    // per-event color keyed by Events._ID (row, not instance) so it covers
+    // every recurring instance. DataStore only, never CalendarContract, so
+    // sync can't clobber it and it works on read-only synced calendars.
     val eventColorOverrides: Map<Long, Int>,
-    // Which built-in palette the recolor pickers offer. Defaults to
-    // Okabe-Ito so existing installs see no visual change.
+    // palette the recolor pickers offer. defaults Okabe-Ito so existing
+    // installs see no visual change.
     val paletteId: PaletteId,
-    // Working-hours dim: when enabled, Day and Week timelines render
-    // hours outside [start, end) at half opacity so the work block
-    // anchors the viewport. Hours stored as integers 0-23; end is
-    // exclusive (end=17 means the 17:00 slot is also dimmed).
+    // working-hours dim: hours outside [start, end) render at half opacity.
+    // stored 0-23; end exclusive (end=17 dims the 17:00 slot too).
     val workingHoursEnabled: Boolean,
     val workingHoursStartHour: Int,
     val workingHoursEndHour: Int,
-    // Default reminder minutes for newly created timed events. Null
-    // means no reminder by default. Existing events are never altered.
+    // default reminder for new timed events; null = none. existing events
+    // never altered.
     val defaultTimedReminderMinutes: Int?,
-    // Separate default for all-day events; "15 minutes before" on an
-    // all-day event fires at 23:45 the night before, which is rarely
-    // what the user wanted. Null means no reminder by default.
+    // separate all-day default: "15 min before" on an all-day event fires
+    // at 23:45 the night before, rarely wanted. null = none.
     val defaultAllDayReminderMinutes: Int?,
-    // Working-days dim: when enabled, Day and Week views render days
-    // not in `workingDays` at half opacity, mirroring the working-
-    // hours treatment on the day axis. Empty set falls back to Mon-Fri
-    // on read so a corrupt write can't dim every day.
+    // working-days dim: days not in workingDays render at half opacity.
+    // empty falls back to Mon-Fri on read so a corrupt write can't dim all.
     val workingDaysEnabled: Boolean,
     val workingDays: Set<DayOfWeek>,
-    // ISO 8601 week-of-year on the left rail of Month and Week views.
-    // Off by default; opt-in for users (typically European calendars)
-    // who plan in week numbers.
+    // ISO 8601 week-of-year on the Month/Week left rail. off by default.
     val showWeekNumber: Boolean,
-    // Month-view surface selector. Paged is the historic
-    // HorizontalPager; Continuous is the vertical LazyColumn behind a
-    // Settings opt-in. See [[MonthScrollStyle]].
+    // see [[MonthScrollStyle]].
     val monthScrollStyle: MonthScrollStyle,
 )
 
@@ -290,9 +266,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
     }
 
     suspend fun setWorkingHoursRange(startHour: Int, endHour: Int) {
-        // Persist the raw values; the read path coerces. Reject inverted
-        // ranges silently - the UI prevents this but a stale write could
-        // still arrive.
+        // read path coerces; reject inverted ranges in case a stale write
+        // slips past the UI.
         if (endHour <= startHour) return
         dataStore.edit { p ->
             p[KEY_WORKING_HOURS_START] = startHour
@@ -389,16 +364,13 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             return if (decoded.isEmpty()) WorkingDaysDefault else decoded
         }
 
-        // 9am to 5pm matches the most common 9-to-5 office baseline; users
-        // who want different hours pick them in Settings.
+        // 9-to-5 office baseline.
         const val MaxWorkingHoursStart = TimeUnits.HoursPerDay - 1
         const val WorkingHoursDefaultStart = 9
         const val WorkingHoursDefaultEnd = 17
 
-        // kotlinx.serialization JSON. Encoder controls the wire format;
-        // decode wraps in runCatching so a malformed/legacy entry won't
-        // crash the read flow. We log decode failures so a future schema
-        // bump that loses user data is observable.
+        // decode wraps runCatching so a malformed/legacy entry can't crash
+        // the read; failures are logged so a lossy schema bump is observable.
         val json = Json { ignoreUnknownKeys = true }
         val stringIntMap = MapSerializer(String.serializer(), Int.serializer())
         val longIntMap = MapSerializer(Long.serializer(), Int.serializer())

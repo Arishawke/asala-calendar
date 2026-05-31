@@ -34,10 +34,7 @@ import com.arishawke.asala.calendar.ui.theme.PastDateAlpha
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 
-// The day-number circle that sits above the all-day bars in Month view.
-// Extracted from DayCell so MonthGrid can render a header row of numbers,
-// then the bar row, then the chips row (events appear below the date).
-// Tapping the number column jumps to Day view.
+// day-number circle above the all-day bars; tapping jumps to Day view
 @Composable
 internal fun DayNumberBadge(
     day: CalendarDay,

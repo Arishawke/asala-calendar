@@ -31,9 +31,7 @@ class AsalaCalendarApplication : Application() {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var providerObserverRegistered = false
 
-    // Lazy so process startup doesn't pay for the BroadcastReceiver
-    // registration before any screen subscribes; the first ViewModel
-    // factory or AppShell access triggers it.
+    // lazy so startup doesn't pay for receiver registration until first access
     val todayProvider: TodayProvider by lazy {
         TodayProvider().also { provider ->
             registerDateChangedReceiver { provider.refresh() }
@@ -45,19 +43,14 @@ class AsalaCalendarApplication : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-        // Release: no tree planted, so Timber calls compile to no-ops at runtime.
-        // Add a release tree here later if we adopt crash reporting.
+        // release: no tree, so Timber calls are no-ops. add one if we adopt
+        // crash reporting.
         Timber.d("AsalaCalendarApplication onCreate")
         NotificationChannelInitializer.ensureCreated(this)
-        // Provider observer + initial reschedule are deferred until the user
-        // grants calendar permission (called from MainActivity).
+        // observer + initial reschedule deferred until permission granted
     }
 
-    /**
-     * Called by MainActivity after the user grants calendar permission.
-     * Idempotent: safe to call multiple times. Registers the ContentObserver
-     * once and re-runs rescheduleAll on each call.
-     */
+    /** Idempotent: registers the observer once, re-runs rescheduleAll each call. */
     fun onCalendarPermissionGranted() {
         Timber.d("calendar permission granted; observer registered=%b", providerObserverRegistered)
         if (!providerObserverRegistered) {
@@ -87,9 +80,8 @@ class AsalaCalendarApplication : Application() {
         )
     }
 
-    // Forwards system date / time / timezone broadcasts into TodayProvider so
-    // every collector picks up the change. These are protected system
-    // broadcasts; NOT_EXPORTED is correct since only the system delivers them.
+    // forwards date/time/timezone broadcasts into TodayProvider. NOT_EXPORTED
+    // is correct: these are protected broadcasts only the system delivers.
     private fun registerDateChangedReceiver(onChange: () -> Unit) {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_DATE_CHANGED)

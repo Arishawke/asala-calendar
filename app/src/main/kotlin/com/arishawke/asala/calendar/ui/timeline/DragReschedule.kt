@@ -13,9 +13,7 @@ import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
-// Drag-to-reschedule math, kept pure so it can be unit-tested without
-// Compose. Vertical drag delta in pixels -> minute delta relative to the
-// event's original start, snapped to a 15-minute grid.
+// drag-reschedule math, pure so it unit-tests without Compose.
 internal const val ScheduleSnapMinutes = 15
 
 internal fun pxToMinutes(deltaPx: Float, hourHeightPx: Float): Int {
@@ -32,11 +30,9 @@ internal fun snapToGrid(minutes: Int, snapMinutes: Int = ScheduleSnapMinutes): I
 internal fun applyMinuteDelta(originalMillis: Long, deltaMinutes: Int): Long =
     originalMillis + deltaMinutes * TimeUnits.MillisPerMinute
 
-// Shifts an event by N days plus M minutes, walking through the zone's
-// DST transitions. A flat (24h * dayDelta) add would silently absorb
-// or duplicate the DST hour around the spring-forward and fall-back
-// boundaries; ZonedDateTime.plusDays preserves local wall-clock time
-// across them, which is the behavior users expect for drag-reschedule.
+// shifts by N days + M minutes via ZonedDateTime so wall-clock time is
+// preserved across DST; a flat 24h*dayDelta add would absorb/duplicate the
+// DST hour at the spring-forward/fall-back boundaries.
 internal fun applyDayAndMinuteDelta(originalMillis: Long, zone: ZoneId, dayDelta: Int, minuteDelta: Int): Long {
     val shifted = Instant.ofEpochMilli(originalMillis)
         .atZone(zone)
@@ -45,16 +41,13 @@ internal fun applyDayAndMinuteDelta(originalMillis: Long, zone: ZoneId, dayDelta
     return shifted.toInstant().toEpochMilli()
 }
 
-// Pixel-to-column delta for cross-day drag, snapped on release.
-// Negative result = drag toward earlier days, positive = later days.
+// pixel-to-column delta for cross-day drag. negative = earlier days, positive = later.
 internal fun pxToDayDelta(deltaPx: Float, columnWidthPx: Float): Int {
     if (columnWidthPx <= 0f) return 0
     return (deltaPx / columnWidthPx).roundToInt()
 }
 
-// Clamps a day delta so the resulting day stays within the visible
-// window. Drag does not auto-scroll into the adjacent week when the
-// gesture overshoots the edge.
+// clamps the day delta to the visible window; no auto-scroll into the next week on overshoot.
 internal fun clampDayDelta(dayDelta: Int, currentColumn: Int, totalColumns: Int): Int {
     if (totalColumns <= 1) return 0
     val minDelta = -currentColumn

@@ -11,13 +11,10 @@ package com.arishawke.asala.calendar.data
 import android.content.ContentValues
 import android.provider.CalendarContract
 
-// CalendarContract requires DTSTART plus DTEND-or-DURATION on every Events
-// insert. For a "delete this one occurrence" we insert a zero-duration
-// exception row marked STATUS_CANCELED so the provider hides that slot.
-// CALENDAR_ID must match the parent series; the provider does not infer it.
-// For all-day parents: ORIGINAL_ALL_DAY=1, ALL_DAY=1, EVENT_TIMEZONE=UTC are
-// required for the provider to match the exception against the UTC-midnight
-// slot the recurrence engine produces.
+// deletes one occurrence via a zero-duration STATUS_CANCELED exception row.
+// gotchas: DTSTART + DTEND required on every insert; CALENDAR_ID must match
+// the parent (provider won't infer it); all-day parents need ORIGINAL_ALL_DAY=1,
+// ALL_DAY=1, EVENT_TIMEZONE=UTC to match the recurrence engine's UTC-midnight slot.
 object EventCancellation {
     fun buildMap(
         parentEventId: Long,
@@ -38,9 +35,8 @@ object EventCancellation {
     }
 }
 
-// Mirrors EventDraft.toContentValues' converter so map-shaped Events
-// payloads can be unit-tested as plain Kotlin and only crossed over to
-// ContentValues at the provider edge.
+// mirrors EventDraft.toContentValues so map payloads stay unit-testable as
+// plain Kotlin, crossing to ContentValues only at the provider edge.
 internal fun Map<String, Any?>.toCalendarEventContentValues(): ContentValues {
     val cv = ContentValues()
     forEach { (key, value) ->

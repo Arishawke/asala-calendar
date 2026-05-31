@@ -20,19 +20,10 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 
-// Half-window radius for the continuous-scroll Month view. Wider than
-// paged's 1 so a LazyColumn fling does not render blank cells for
-// pre-composed items beyond the previous single-month buffer. Exposed
-// internal so the radius-wiring test can pin the design constraint
-// (must stay > paged's 1).
+// continuous half-window radius; must stay > paged's 1 so a fling doesn't render blank pre-composed cells
 internal const val ContinuousMonthWindowRadius = 6
 
-// Thin dispatcher between PagedMonthScreen and ContinuousMonthScreen.
-// Reads the user's monthScrollStyle preference and hoists the
-// MonthViewModel construction so both subscreens share the same
-// instance regardless of which renders. The `key` on the viewModel call
-// re-keys when the user flips the Settings dropdown so the VM picks up
-// the new window radius.
+// dispatcher: hoists the VM so both subscreens share one instance; re-keyed on style flip for the new radius
 @Suppress("LongParameterList")
 @Composable
 fun MonthScreen(
@@ -55,9 +46,6 @@ fun MonthScreen(
 ) {
     val context = LocalContext.current
     val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
-    // Paged uses radius 1 (one-month buffer); continuous widens to 6 so
-    // the LazyColumn's pre-composed items render with events. Re-key the
-    // ViewModel by style so the wider window takes effect on flip.
     val radius = when (monthScrollStyle) {
         MonthScrollStyle.Paged -> 1
         MonthScrollStyle.Continuous -> ContinuousMonthWindowRadius

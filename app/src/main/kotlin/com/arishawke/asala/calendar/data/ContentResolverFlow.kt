@@ -18,14 +18,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import timber.log.Timber
 
-// Emits Unit once on subscription and again whenever the Calendar Provider
-// (or any ContentProvider at `uri`) reports a change.
-// Defensive: if registerContentObserver throws SecurityException (caller
-// subscribed before its runtime permission was granted), the flow stays
-// open and emits the initial Unit without observing. Callers that gate
-// subscription on permission state never hit this branch; the catch is
-// insurance against an upstream regression; follows the established
-// upstream-defensive pattern.
+// emits Unit on subscription and on every provider change at `uri`.
+// if registerContentObserver throws (subscribed before permission granted),
+// the flow still emits the initial Unit without observing.
 fun ContentResolver.observeChanges(uri: Uri): Flow<Unit> = callbackFlow {
     val handler = Handler(Looper.getMainLooper())
     val observer =

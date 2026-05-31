@@ -10,10 +10,7 @@ package com.arishawke.asala.calendar.ui.multidaybars
 
 import androidx.compose.runtime.Immutable
 
-// One week-clipped slice of a multi-day all-day event. An event spanning
-// several weeks produces one segment per week, each with its own startCol
-// and endCol relative to the week. Continuation flags mark cut edges so
-// the renderer can square the cut side and round the natural end.
+// one week-clipped slice of a multi-day all-day event (one per week spanned); continuation flags mark cut edges
 @Immutable
 data class WeekSegment(
     val eventId: Long,

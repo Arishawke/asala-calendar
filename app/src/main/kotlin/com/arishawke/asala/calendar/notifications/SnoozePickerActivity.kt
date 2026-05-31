@@ -92,7 +92,7 @@ class SnoozePickerActivity : ComponentActivity() {
     }
 }
 
-// Sentinel for the Custom row; the actual minutes come from the text input.
+// sentinel for the Custom row; minutes come from the text input
 private const val CUSTOM_SENTINEL = -1
 
 @Composable
@@ -142,7 +142,7 @@ private fun SnoozePickerDialog(initialMinutes: Int, onPicked: (Int) -> Unit, onD
                     OutlinedTextField(
                         value = customText,
                         onValueChange = { input ->
-                            // Digits only; cap length so the field is sane.
+                            // digits only, capped at 4
                             customText = input.filter { it.isDigit() }.take(4)
                         },
                         label = { Text(stringResource(R.string.snooze_custom_label)) },

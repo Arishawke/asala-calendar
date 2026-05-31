@@ -38,8 +38,7 @@ internal fun WeekdayHeader(firstDayOfWeek: DayOfWeek, showWeekNumberColumn: Bool
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         if (showWeekNumberColumn) {
-            // Spacer column keeps the day labels aligned with the day
-            // cells below when the week-number column is on.
+            // aligns labels with the cells below when the week-number column is on
             Spacer(modifier = Modifier.width(WeekNumberColumnWidth))
         }
         days.forEach { dow ->

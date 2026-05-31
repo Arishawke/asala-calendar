@@ -37,8 +37,7 @@ internal fun CreateCalendarDialog(
     onConfirm: (name: String, color: Int) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
-    // Seed with the palette's mid-hue slot so the default isn't an edge color
-    // (grey for Okabe-Ito, tomato for Radix). Adjust if palette grows past 11.
+    // mid-hue slot so the default isn't an edge color (grey / tomato).
     val seedIndex = palette.swatches.size / 2
     var selectedColorArgb by remember(palette) { mutableIntStateOf(palette.swatches[seedIndex].toArgb()) }
     val canSave = name.trim().isNotEmpty()

@@ -10,10 +10,8 @@ package com.arishawke.asala.calendar.data
 
 import android.provider.CalendarContract
 
-// Mode-driven hides are derived on read, never persisted. Keeping them
-// computed (rather than baked into the user's hidden-ids preference) is
-// what stops a Local only -> Hybrid -> Local only round trip from
-// stomping the user's manual drawer toggles.
+// mode-driven hides are derived on read, never persisted, so a
+// LocalOnly -> Hybrid -> LocalOnly round trip can't stomp manual drawer toggles.
 object StorageModeFilter {
     fun modeHiddenIds(mode: StorageMode, calendars: List<CalendarItem>): Set<Long> = when (mode) {
         StorageMode.LocalOnly ->
@@ -29,10 +27,8 @@ object StorageModeFilter {
         -> emptySet()
     }
 
-    // True when the active storage mode treats this account type as
-    // nonexistent: Local only hides every synced account; Sync only hides
-    // the on-device (local) account. Drives full account hiding (drawer +
-    // Settings restore list), not just event hiding.
+    // full account hiding (drawer + Settings restore list), not just events:
+    // LocalOnly hides synced accounts; SyncOnly hides the on-device account.
     fun accountHiddenByMode(accountType: String, mode: StorageMode): Boolean = when (mode) {
         StorageMode.LocalOnly -> accountType != CalendarContract.ACCOUNT_TYPE_LOCAL
         StorageMode.SyncOnly -> accountType == CalendarContract.ACCOUNT_TYPE_LOCAL

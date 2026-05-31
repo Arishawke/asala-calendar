@@ -31,10 +31,7 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.isAlwaysVisible
 import com.arishawke.asala.calendar.label
 
-// Top-bar control that switches the calendar view through a dropdown.
-// Took view switching over from the navigation drawer, which now holds
-// only calendars and Settings. Current view carries a trailing check.
-// tasksEnabled gates the Tasks entry, mirroring the drawer/settings list.
+// top-bar view-switcher dropdown. tasksEnabled gates the Tasks entry.
 @Composable
 internal fun ViewSwitcherMenu(
     currentView: CalendarView,
@@ -46,8 +43,8 @@ internal fun ViewSwitcherMenu(
     val views = remember(tasksEnabled) {
         CalendarView.entries.filter { it.isAlwaysVisible() || tasksEnabled }
     }
-    // Box anchors the dropdown under the icon and keeps a single top-level
-    // emitter (compose-lints ComposeMultipleContentEmitters).
+    // Box anchors the dropdown and keeps a single top-level emitter
+    // (compose-lints ComposeMultipleContentEmitters).
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = true }) {
             Icon(

@@ -30,10 +30,8 @@ import com.arishawke.asala.calendar.BuildConfig
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.theme.Spacing
 
-// Condensed About block: app name + version and license on two small
-// muted lines, then a compact action row (Source / Licenses / Support).
-// Links open on tap; the raw URLs are not shown. Support leads with a
-// heart so it reads as a support action, not a plain link.
+// raw urls hidden; tap opens. support leads with a heart so it reads as
+// a support action, not a plain link.
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AboutSection(onOpenSource: () -> Unit, onOpenLicenses: () -> Unit, onOpenSupport: () -> Unit) {

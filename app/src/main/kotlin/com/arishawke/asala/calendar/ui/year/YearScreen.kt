@@ -71,9 +71,8 @@ fun YearScreen(
     val locale = LocalConfiguration.current.locales.get(0)
     val firstDayOfWeek = firstDayOfWeekOverride ?: firstDayOfWeekFromLocale()
 
-    // anchor the scroll range once so a midnight/New-Year rollover does not
-    // recreate the state and reset the scroll position. Today's highlight
-    // still updates via state.today inside the day cell.
+    // anchor the scroll range once so a New-Year rollover doesn't reset the
+    // scroll position. today's highlight still updates via state.today.
     val anchor = remember { Year.from(state.today) }
 
     val calendarState = rememberYearCalendarState(

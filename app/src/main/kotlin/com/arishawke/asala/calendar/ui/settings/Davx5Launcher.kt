@@ -15,9 +15,8 @@ import androidx.core.net.toUri
 
 private const val Davx5Package = "at.bitfire.davdroid"
 
-// Settings DAVx5 row tries to launch the installed app first, then falls
-// back to Play Store, then F-Droid web. Any failure path is silent so the
-// surface never crashes the settings screen on missing app stores.
+// installed app -> Play Store -> F-Droid web. failures silent so a
+// missing app store never crashes the settings screen.
 internal fun openDavx5(context: Context) {
     val launch = context.packageManager.getLaunchIntentForPackage(Davx5Package)
     if (launch != null) {
@@ -32,7 +31,7 @@ internal fun openDavx5(context: Context) {
         context.startActivity(playStore)
         return
     } catch (_: ActivityNotFoundException) {
-        // fall through to F-Droid web link
+        // fall through to F-Droid web
     }
     val fdroid = Intent(
         Intent.ACTION_VIEW,
@@ -41,7 +40,6 @@ internal fun openDavx5(context: Context) {
     try {
         context.startActivity(fdroid)
     } catch (_: ActivityNotFoundException) {
-        // No browser installed. Silently no-op rather than crash; the
-        // user can install DAVx5 via any other path.
+        // no browser; silently no-op rather than crash.
     }
 }

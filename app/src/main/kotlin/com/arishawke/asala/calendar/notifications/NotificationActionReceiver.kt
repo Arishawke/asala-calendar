@@ -64,9 +64,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         SnoozeSession.lastChoiceMinutes = minutes
     }
 
-    // Only reached via the picker's sendBackToReceiver callback now; the
-    // picker action on the notification launches SnoozePickerActivity
-    // directly so the shade collapses. No fallback path needed.
+    // only reached via the picker's sendBackToReceiver callback now
     private fun handleSnooze(context: Context, intent: Intent) {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
@@ -83,7 +81,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
     private fun handleDismiss(context: Context, intent: Intent) {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
-        // Cancel the notification first so it disappears even if the provider write fails.
+        // cancel first so it clears even if the provider write fails
         if (eventId > 0) NotificationManagerCompat.from(context).cancel(eventId.toInt())
         if (alertId > 0) markAlertState(context, alertId, CalendarContract.CalendarAlerts.STATE_DISMISSED)
     }

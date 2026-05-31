@@ -26,9 +26,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.arishawke.asala.calendar.R
 
-// Preset offsets, in minutes-before. null is "no reminder"; 0 fires at
-// the event start. The "Custom…" entry below opens a numeric dialog so
-// users aren't capped at the presets.
+// minutes-before presets. null = no reminder; 0 = at start.
 private val ReminderPresets = listOf(
     null,
     0,
@@ -96,10 +94,8 @@ fun ReminderPicker(
     }
 }
 
-// Snap exact preset matches (60 → "1 hour", 1440 → "1 day"). For
-// non-preset values, format with the largest unit that divides cleanly
-// so "180 minutes" reads as "3 h before" and "2880 minutes" as "2 days
-// before".
+// snap exact presets, else format with the largest unit that divides
+// cleanly (180 -> "3 h before", 2880 -> "2 days before").
 @Composable
 private fun reminderLabel(m: Int?): String = when (m) {
     null -> stringResource(R.string.reminder_none)

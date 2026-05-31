@@ -11,15 +11,12 @@ package com.arishawke.asala.calendar.ui.theme
 import androidx.compose.ui.graphics.Color
 import com.arishawke.asala.calendar.R
 
-// Okabe-Ito 8-color color-blind-safe palette (Nature Methods 2011, "Wong").
-// Used for account avatars and the local-calendar color picker. A neutral
-// grey replaces Okabe-Ito's pure black, which renders poorly as a chip
-// background against dark themes.
+// Okabe-Ito color-blind-safe palette (Wong, Nature Methods 2011). grey
+// substitutes Okabe-Ito black, which reads poorly as a chip on dark.
 //
-// Yellow (#F0E442) does not clear WCAG 1.4.11 (3:1) against a white
-// surface; that's an accepted color-blind-safety tradeoff and the reason
-// RadixPaletteContrastTest exempts this palette. If you need a swatch
-// set that's also contrast-safe, pick Radix from the Settings switcher.
+// yellow (#F0E442) misses WCAG 1.4.11 (3:1) on white; an accepted
+// color-blind-safety tradeoff and why RadixPaletteContrastTest exempts
+// this palette. pick Radix in Settings for a contrast-safe set.
 internal val OkabeItoPalette: List<Color> =
     listOf(
         Color(0xFF999999), // grey (substituted for Okabe-Ito black)
@@ -32,14 +29,9 @@ internal val OkabeItoPalette: List<Color> =
         Color(0xFFCC79A7), // reddish purple
     )
 
-// Radix Colors step 9 ("solid" step), hue-ordered. Step 9 is the
-// "solid background for white text" step in Radix; for our use case
-// (chip stripe / drawer dot on a neutral surface) we require each
-// swatch to clear 3:1 against the base surface in at least one theme
-// mode, not both. RadixPaletteContrastTest enforces that bar. Some
-// swatches read best in light mode (Indigo, Violet); some in dark
-// (Orange, Amber, Slate); a few work in both (Tomato, Pink, Crimson).
-// Users pick the colors that suit their mode.
+// Radix step 9 ("solid"), hue-ordered. for chip stripe / drawer dot on a
+// neutral surface each swatch need only clear 3:1 in one theme mode, not
+// both (RadixPaletteContrastTest enforces this). per-swatch mode noted below.
 internal val RadixSolidPalette: List<Color> =
     listOf(
         Color(0xFFE54D2E), // tomato 9, warm red (both modes)
@@ -55,9 +47,8 @@ internal val RadixSolidPalette: List<Color> =
         Color(0xFF687076), // slate 9, neutral / no-category (dark)
     )
 
-// Set of palettes the recolor pickers can offer. Adding a third palette
-// is one entry plus one swatch-list constant. `OkabeIto` is the default
-// so existing installs see no visual change.
+// palettes the recolor pickers offer. OkabeIto default so existing
+// installs see no visual change.
 enum class PaletteId(val swatches: List<Color>, val labelRes: Int) {
     OkabeIto(OkabeItoPalette, R.string.palette_okabe_ito),
     Radix(RadixSolidPalette, R.string.palette_radix),

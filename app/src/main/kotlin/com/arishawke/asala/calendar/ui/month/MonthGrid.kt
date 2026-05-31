@@ -26,14 +26,10 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 
-// Shared constants used by both paged and continuous Month surfaces.
-
 internal const val MaxBarLanesPerWeek = 3
 
-// EventChips' BoxWithConstraints math collapses chip capacity to zero
-// below this height; pin a floor so a tiny screen does not silently
-// hide every chip behind a "+N more" affordance. Continuous mode passes
-// this directly; paged mode uses (parent height / 6).coerceAtLeast(this).
+// floor for chip capacity: below this, EventChips collapses to zero and hides every chip behind +N.
+// continuous passes it directly; paged uses (parent height / 6).coerceAtLeast(this).
 internal val WeekRowHeightMin: Dp = 96.dp
 
 @Suppress("LongParameterList")
@@ -55,12 +51,8 @@ internal fun MonthGrid(
         buildMonthGrid(yearMonth, firstDayOfWeek)
     }
     val zone = remember { ZoneId.systemDefault() }
-    // Paged mode fills a fixed 6 rows of seven equal-width cells. Self-
-    // contained (continuous) mode renders only the weeks holding this
-    // month's days, blanks the adjacent-month cells, and clips bars to the
-    // month edge. Caller decides the row height: paged divides parent
-    // height by 6; continuous passes a constant since the LazyColumn parent
-    // is unbounded.
+    // paged: fixed 6 rows. self-contained (continuous): only weeks holding this month's days,
+    // adjacent-month cells blanked, bars clipped to the month edge.
     val weekCount = if (selfContained) remember(days) { weeksWithMonthDays(days) } else 6
     Column(modifier = Modifier.fillMaxWidth()) {
         for (week in 0 until weekCount) {

@@ -8,15 +8,11 @@
  */
 package com.arishawke.asala.calendar.notifications
 
-// Stable PendingIntent request codes for the reminder flow. Hashing a string
-// that includes the action namespace plus all relevant 64-bit ids avoids the
-// silent collision that comes from Long.toInt() (which discards the upper 32
-// bits and lets two distinct event instances ~49.7 days apart overwrite each
-// other under FLAG_UPDATE_CURRENT).
+// hash the namespace plus the 64-bit ids: Long.toInt() drops the upper 32 bits,
+// so instances ~49.7 days apart collide under FLAG_UPDATE_CURRENT.
 internal object PendingIntentRequestCodes {
-    // Format chosen to bit-match the original ReminderScheduler.requestCodeFor so
-    // alarms scheduled by older builds survive an in-place upgrade without
-    // orphaning their PendingIntents in AlarmManager.
+    // string format bit-matches the original requestCodeFor so alarms from older
+    // builds survive an in-place upgrade without orphaning their PendingIntents.
     fun forAlarm(eventId: Long, instanceMillis: Long, minutesBefore: Int): Int =
         "$eventId:$instanceMillis:$minutesBefore".hashCode()
 

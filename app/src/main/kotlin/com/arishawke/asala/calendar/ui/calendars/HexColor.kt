@@ -8,10 +8,8 @@
  */
 package com.arishawke.asala.calendar.ui.calendars
 
-// Pure hex <-> opaque-ARGB conversion for the custom color picker.
-// Accepts "#RRGGBB" / "RRGGBB" and "#RGB" / "RGB" shorthand,
-// case-insensitive. Always returns an opaque color (alpha forced to
-// 0xFF) so event chips stay legible; format() drops alpha for display.
+// hex <-> ARGB for the color picker. accepts #RRGGBB / #RGB (and without
+// the #), case-insensitive; always forces opaque alpha so chips stay legible.
 object HexColor {
     private const val OPAQUE_ALPHA = 0xFF000000.toInt()
     private const val RGB_MASK = 0xFFFFFF

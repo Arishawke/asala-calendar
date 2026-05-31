@@ -10,9 +10,8 @@ package com.arishawke.asala.calendar.ui.timeline
 
 import com.arishawke.asala.calendar.data.EventItem
 
-// At or above this many simultaneously overlapping events, a cluster's
-// columns get too thin to read in Week, so all but column 0 collapse
-// into a single overflow group. Day view passes Int.MAX_VALUE to opt out.
+// at/above this overlap count, columns get too thin in Week so all but
+// column 0 collapse into one overflow group. Day passes MAX_VALUE to opt out.
 internal const val CrowdedColumnThreshold = 3
 
 internal data class OverflowGroup(val collapsedCount: Int, val events: List<EventItem>, val clusterStartMillis: Long)

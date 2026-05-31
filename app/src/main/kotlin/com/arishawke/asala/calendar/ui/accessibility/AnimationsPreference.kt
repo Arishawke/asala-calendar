@@ -17,8 +17,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalContext
 
-// Mirrors the system "Remove animations" toggle. Updates live if the user
-// flips the preference while the app is in the foreground.
+// mirrors the system "Remove animations" toggle, updating live in foreground.
 @Composable
 fun rememberAnimationsEnabled(): State<Boolean> {
     val context = LocalContext.current

@@ -15,9 +15,7 @@ import android.os.Build
 import android.provider.Settings
 
 object OemBatteryAdvisory {
-    // dontkillmyapp.com 2026 data: ColorOS-derived (Realme) and post-Huawei-split
-    // (Honor) both ship aggressive background-restriction defaults that drop
-    // exact alarms unless the user grants battery exemption.
+    // per dontkillmyapp.com: these OEMs drop exact alarms unless granted battery exemption
     private val AFFECTED = setOf(
         "samsung",
         "xiaomi",
@@ -31,9 +29,7 @@ object OemBatteryAdvisory {
 
     fun isAffected(): Boolean = Build.MANUFACTURER.lowercase() in AFFECTED
 
-    // Returns an Intent that opens the manufacturer's battery / background-restriction
-    // settings screen if the activity is resolvable; otherwise falls back to the
-    // system per-app notification settings.
+    // falls back to system per-app notification settings if the OEM activity won't resolve
     fun batterySettingsIntent(context: Context): Intent {
         val target =
             when (Build.MANUFACTURER.lowercase()) {
@@ -68,14 +64,13 @@ object OemBatteryAdvisory {
                         "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager",
                     )
                 "realme" ->
-                    // Realme is ColorOS-based; same safecenter componentry as Oppo.
+                    // coloros-based; same safecenter componentry as oppo
                     ComponentName(
                         "com.coloros.safecenter",
                         "com.coloros.safecenter.permission.startup.StartupAppListActivity",
                     )
                 "honor" ->
-                    // Post-Huawei-split Honor still ships the legacy systemmanager
-                    // StartupAppControlActivity on most Magic OS builds.
+                    // still ships the legacy huawei systemmanager activity on most magic os builds
                     ComponentName(
                         "com.huawei.systemmanager",
                         "com.huawei.systemmanager.appcontrol.activity.StartupAppControlActivity",

@@ -27,18 +27,13 @@ data class EventDetail(
     val calendarDisplayName: String,
     val reminderMinutesBefore: Int?,
     val status: Int = CalendarContract.Events.STATUS_CONFIRMED,
-    // CalendarContract.Events.AVAILABILITY - BUSY / FREE / TENTATIVE.
-    // Carried through the edit path so a Free / Tentative value set on
-    // the server (e.g., DAVx5) is not clobbered by a local title edit.
+    // BUSY/FREE/TENTATIVE. carried through edits so a server-set value
+    // (e.g. DAVx5) isn't clobbered by a local title edit.
     val availability: Int = CalendarContract.Events.AVAILABILITY_BUSY,
-    // Mirror of EventItem.isBirthday; populated by EventDetailReader
-    // via BirthdayDetection against calendarDisplayName.
     val isBirthday: Boolean = false,
 )
 
-// Resolves the detail-sheet chip color with the precedence event >
-// calendar > default. Pulled out of AppViewModelSheetState so it can
-// be unit-tested without spinning up a ViewModel.
+// chip color precedence: event > calendar > default.
 fun resolveEventDetailColor(
     detail: EventDetail,
     eventOverrides: Map<Long, Int>,
@@ -47,9 +42,7 @@ fun resolveEventDetailColor(
     ?: calendarOverrides[detail.calendarId]
     ?: detail.displayColor
 
-// True only when the delete scope removes the event row entirely. Other
-// scopes leave the original eventId intact (this-instance writes an
-// exception against the same row; this-and-following truncates the
-// series via UNTIL and inserts a NEW row for the post-split series), so
-// the per-event override remains relevant.
+// true only when the scope removes the event row entirely. other scopes
+// keep the original eventId (this-instance writes an exception on the same
+// row; this-and-following splits via UNTIL + a new row), so the override stays.
 fun shouldClearEventOverrideOnDelete(scope: RecurringEditScope): Boolean = scope == RecurringEditScope.AllEvents

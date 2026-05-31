@@ -28,10 +28,8 @@ import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.ZoneId
 
-// Shared "now" marker: small filled dot + thin horizontal line, both in
-// CalendarTokens.nowLine (monochrome onSurface, flips with theme). The
-// caller owns positioning via the passed modifier; this composable only
-// owns its own visual shape.
+// shared "now" marker (dot + line in CalendarTokens.nowLine); caller owns
+// positioning via the passed modifier.
 @Composable
 internal fun NowLineRow(modifier: Modifier = Modifier) {
     Row(
@@ -53,9 +51,8 @@ internal fun NowLineRow(modifier: Modifier = Modifier) {
     }
 }
 
-// Minutes-into-day for "now", recomputed once per minute while enabled.
-// Returns null while disabled so callers can skip rendering entirely
-// (e.g. day view on a non-today page).
+// minutes-into-day for "now", ticked once a minute. null when disabled so
+// callers skip rendering (e.g. a non-today page).
 @Composable
 internal fun rememberNowMinutes(zone: ZoneId, enabled: Boolean): Int? {
     val state: State<Int?> = produceState<Int?>(initialValue = nowMinutes(zone, enabled), zone, enabled) {

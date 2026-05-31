@@ -133,11 +133,9 @@ fun SearchScreen(
             else -> {
                 val zone = remember { ZoneId.systemDefault() }
                 val grouped: List<Pair<LocalDate, List<EventItem>>> = remember(state.results) {
-                    // EventItem.startDate routes all-day events through UTC
-                    // (effectiveZone) so the date header matches what Month /
-                    // Week / Schedule already show. Calling atZone(zone)
-                    // directly here would group a UTC-midnight all-day event
-                    // under the prior day in non-UTC zones.
+                    // startDate routes all-day events through UTC; atZone(zone)
+                    // here would group a UTC-midnight all-day event under the
+                    // prior day in non-UTC zones.
                     state.results
                         .groupBy { it.startDate(zone) }
                         .toSortedMap()

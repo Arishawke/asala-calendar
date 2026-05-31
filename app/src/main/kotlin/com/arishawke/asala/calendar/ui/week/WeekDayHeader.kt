@@ -37,10 +37,8 @@ import com.arishawke.asala.calendar.ui.theme.PastDateAlpha
 import com.arishawke.asala.calendar.ui.theme.Spacing
 import java.time.LocalDate
 
-// Adding past-date, today, and non-working-day decorations all share
-// the same Column root, which pushes this past detekt's 60-line
-// LongMethod default. Each `then`-modifier branch is a discrete concern;
-// extracting them into a helper would obscure the modifier chain.
+// LongMethod: past/today/non-working decorations share one Column root;
+// extracting the `then`-branches would obscure the modifier chain.
 @Suppress("LongMethod")
 @Composable
 internal fun WeekDayHeader(
@@ -63,8 +61,7 @@ internal fun WeekDayHeader(
             .then(if (isPast) Modifier.alpha(PastDateAlpha) else Modifier)
             .then(
                 if (isNonWorkingDay) {
-                    // Same Color.Black @ 12% alpha as TimelineGrid.WorkingHoursDim
-                    // so the two surfaces read as the same dim treatment.
+                    // same 12% black as TimelineGrid dims so the surfaces match.
                     Modifier.background(Color.Black.copy(alpha = 0.12f))
                 } else {
                     Modifier

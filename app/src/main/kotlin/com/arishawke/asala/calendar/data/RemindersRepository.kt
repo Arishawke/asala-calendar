@@ -17,11 +17,9 @@ import timber.log.Timber
 
 class RemindersRepository(private val contentResolver: ContentResolver) {
     /**
-     * Replaces all existing reminders for the event with at most one.
-     * Returns true if the persisted state matches the requested one.
-     * False means the provider rejected the insert (rare: permission revoked
-     * or account removed mid-save), and the caller should surface that to
-     * the user rather than assume the reminder is set.
+     * Replaces all reminders for the event with at most one. False means the
+     * provider rejected the insert (permission revoked / account removed
+     * mid-save); the caller should surface that, not assume the reminder is set.
      */
     suspend fun setReminder(eventId: Long, minutesBefore: Int?): Boolean = withContext(Dispatchers.IO) {
         contentResolver.delete(

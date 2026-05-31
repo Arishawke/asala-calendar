@@ -45,12 +45,11 @@ internal object ReminderScheduler {
     private var lastPlan: Set<AlarmKey> = emptySet()
     private val planMutex = Mutex()
 
-    // Pure function: given a list of upcoming reminders, build the canonical set
-    // of alarm keys we should arm. Tested by ReminderSchedulerDiffTest.
+    // pure; tested by ReminderSchedulerDiffTest
     fun computePlan(now: Long, zone: ZoneId, reminders: List<ScheduledReminder>): Set<AlarmKey> = reminders
         .asSequence()
         .filterNot { it.cancelled }
-        .filter { it.instanceStartMillis > now } // skip past instances
+        .filter { it.instanceStartMillis > now }
         .map { r ->
             AlarmKey(
                 eventId = r.eventId,
@@ -65,15 +64,13 @@ internal object ReminderScheduler {
                 ),
             )
         }.filter { it.triggerAtMillis > now }
-        .toSet() // de-duplicates identical rows
+        .toSet() // de-dupes identical rows
 
-    // Returns (toCancel, toArm): keys removed from previous plan and keys added in current plan.
+    // returns (toCancel, toArm)
     internal fun diff(previous: Set<AlarmKey>, current: Set<AlarmKey>): Pair<Set<AlarmKey>, Set<AlarmKey>> =
         (previous - current) to (current - previous)
 
-    // Suspending wrapper that reads the provider, computes the plan, cancels removed
-    // alarms, and arms new ones. Idempotent: call from ContentObserver, boot receiver,
-    // or MainActivity foreground. Serialized by planMutex to prevent observer/boot races.
+    // idempotent; planMutex serializes the observer/boot/foreground callers against races
     suspend fun rescheduleAll(context: Context) = withContext(Dispatchers.IO) {
         planMutex.withLock {
             val now = System.currentTimeMillis()
@@ -84,12 +81,10 @@ internal object ReminderScheduler {
             val am = context.getSystemService<AlarmManager>() ?: return@withLock
             val previousPlan = lastPlan
 
-            // Cancel alarms that are in the previous plan but not in the new plan.
             (previousPlan - newPlan).forEach { key ->
                 am.cancel(buildAlarmPendingIntent(context, key))
             }
 
-            // Arm or re-arm alarms in the new plan.
             newPlan.forEach { key ->
                 val pi = buildAlarmPendingIntent(context, key)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {

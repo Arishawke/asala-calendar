@@ -41,16 +41,9 @@ private val BarVerticalGap = 2.dp
 private val NaturalCorner = 6.dp
 private val CutCorner = 0.dp
 
-// Renders a horizontal strip of multi-day all-day event bars for one week.
-// Lanes stack vertically; each lane is BarHeight + BarVerticalGap tall.
-// Bars are absolutely positioned with offset() so they span the days they
-// cover. Corner radii are rounded on natural ends, square on cut edges
-// (week-boundary continuations).
-//
-// LongMethod: lane assignment + corner shape + foreground/background
-// color picking + cake-icon prepend live together because they all
-// produce one Box per segment; splitting would just move the per-
-// segment state around.
+// multi-day all-day bars for one week; lanes stack, bars offset() across the days they span.
+// corners rounded on natural ends, square on week-boundary cuts.
+// LongMethod: shape + color + icon all produce one Box per segment; splitting just moves the state around.
 @Composable
 @Suppress("LongMethod")
 fun MultiDayBarRow(
@@ -101,9 +94,7 @@ fun MultiDayBarRow(
                     ),
                 contentAlignment = Alignment.CenterStart,
             ) {
-                // title repeats on every segment so a continuation row is
-                // identifiable on its own; cake icon prefixes a birthday-
-                // typed segment, tinted to the bar's contrast color
+                // title repeats per segment so a continuation row reads on its own
                 Row(
                     modifier = Modifier.padding(horizontal = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,

@@ -27,8 +27,7 @@ import java.time.LocalDate
 import java.time.Year
 import java.time.ZoneId
 
-// Keep the upstream collector warm briefly after the screen leaves so a
-// quick return does not re-query the provider. Matches MonthViewModel.
+// keep the collector warm briefly so a quick return skips a re-query.
 private const val StopTimeoutMillis = 5_000L
 
 data class YearUiState(val today: LocalDate, val eventsByDate: Map<LocalDate, List<EventItem>>)
@@ -100,9 +99,8 @@ class YearViewModel(
     }
 
     companion object {
-        // Load events for the visible year +/- radius years so the year
-        // grid's mini-month dots render without reloading on every scroll
-        // within a year. Half-open [start, endExclusive).
+        // visible year +/- radius so scrolling within a year doesn't reload
+        // dots. half-open [start, endExclusive).
         fun yearFetchWindow(center: Year, radiusYears: Int): Pair<LocalDate, LocalDate> {
             val start = center.minusYears(radiusYears.toLong()).atDay(1)
             val endExclusive = center.plusYears(radiusYears.toLong() + 1).atDay(1)

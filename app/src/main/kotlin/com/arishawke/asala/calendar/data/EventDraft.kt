@@ -21,18 +21,13 @@ data class EventDraft(
     val allDay: Boolean,
     val eventTimezone: String,
     val rrule: String?,
-    // STATUS_CONFIRMED / STATUS_TENTATIVE / STATUS_CANCELED. Null falls
-    // back to STATUS_CONFIRMED so inserts still satisfy the CalDAV-backed
-    // accounts that reject rows without it. On edit, callers pass the
-    // loaded EventDetail value so a Tentative event the user set on the
-    // server is not overwritten with Confirmed by a local title edit.
+    // null -> STATUS_CONFIRMED (CalDAV accounts reject rows without it).
+    // edits pass the loaded value so a server-set Tentative isn't overwritten.
     val status: Int? = null,
-    // Same preservation contract as `status`. AVAILABILITY_BUSY is the
-    // fallback for inserts; updates pass the loaded value through.
+    // same preservation contract as status; insert fallback AVAILABILITY_BUSY.
     val availability: Int? = null,
 ) {
-    // Converts to a plain map so the field-mapping logic can be tested in JVM unit tests
-    // without a ContentValues stub.
+    // plain map so field mapping is unit-testable without a ContentValues stub.
     internal fun toMap(): Map<String, Any?> = buildMap {
         put(CalendarContract.Events.CALENDAR_ID, calendarId)
         put(CalendarContract.Events.TITLE, title.ifBlank { "(No title)" })
@@ -46,9 +41,8 @@ data class EventDraft(
         put(CalendarContract.Events.AVAILABILITY, availability ?: CalendarContract.Events.AVAILABILITY_BUSY)
 
         if (rrule != null) {
-            // recurring events must use DURATION, not DTEND. Provider's RFC 2445
-            // parser rejects the PT{n}S seconds-only form for some account types,
-            // so emit the full P{d}DT{h}H{m}M0S shape.
+            // recurring rows need DURATION, not DTEND. some account types reject
+            // the PT{n}S seconds-only form, so emit full P{d}DT{h}H{m}M0S.
             put(CalendarContract.Events.RRULE, rrule)
             put(CalendarContract.Events.DURATION, iso8601Duration(endMillis - startMillis))
         } else {
@@ -79,12 +73,9 @@ data class EventDraft(
     }
 
     companion object {
-        // Inverse of iso8601Duration. Tolerant of:
-        // - our own `P{d}DT{h}H{m}M{s}S` writes
-        // - other RFC 5545 shorter forms: `P1D`, `PT1H`, `P1W`
-        // - the `P3600S` post-sync form (no `T`; not strict RFC 5545,
-        //   but what some sync adapters write back into the row)
-        // The `T` separator is optional regardless of which units are present.
+        // inverse of iso8601Duration. tolerant of our writes, shorter RFC 5545
+        // forms (P1D, PT1H, P1W), and the non-strict P3600S form (no T) that
+        // some sync adapters write back. T separator optional regardless of units.
         private val DURATION_RE =
             Regex(
                 "^P(?:(\\d+)W)?(?:(\\d+)D)?T?(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$",

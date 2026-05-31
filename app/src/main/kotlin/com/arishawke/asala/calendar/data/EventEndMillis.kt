@@ -8,11 +8,8 @@
  */
 package com.arishawke.asala.calendar.data
 
-// CalendarContract.Events rows for recurring series store DURATION instead
-// of DTEND; the per-occurrence end time has to be reconstructed from
-// dtStart + parsed duration. This helper centralizes the fallback so the
-// editor and detail sheet always see a usable end time even when DTEND
-// itself is null.
+// recurring rows store DURATION not DTEND, so reconstruct the occurrence end
+// from dtStart + parsed duration when DTEND is null.
 object EventEndMillis {
     fun compute(dtStart: Long, dtEnd: Long?, durationIso8601: String?): Long {
         if (dtEnd != null) return dtEnd

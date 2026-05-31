@@ -53,8 +53,7 @@ fun CalendarDrawerContent(
     hiddenCalendarIds: Set<Long>,
     drawerHiddenAccountKeys: Set<String>,
     collapsedAccounts: Set<String>,
-    // Lookup function rather than a Map so the @Composable parameter list
-    // stays stable for Compose (Map<String, Int> trips ComposeUnstableCollections).
+    // lookup fn not a map: keeps the @Composable param list stable (Map trips ComposeUnstableCollections)
     avatarOverrideFor: (accountKey: String) -> Int?,
     onToggle: (Long) -> Unit,
     onToggleAccount: (String) -> Unit,
@@ -75,22 +74,18 @@ fun CalendarDrawerContent(
     var showRecolorCalendarFor by remember { mutableStateOf<CalendarItem?>(null) }
     var showRecolorAccountFor by remember { mutableStateOf<AccountGroup?>(null) }
 
-    // LocalOnly hides sync calendars; SyncOnly hides local calendars; Hybrid
-    // shows everything. Nothing is deleted, just filtered for the drawer.
+    // storage mode filters the drawer only, nothing is deleted
     val modeFiltered = when {
         localOnly -> calendars.filter { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
         syncOnly -> calendars.filter { it.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL }
         else -> calendars
     }
-    // Drop entire accounts the user has hidden from the drawer. The hide is
-    // keyed on "<accountType>:<accountName>", matching accountOverrideKey.
-    // Restore happens from Settings.
+    // drop accounts hidden from the drawer (key matches accountOverrideKey); restore from Settings
     val displayed = modeFiltered.filter {
         accountOverrideKey(it.accountType, it.accountName) !in drawerHiddenAccountKeys
     }
     val (visible, hidden) = displayed.partition { it.visible }
-    // Stable presentation order: account groups in the order their first
-    // calendar appears in the (already-sorted) calendar list.
+    // stable order: groups follow first appearance in the already-sorted list
     val groups = visible.groupBy { it.accountName.ifBlank { "" } }
         .entries
         .map { (account, items) -> AccountGroup(account, items) }

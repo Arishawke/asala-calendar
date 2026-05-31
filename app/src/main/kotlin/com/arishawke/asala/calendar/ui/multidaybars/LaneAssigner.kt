@@ -8,10 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.multidaybars
 
-// Greedy lane (row-within-week) assignment. Longest-span first, ties
-// broken by earlier start. For each segment we pick the lowest lane
-// index where no previously-assigned segment overlaps. Standard
-// interval-graph coloring pattern.
+// greedy interval-graph coloring into lanes: longest-span first (ties by start), lowest non-overlapping lane
 object LaneAssigner {
     fun assignLanes(segments: List<WeekSegment>): List<WeekSegment> {
         if (segments.isEmpty()) return segments
@@ -20,9 +17,7 @@ object LaneAssigner {
                 .thenBy { it.startCol }
                 .thenBy { it.eventId },
         )
-        // For each lane, track the per-column occupancy as a bitmask
-        // across the week (7 bits). A new segment claims the lowest
-        // lane whose bitmask has no overlap with the segment's range.
+        // per-lane occupancy as a 7-bit (one per weekday) mask; claim the lowest lane with no overlap
         val laneMasks = mutableListOf<Int>()
         val out = ArrayList<WeekSegment>(sorted.size)
         for (s in sorted) {

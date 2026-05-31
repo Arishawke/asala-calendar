@@ -35,9 +35,8 @@ import com.arishawke.asala.calendar.ui.threeday.ThreeDayScreen
 import com.arishawke.asala.calendar.ui.week.WeekScreen
 import com.arishawke.asala.calendar.ui.year.YearScreen
 
-// Switches between Month/Week/Day/Schedule/Tasks with the slide-and-fade
-// animation. The animation collapses to None when the user disables
-// animations via system accessibility (rememberAnimationsEnabled).
+// switches views with a slide-and-fade that collapses to None when system
+// accessibility disables animations
 @Composable
 internal fun CalendarViewSwitcher(
     vm: AppViewModel,
@@ -47,8 +46,7 @@ internal fun CalendarViewSwitcher(
     onTitleChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Compose can't infer Set<DayOfWeek> as stable; encode the working
-    // days as a bitmask once at this boundary so the screens take a Long.
+    // Set<DayOfWeek> isn't stable to Compose; pass a Long bitmask instead
     val workingDaysMask = remember(prefs.workingDays) { prefs.workingDays.toWorkingDaysMask() }
     AnimatedContent(
         targetState = currentView,

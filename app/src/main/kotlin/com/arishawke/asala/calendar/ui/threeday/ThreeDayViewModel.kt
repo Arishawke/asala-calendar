@@ -35,17 +35,14 @@ class ThreeDayViewModel(
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
 
-    // Window is captured once from the initial today; shifting it at
-    // midnight would re-subscribe the upstream observer, churning the
-    // ContentObserver. The today highlight refreshes via todayFlow
-    // regardless. Same model as DayViewModel.
+    // window captured once: shifting it at midnight would re-subscribe and churn
+    // the ContentObserver. today highlight still refreshes via todayFlow.
     private val initialToday: LocalDate = todayFlow.value
     private val selectedDate = MutableStateFlow(initialToday)
     private val windowStart = initialToday.minusDays((WindowPagesEachSide * ThreeDayPageSize).toLong())
 
-    // +ThreeDayPageSize (not +1): the furthest forward page spans three
-    // days, so the exclusive end must clear all three. A one-day-per-page
-    // view (Day) uses +1; this view must not.
+    // +ThreeDayPageSize (not +1): the furthest page spans three days, so the
+    // exclusive end must clear all three.
     private val windowEndExclusive =
         initialToday.plusDays((WindowPagesEachSide * ThreeDayPageSize + ThreeDayPageSize).toLong())
 

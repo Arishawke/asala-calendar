@@ -34,9 +34,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @Composable
-// Same shape as DayScreen: pager state + today jump + cross-view jump +
-// render dispatch, plus the workingHours / workingDays params, push this
-// just over detekt's 60-line LongMethod default.
+// LongMethod: same shape as DayScreen (pager state + today jump + cross-view
+// jump + render), pushed over detekt's 60-line default.
 @Suppress("LongParameterList", "LongMethod")
 fun ThreeDayScreen(
     hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
@@ -75,20 +74,16 @@ fun ThreeDayScreen(
 
     val zone = remember { ZoneId.systemDefault() }
     val locale = LocalConfiguration.current.locales.get(0)
-    // Rolling anchor: today sits in column 0 of the center page.
+    // rolling anchor: today sits in column 0 of the center page.
     val anchor = state.today
 
-    // Push the visible page into the VM (drives the event filter), set the
-    // toolbar title to the page's 3-day range, and report the FAB's
-    // default date.
     LaunchedEffect(pagerState, anchor) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             val start = pageStart(anchor, page, center)
             val end = start.plusDays((ThreeDayPageSize - 1).toLong())
             vm.selectDate(start)
             onTitleChange(formatWeekRange(start, end, locale))
-            // FAB default: today if it is in the visible page, else the
-            // page's first day so a future add lands inside it.
+            // FAB default: today if visible, else page start so a future add lands inside.
             val viewedDate = if (state.today in start..end) state.today else start
             onViewedDateChange(viewedDate)
         }
@@ -104,9 +99,8 @@ fun ThreeDayScreen(
         }
     }
 
-    // Cross-view jump from the header mini-month. Map the date to the page
-    // that contains it, clamped to the window. Filtered by target view so
-    // a jump meant for Day / Week / Month / Schedule does not scroll here.
+    // cross-view jump from the mini-month. filtered by target view so a jump
+    // meant for another view doesn't scroll here.
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump, anchor) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.ThreeDay } ?: return@LaunchedEffect

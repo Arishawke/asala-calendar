@@ -19,10 +19,8 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
 
-// Some sync sources store Events.DESCRIPTION as HTML (<br>, <a href>,
-// <b>); CalDAV and hand-edited entries store plain text where \n is
-// meaningful. Sniff for a structural tag before parsing so plain-text
-// line breaks survive intact.
+// some sources store DESCRIPTION as HTML, others as plain text where \n
+// matters. sniff for a structural tag first so plain-text breaks survive.
 private val HtmlTagHint =
     Regex("""<\s*/?\s*(br|p|div|span|b|i|u|a|ul|ol|li|strong|em|h[1-6])\b""", RegexOption.IGNORE_CASE)
 

@@ -28,10 +28,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Restore a pending deep-link before consuming the launch intent so
-        // a configuration change between notification tap and Compose tree
-        // consumption (rotation, dark-mode flip, process death + restart)
-        // does not silently drop the open.
+        // restore pending deep-link before consuming the intent so a config
+        // change or process death between tap and consumption doesn't drop it
         savedInstanceState?.let { restorePendingNotificationOpen(it) }
         enableEdgeToEdge()
         handleNotificationDeepLink(intent)

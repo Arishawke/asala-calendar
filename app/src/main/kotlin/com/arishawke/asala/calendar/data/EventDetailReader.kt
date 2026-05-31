@@ -15,9 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.TimeZone
 
-// Reads a single CalendarContract.Events row plus its first reminder into
-// an EventDetail. Recurring rows store DURATION instead of DTEND, so the
-// end millis is reconstructed via EventEndMillis.compute.
+// reads one Events row plus its first reminder. recurring rows store DURATION
+// not DTEND, so end millis is reconstructed via EventEndMillis.compute.
 internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail? = withContext(Dispatchers.IO) {
     val eventUri =
         ContentUris.withAppendedId(

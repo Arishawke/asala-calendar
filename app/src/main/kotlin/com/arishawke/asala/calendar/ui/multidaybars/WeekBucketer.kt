@@ -17,16 +17,10 @@ import java.time.ZoneOffset
 private const val DaysPerWeek = 7
 private const val LastDayCol = DaysPerWeek - 1
 
-// Slices all-day events into per-week segments clipped to the requested
-// week. By default, single-day all-day events are NOT bucketed here -
-// they render inline inside their `DayCell` in Month view, so a single-
-// day all-day event on one day no longer reserves a week-wide bar lane
-// that pushes every other day's chips down. Callers that own their own
-// all-day rendering surface (Week view's AllDayRow) set
-// `includeSingleDay = true` to opt back in. Timed events are excluded;
-// they continue to render via the per-cell path. CalendarContract stores
-// all-day endMillis as start-of-day AFTER the last visible day in UTC,
-// so all-day dates are derived in UTC regardless of the device zone.
+// slices all-day events into per-week segments. single-day ones are skipped by default (Month renders
+// them inline; reserving a lane would push chips down); includeSingleDay opts back in (Week's AllDayRow).
+// all-day endMillis is start-of-day after the last visible day in UTC, so dates
+// are derived in UTC, not the device zone.
 object WeekBucketer {
     fun bucketize(
         events: List<EventItem>,
@@ -51,10 +45,7 @@ object WeekBucketer {
         val effectiveZone = ZoneOffset.UTC
         val firstVisible = Instant.ofEpochMilli(e.startMillis).atZone(effectiveZone).toLocalDate()
         val lastVisible = Instant.ofEpochMilli(e.endMillis).atZone(effectiveZone).toLocalDate().minusDays(1)
-        // Drop events outside the requested week. Single-day all-day
-        // events are dropped only when the caller didn't opt in: Month
-        // view renders them inline in their cell, but Week view's
-        // AllDayRow needs them to render as a one-column bar.
+        // drop events outside the week, and single-day ones unless opted in
         val skip = (!includeSingleDay && firstVisible == lastVisible) ||
             lastVisible.isBefore(weekStart) ||
             firstVisible.isAfter(weekEnd)

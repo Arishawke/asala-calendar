@@ -10,25 +10,17 @@ package com.arishawke.asala.calendar.data
 
 import java.util.Locale
 
-// CalendarContract exposes no first-class birthday metadata. Birthday
-// events surface via virtual calendars created by the Contacts Provider
-// or by sync adapters; their distinguishing feature is the calendar's
-// display name. Match a small set of locale keywords (case-insensitive
-// substring) so the cake icon picks up the common "Birthdays" /
-// "Birthdays and events" surfaces and the major non-English equivalents
-// without needing per-locale detection logic.
+// CalendarContract has no birthday metadata; birthday calendars are only
+// distinguishable by display name. Match locale keywords by case-insensitive
+// substring rather than per-locale logic.
 object BirthdayDetection {
-    // Substrings, not whole tokens, so plurals and compounds match too
-    // ("Birthdays", "Geburtstage", "Aniversários", "Anniversaires de
-    // mariage"). "anniversaire" intentionally also tags wedding-anniversary
-    // calendars in French installs since the cake reads naturally there.
+    // substrings, not tokens, so plurals/compounds match. "anniversaire"
+    // intentionally tags wedding-anniversary calendars in French installs.
     private val keywords = setOf(
         "birthday",
         "geburtstag",
         "anniversaire",
-        // ASCII variants alongside the diacritic forms so calendars typed
-        // without tildes / accents (common on Latin American keyboards
-        // and on some sync adapters that strip diacritics) still match.
+        // ascii variants for diacritic-stripping keyboards/sync adapters
         "cumpleaño",
         "cumpleano",
         "compleann",

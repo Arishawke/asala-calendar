@@ -34,10 +34,8 @@ data class MiniMonthUiState(
     val eventsByDate: Map<LocalDate, List<EventItem>>,
 )
 
-// Loads events for the month currently rendered inside the header
-// dropdown's mini-month panel. Lifecycle is the header surface
-// (AppShell); the panel can be opened from any view, and `<` / `>` in
-// the panel just retarget `displayedMonth` so the same VM keeps serving.
+// events for the header mini-month panel. scoped to the header surface so
+// `<`/`>` just retarget displayedMonth and one VM serves every view.
 class MiniMonthViewModel(
     private val eventRepo: EventRepository,
     private val hiddenCalendarIdsFlow: StateFlow<Set<Long>>,

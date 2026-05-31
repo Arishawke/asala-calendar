@@ -50,11 +50,6 @@ class MonthViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val eventsForMonth =
         visibleMonth.flatMapLatest { ym ->
-            // Paged mode uses radius 1 (single-month + one-month buffer
-            // either side) so swiping to an adjacent page renders from the
-            // in-memory map. Continuous mode passes a wider radius so the
-            // LazyColumn's pre-composed items render with events rather
-            // than blank cells.
             val (startDate, endExclusive) = monthFetchWindow(ym, monthWindowRadius)
             eventRepo.observeEvents(
                 startDate = startDate,
@@ -120,11 +115,7 @@ class MonthViewModel(
     }
 
     companion object {
-        // Half-window radius around the visible center month. Paged mode
-        // passes 1 (single month + one neighbor on each side for prefetch).
-        // Continuous mode passes a wider value (e.g., 6) so the
-        // LazyColumn's pre-composed items render with events rather than
-        // blank cells during fast scrolls.
+        // fetch window = center +/- radius months; paged passes 1, continuous a wider value for prefetch
         fun monthFetchWindow(center: YearMonth, radius: Int): Pair<LocalDate, LocalDate> {
             val start = center.minusMonths(radius.toLong()).atDay(1)
             val endExclusive = center.plusMonths(radius.toLong() + 1).atDay(1)

@@ -12,9 +12,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import kotlinx.coroutines.flow.SharedFlow
 
-// Ambient SharedFlow of event ids that should drop their in-flight drag
-// offset (e.g. user cancelled the recurring scope picker after a drag
-// release). Provided at the AppShell level so the deep chip composables
-// can subscribe without prop-drilling the signal through every layer.
-// Null in non-production composition contexts (previews / tests).
+// event ids whose in-flight drag offset should drop (e.g. scope picker
+// cancelled). a CompositionLocal so deep chips subscribe without
+// prop-drilling. null in previews / tests.
 val LocalDragRevertSignal: ProvidableCompositionLocal<SharedFlow<Long>?> = compositionLocalOf { null }

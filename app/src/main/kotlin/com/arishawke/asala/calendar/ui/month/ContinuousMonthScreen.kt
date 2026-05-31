@@ -45,13 +45,8 @@ import java.time.temporal.ChronoUnit
 private const val MonthsEitherSide = 60
 private const val TotalMonths = MonthsEitherSide * 2 + 1
 
-// Each month occupies two LazyColumn entries: a stickyHeader at even
-// indices and the MonthGrid item at odd indices. Scroll APIs and the
-// initial-position seed take LazyColumn entry indices, not month
-// indices, so callers must convert via these helpers. Failing to do so
-// halves the effective position (a scroll to "month 60" lands on entry
-// 60 = the 30th month's header). Internal so the regression test can
-// pin the conversion.
+// each month = 2 LazyColumn entries (stickyHeader + grid). scroll APIs take entry
+// indices, so convert via these helpers or the position halves. internal for the regression test.
 internal const val LazyEntriesPerMonth = 2
 
 internal fun monthIndexToLazyIndex(monthIdx: Int): Int = monthIdx * LazyEntriesPerMonth
@@ -83,18 +78,14 @@ internal fun ContinuousMonthScreen(
     val locale = LocalConfiguration.current.locales.get(0)
     val titleFmt = remember(locale) { DateTimeFormatter.ofPattern("MMMM yyyy", locale) }
 
-    // Origin = first item's yearMonth, captured once so the index<->ym
-    // mapping stays stable; today rollover does not shift the surface.
+    // captured once so the index<->ym mapping stays stable across a today rollover
     val origin = remember { YearMonth.from(state.today).minusMonths(MonthsEitherSide.toLong()) }
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = monthIndexToLazyIndex(MonthsEitherSide),
     )
 
-    // Center month index throttled via derivedStateOf so reads recompute
-    // only when the value actually changes, not on every frame of a fling.
-    // ContinuousMonthCenter.pick returns a LazyColumn entry index (header
-    // or item); divide by 2 to recover the month index.
+    // derivedStateOf throttles to value changes, not every fling frame; pick returns an entry index, /2 -> month
     val centerMonthIndex by remember(listState) {
         derivedStateOf {
             val info = listState.layoutInfo
@@ -124,7 +115,7 @@ internal fun ContinuousMonthScreen(
             }
     }
 
-    // Today-jump: scroll to today's month index.
+    // today-jump
     val jumpCounter by todayJumpCounter.collectAsStateWithLifecycle()
     var lastHandledJump by remember { mutableIntStateOf(jumpCounter) }
     LaunchedEffect(jumpCounter) {
@@ -138,9 +129,7 @@ internal fun ContinuousMonthScreen(
         }
     }
 
-    // Cross-view jump from search results, notification taps, header
-    // dropdown chip strip. scrollToItem (synchronous) matches the
-    // "show me this date now" intent.
+    // cross-view jump (search, notification, chip strip); scrollToItem is synchronous for "show now" intent
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.Month } ?: return@LaunchedEffect
@@ -158,9 +147,7 @@ internal fun ContinuousMonthScreen(
             state = listState,
             modifier = Modifier.fillMaxSize(),
         ) {
-            // Pair stickyHeader + item per month so the label stays
-            // anchored under the weekday header while the user scrolls
-            // through that month's grid.
+            // stickyHeader + item per month: label stays anchored while scrolling that month's grid
             for (idx in 0 until TotalMonths) {
                 val ym = origin.plusMonths(idx.toLong())
                 stickyHeader(key = "h-$idx") {

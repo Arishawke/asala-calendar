@@ -48,10 +48,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-// accessibility: must match DayCell's overflow contentDescription. Built via
-// `LocalConfiguration.current.locales[0]` so month and day names follow the
-// system locale at composition time (instead of falling through to whatever
-// `Locale.getDefault()` was when the class loaded).
+// keyed on the composition-time locale, not class-load Locale.getDefault(); must match DayCell's overflow cd
 @Composable
 internal fun rememberOverflowDateFormatter(): DateTimeFormatter {
     val locale = LocalConfiguration.current.locales.get(0)
@@ -123,8 +120,7 @@ private fun dismissThenOpen(
     onEventClick: (Long, Long) -> Unit,
 ) {
     scope.launch {
-        // wait for the slide-down animation so the user never sees two sheets
-        // on screen at once (NN/g stacked-sheet antipattern).
+        // await slide-down so two sheets never overlap
         sheetState.hide()
         onDismiss()
         onEventClick(event.eventId, event.startMillis)

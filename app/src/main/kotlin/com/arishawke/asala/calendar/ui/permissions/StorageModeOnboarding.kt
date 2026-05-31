@@ -44,8 +44,8 @@ fun StorageModeOnboarding(
 ) {
     var selectedMode by remember { mutableStateOf<StorageMode?>(null) }
 
-    // Surface anchors LocalContentColor to the theme's onBackground so the
-    // title and any plain-styled Text inherit the right tone in dark mode.
+    // Surface anchors LocalContentColor to onBackground so plain Text inherits
+    // the right tone in dark mode.
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,

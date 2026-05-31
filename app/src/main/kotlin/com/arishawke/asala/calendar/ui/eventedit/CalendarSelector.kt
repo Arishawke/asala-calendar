@@ -44,10 +44,8 @@ import com.arishawke.asala.calendar.data.CalendarItem
 import com.arishawke.asala.calendar.data.EventEditCalendarPicker
 import com.arishawke.asala.calendar.ui.theme.Spacing
 
-// Google-Calendar-style calendar selector: an account dropdown (only when
-// more than one account has calendars) over a side-scrolling row of color-dot
-// chips for the shown account. The selectable list is already filtered by
-// EventEditCalendarPicker.filter upstream; this is presentation only.
+// account dropdown (shown only for multi-account) over a chip row for the
+// shown account. list is pre-filtered by EventEditCalendarPicker upstream.
 @Composable
 fun CalendarSelector(
     calendars: List<CalendarItem>,
@@ -58,9 +56,8 @@ fun CalendarSelector(
     val groups = remember(calendars) { EventEditCalendarPicker.groupByAccount(calendars) }
     if (groups.isEmpty()) return // editor surfaces the empty-picker case elsewhere
 
-    // The shown account derives from the selected calendar, so switching the
-    // account (which selects that account's first calendar) re-syncs without
-    // a separate piece of state to keep in lockstep.
+    // derive shown account from selection so switching accounts re-syncs
+    // without separate state to keep in lockstep.
     val shownAccount = remember(groups, selectedId) {
         groups.firstOrNull { group -> group.calendars.any { it.id == selectedId } } ?: groups.first()
     }
@@ -73,7 +70,6 @@ fun CalendarSelector(
             AccountDropdown(
                 groups = groups,
                 shownAccount = shownAccount,
-                // switching accounts selects the new account's first calendar;
                 // re-picking the account that already holds the selection is a no-op
                 onAccountSelected = { group ->
                     if (group.calendars.none { it.id == selectedId }) onSelect(group.calendars.first().id)

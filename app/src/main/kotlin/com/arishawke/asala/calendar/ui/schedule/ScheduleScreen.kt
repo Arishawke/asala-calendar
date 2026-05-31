@@ -53,8 +53,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-// List state + today jump + cross-view jump + render dispatch + now-line
-// marker hookup push this past detekt's 60-line LongMethod default.
+// list state + today/cross-view jumps + now-line hookup exceed detekt's
+// 60-line LongMethod default.
 @Suppress("LongParameterList", "LongMethod")
 fun ScheduleScreen(
     hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
@@ -83,9 +83,8 @@ fun ScheduleScreen(
 
     val title = stringResource(R.string.view_schedule)
     LaunchedEffect(title) { onTitleChange(title) }
-    // Schedule view is a long scroll without a single "viewed date";
-    // default the FAB target to today on entry so the new-event flow
-    // doesn't carry a stale date from whatever view the user came from.
+    // no single "viewed date" in this long scroll; default the FAB target
+    // to today so the new-event flow doesn't carry a stale date.
     LaunchedEffect(state.today) { onViewedDateChange(state.today) }
 
     val locale = LocalConfiguration.current.locales.get(0)
@@ -125,11 +124,9 @@ fun ScheduleScreen(
         }
     }
 
-    // Cross-view target from the header dropdown's mini-month. Find the
-    // exact date in the agenda when present, otherwise fall back to the
-    // next-future day (the same heuristic todayIndex uses). Filtered by
-    // target view so jumps to Day / Week / Month aren't accidentally
-    // consumed here.
+    // cross-view jump from the mini-month: exact date if present, else
+    // next-future day. filtered by target view so Day/Week/Month jumps
+    // aren't consumed here.
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump, state.daysInOrder) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.Schedule } ?: return@LaunchedEffect
@@ -144,11 +141,9 @@ fun ScheduleScreen(
         onConsumePendingDateJump()
     }
 
-    // Now-line ticks only when today's section is actually rendered (today
-    // has at least one event). If today is missing from the agenda we skip
-    // the marker rather than synthesizing an empty section. Pass the tick-
-    // driven epoch millis (not just a boolean) into DaySection so its
-    // remember scope invalidates each minute and the split index moves.
+    // now-line ticks only when today's section is rendered (has events);
+    // skip rather than synthesize an empty section. pass epoch millis (not
+    // a boolean) so DaySection's remember invalidates each minute.
     val todayHasEvents = state.today in state.rowsByDate
     val nowMinutes = rememberNowMinutes(zone = zone, enabled = todayHasEvents)
     val nowMillis: Long? = if (nowMinutes != null) {
@@ -195,10 +190,8 @@ private fun DaySection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         DayHeader(date = date, isToday = isToday, text = headerText)
-        // Split point sits above the first timed row that has not started
-        // yet, so in-progress and finished events stay above the line.
-        // All-day rows lead the section as a header block and are excluded
-        // from the scan. nowMillis non-null implies isToday upstream.
+        // line sits above the first not-yet-started timed row; all-day rows
+        // lead the section and are excluded from the scan.
         val splitIndex = if (nowMillis != null) scheduleNowLineIndex(rows, nowMillis) else -1
         rows.forEachIndexed { index, row ->
             if (index == splitIndex) {
@@ -208,11 +201,9 @@ private fun DaySection(
                         .padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
-            // displayEvent only adjusts what the row shows: the badge for
-            // multi-day all-day rows, the per-day time slice for timed
-            // midnight crossers. Click args always carry the ORIGINAL
-            // instance id + start millis so the detail sheet opens the
-            // true instance.
+            // displayEvent only adjusts the rendered badge / time slice;
+            // click args carry the original id + start so the detail sheet
+            // opens the true instance.
             val titled = if (row.totalDays > 1) {
                 val badge = stringResource(R.string.schedule_day_of_total, row.dayIndex, row.totalDays)
                 row.event.copy(title = "${row.event.title} ($badge)")
@@ -230,9 +221,8 @@ private fun DaySection(
                 onEventClick = { _, _ -> onEventClick(row.event.eventId, row.event.startMillis) },
             )
         }
-        // All timed events have already started today: line sits below the
-        // last row. Skip when the day is all-day-only (splitIndex == size
-        // because no timed row matched) AND there are no timed rows at all.
+        // all timed events already started: line goes below the last row.
+        // skip when the day has no timed rows at all.
         if (nowMillis != null && splitIndex == rows.size && rows.any { !it.event.allDay }) {
             NowLineRow(
                 modifier = Modifier

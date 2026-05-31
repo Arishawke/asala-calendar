@@ -21,9 +21,7 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import java.time.LocalDate
 
-// Previews compose the badge + cell stack so the visual matches what
-// MonthGrid renders. The bar row is omitted because previews are about
-// per-cell rendering, not the full week layout.
+// badge + cell stack only; bar row omitted since these are per-cell previews
 @Preview(name = "Today, light")
 @Preview(name = "Today, dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

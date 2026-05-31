@@ -55,12 +55,8 @@ import java.util.Locale
 private const val WindowWeeksEachSide = 260
 
 @Composable
-// The polish-sprint additions (working-hours, working-days, plus the
-// existing pager / jump / locale state) push this past detekt's 60-line
-// LongMethod default. Each block is a discrete concern (pager state,
-// today jump, cross-view jump, render); collapsing them into helpers
-// would just shift the verbosity to the call site without making the
-// logic clearer.
+// LongMethod: discrete concerns (pager state, today jump, cross-view jump,
+// render); helpers would just shift verbosity to the call site.
 @Suppress("LongParameterList", "LongMethod")
 fun WeekScreen(
     hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
@@ -107,15 +103,13 @@ fun WeekScreen(
     val pagerState = rememberPagerState(initialPage = todayPageIndex) { pageCount }
 
     val locale = LocalConfiguration.current.locales.get(0)
-    // Push the visible week to the ViewModel and update the toolbar title.
     LaunchedEffect(pagerState, todayWeekStart) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             val weekStart = todayWeekStart.plusWeeks((page - todayPageIndex).toLong())
             vm.showWeek(weekStart)
             val weekEnd = weekStart.plusDays(6)
             onTitleChange(formatWeekRange(weekStart, weekEnd, locale))
-            // FAB default: today if today is in the visible week, otherwise
-            // the week's first day so a future-week add lands inside it.
+            // FAB default: today if visible, else week start so a future add lands inside.
             val viewedDate = if (today in weekStart..weekEnd) today else weekStart
             onViewedDateChange(viewedDate)
         }
@@ -131,10 +125,8 @@ fun WeekScreen(
         }
     }
 
-    // Cross-view target from the header dropdown's mini-month. Maps a
-    // date to the start of its containing week, clamped to the pager
-    // window. Filtered by target view so a jump meant for Day / Month /
-    // Schedule doesn't trigger this Week-pager scroll.
+    // cross-view jump from the mini-month. filtered by target view so a jump
+    // meant for another view doesn't scroll this pager.
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump, todayWeekStart) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.Week } ?: return@LaunchedEffect
@@ -178,9 +170,8 @@ fun WeekScreen(
 }
 
 @Composable
-// LongMethod: WeekPage straddles header + all-day surface + timeline
-// composition. Splitting just moves the parameter list elsewhere
-// without reducing the actual logic.
+// LongMethod: WeekPage straddles header + all-day + timeline; splitting
+// just moves the parameter list elsewhere.
 @Suppress("LongParameterList", "LongMethod")
 internal fun WeekPage(
     days: List<LocalDate>,
@@ -205,10 +196,8 @@ internal fun WeekPage(
     val timedEvents = visibleEvents.filter { !it.allDay }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Leading slot matches the hour-axis column width below so each
-        // day header aligns with its column. When showWeekNumber is on,
-        // this slot displays the ISO 8601 week number; otherwise it is a
-        // plain spacer.
+        // leading slot matches hour-axis width so headers align with columns;
+        // shows the ISO week number when enabled, else a spacer.
         Row(modifier = Modifier.fillMaxWidth()) {
             if (showWeekNumber) {
                 val isoMonday = days.first().with(java.time.DayOfWeek.MONDAY)
@@ -266,10 +255,8 @@ internal fun WeekPage(
     }
 }
 
-// Renders "Mar 2 - 8, 2026" (US English), "2.-8. März 2026" (German),
-// "2026年3月2日～8日" (Japanese), etc. via ICU DateIntervalFormat with a
-// "yMMMd" skeleton so the field order, separator, and abbreviation style
-// track the user's locale rather than a hardcoded US pattern.
+// ICU DateIntervalFormat with a "yMMMd" skeleton so field order, separator,
+// and abbreviation track the locale rather than a hardcoded US pattern.
 internal fun formatWeekRange(first: LocalDate, last: LocalDate, locale: Locale): String {
     val zone = TimeZone.getDefault()
     val startCal = Calendar.getInstance(zone, locale).apply {

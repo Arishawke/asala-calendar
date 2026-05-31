@@ -14,23 +14,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.time.Clock
 import java.time.LocalDate
 
-// Shared "today" source. Each ViewModel + the AppShell collect this so
-// the today-highlight refreshes when local midnight crosses, when the
-// user changes the device clock, or when the timezone shifts. Without
-// this, every screen captures LocalDate.now() once at construction and
-// the highlight stays on yesterday until the next process start.
-//
-// The BroadcastReceiver wiring lives on AsalaCalendarApplication (which
-// owns the Context lifetime); this class is a pure-Kotlin StateFlow
-// holder so JVM unit tests can exercise it with a synthetic Clock.
+// shared "today" source so the highlight refreshes on midnight cross, clock
+// change, or tz shift. without it each screen captures LocalDate.now() once at
+// construction and stays on yesterday until the next process start.
+// pure StateFlow holder (BroadcastReceiver wiring lives on the Application)
+// so JVM tests can drive it with a synthetic Clock.
 class TodayProvider(private val clock: Clock = Clock.systemDefaultZone()) {
     private val _today = MutableStateFlow(LocalDate.now(clock))
     val today: StateFlow<LocalDate> = _today.asStateFlow()
 
-    // Called by the Application's BroadcastReceiver on
-    // ACTION_DATE_CHANGED / ACTION_TIME_CHANGED / ACTION_TIMEZONE_CHANGED,
-    // and by the AppShell on ON_RESUME (belt-and-braces for missed
-    // broadcasts under doze / battery-saver).
+    // called on DATE/TIME/TIMEZONE_CHANGED broadcasts and on ON_RESUME
+    // (fallback for broadcasts missed under doze / battery-saver).
     fun refresh() {
         val now = LocalDate.now(clock)
         if (_today.value != now) _today.value = now

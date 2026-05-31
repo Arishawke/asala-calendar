@@ -14,14 +14,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// M3 Typography overlay. Stays on the device default font (Roboto on
-// most Android) and the M3 type scale. Tightens title line-heights
-// slightly so titles read as titles rather than as oversized body text.
-// All other slots fall through to M3 defaults.
+// M3 Typography overlay on the device default font. tightens title line-
+// heights so titles read as titles; other slots fall through to M3.
 //
-// Why no custom typeface: bundled .ttf is a brand-identity move, and
-// Downloadable Fonts via the GMS provider phones home on first request
-// plus requires Play Services, both disqualified for an offline-first
+// no custom typeface: a bundled .ttf is brand identity, and Downloadable
+// Fonts phone home and need Play Services, both out for an offline-first
 // GPLv3 app.
 val AsalaTypography: Typography = Typography(
     titleLarge = TextStyle(

@@ -25,10 +25,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 
-// Multi-day all-day events expand into one row per covered day, each
-// tagged with dayIndex/totalDays. Single-day events (timed or all-day)
-// produce one row. Rows outside the visible window are dropped. All-day
-// dates use UTC because CalendarContract stores them that way.
+// one row per covered day for multi-day events. all-day dates use UTC
+// because CalendarContract stores them that way.
 internal fun expandToScheduleRows(
     events: List<EventItem>,
     zone: ZoneId,
@@ -52,11 +50,8 @@ private fun expandAllDay(e: EventItem, windowStart: LocalDate, windowEndExclusiv
         .map { (idx, _) -> ScheduleRow(event = e, dayIndex = idx, totalDays = total) }
 }
 
-// Timed events that cross midnight expand into one row per covered day
-// with clipped display millis, so each row shows the portion of the
-// event that falls on that day, tagged with its segment index/count for
-// the "N/total" badge. Single-day events keep displayStart / displayEnd
-// at the original event values and stay 1/1.
+// midnight-crossers expand into one row per covered day with clipped
+// display millis so each row shows only its slice.
 private fun expandTimed(
     e: EventItem,
     zone: ZoneId,
@@ -86,22 +81,17 @@ internal fun rowDate(row: ScheduleRow, zone: ZoneId): LocalDate = if (row.event.
     Instant.ofEpochMilli(row.displayStartMillis).atZone(zone).toLocalDate()
 }
 
-// Index of the "now" divider within a day's already start-sorted rows.
-// Start-based to match the sort: the line sits above the first timed row
-// that has not started yet, leaving in-progress and finished events above
-// it. Anchoring to end time instead jumped the line up to a long ongoing
-// event's start, since that event ends in the future (the reported bug).
-// All-day rows lead the section and are skipped so they stay above the
-// line. Returns rows.size when every timed row has already started.
+// line sits above the first not-yet-started timed row. start-based, not
+// end-based: anchoring to end time jumped the line up to a long ongoing
+// event's start (the reported bug). all-day rows are skipped. returns
+// rows.size when every timed row has already started.
 internal fun scheduleNowLineIndex(rows: List<ScheduleRow>, nowMillis: Long): Int =
     rows.indexOfFirst { !it.event.allDay && it.displayStartMillis >= nowMillis }
         .let { if (it < 0) rows.size else it }
 
-// dayIndex + totalDays mark multi-day events (all-day spans and timed
-// midnight-crossers) so each covered day gets its own row with a "Day N/M"
-// badge. Single-day events keep dayIndex=1 and totalDays=1. displayStart/End
-// default to the event's real bounds; timed midnight-crossers override them
-// per covered day so each row shows only its slice.
+// dayIndex/totalDays drive the "Day N/M" badge for multi-day events;
+// displayStart/End default to real bounds, overridden per day for
+// midnight-crossers.
 data class ScheduleRow(
     val event: EventItem,
     val dayIndex: Int = 1,
@@ -145,8 +135,7 @@ class ScheduleViewModel(
         ) { all, hidden, calOverrides, evtOverrides, today ->
             val visible = all.filteredAndRecolored(hidden, calOverrides, evtOverrides)
             val rows = expandToScheduleRows(visible, zone, windowStart, windowEndExclusive)
-            // all-day rows lead each day (standard convention); timed rows
-            // follow in start-time order
+            // all-day rows lead each day; timed rows follow by start time
             val byDate = rows
                 .groupBy { rowDate(it, zone) }
                 .mapValues { (_, dayRows) ->

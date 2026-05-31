@@ -8,10 +8,8 @@
  */
 package com.arishawke.asala.calendar.ui.settings
 
-// Selector for the Month-view scroll surface. Paged keeps the historic
-// HorizontalPager-of-grids behavior; Continuous swaps it for a vertical
-// LazyColumn of month grids with sticky headers. Default Paged so
-// existing installs see no behavior change.
+// Paged is the historic HorizontalPager; Continuous is the vertical
+// LazyColumn. default Paged so existing installs see no behavior change.
 enum class MonthScrollStyle {
     Paged,
     Continuous,

@@ -48,29 +48,20 @@ data class EventEditFormState(
     val recurrenceUntilDate: LocalDate? = null,
     val recurrenceCount: Int? = null,
     val reminderMinutesBefore: Int? = null,
-    // Setting-driven default; the form seeds endTime from this on construction
-    // (in the new-event path) and on first all-day toggle-off.
+    // seeds endTime on new-event construction and on first all-day toggle-off.
     val defaultDurationMinutes: Int = 60,
-    // Setting-driven default reminders, snapshotted at editor open. The
-    // new-event path seeds `reminderMinutesBefore` from `defaultTimedReminderMinutes`
-    // since new events start timed; the smart re-seed on all-day toggle uses
-    // the all-day variant when the user flips. Existing events ignore both
-    // defaults (their saved reminder wins).
+    // default reminders snapshotted at editor open. new events seed from the
+    // timed variant; the all-day toggle re-seed swaps in the all-day one.
+    // existing events ignore both (their saved reminder wins).
     val defaultTimedReminderMinutes: Int? = null,
     val defaultAllDayReminderMinutes: Int? = null,
-    // True iff this form represents a NEW event (FAB-driven). The smart
-    // re-seed in `withAllDay` only applies in the new-event path: an
-    // existing event's saved reminder is sacred even if it coincidentally
-    // matches the current default for the previous all-day state.
+    // gates the withAllDay re-seed: an existing event's saved reminder is
+    // sacred even if it matches the current default.
     val isNewEvent: Boolean = true,
-    // One-shot flag: first toggle-off in an editor session re-seeds end-time
-    // from defaultDurationMinutes; subsequent toggles preserve user edits.
+    // one-shot: first toggle-off re-seeds end-time; later toggles preserve edits.
     val convertedFromAllDay: Boolean = false,
-    // Per-event color override ARGB; null means "follow calendar" (the
-    // default). Editor seeds this from the existing override map when
-    // opening an existing event. Persisted via AppViewModel after a
-    // successful save (not part of EventDraft; never written to
-    // CalendarContract).
+    // null means "follow calendar". seeded from the override map on open,
+    // persisted via AppViewModel post-save (not in EventDraft / CalendarContract).
     val colorOverrideArgb: Int? = null,
 ) {
     val isEndAfterStart: Boolean
@@ -81,10 +72,8 @@ data class EventEditFormState(
             return e.isAfter(s)
         }
 
-    // Start-side: shift end by the same delta so the event keeps its
-    // original duration when the user moves the start date or time.
-    // EventForm's onDateChange / onTimeChange call these so the logic is
-    // testable without driving the Compose lambdas.
+    // start-side: shift end by the same delta to preserve duration. split out
+    // so the logic is testable without driving the Compose lambdas.
     fun withStartDate(newStartDate: LocalDate): EventEditFormState {
         val dayDelta = newStartDate.toEpochDay() - startDate.toEpochDay()
         return copy(
@@ -105,11 +94,8 @@ data class EventEditFormState(
         )
     }
 
-    // End-side guards. The start-side already preserves duration via
-    // delta-shift in EventForm; these handle the case where the user
-    // edits the end field directly into an invalid range. Roll end
-    // forward on time edits (so a 9 AM start with end set to 8 AM rolls
-    // to next-day 8 AM), clamp on date edits.
+    // end-side guards for a direct edit into an invalid range: clamp on date
+    // edits, roll forward on time edits (9 AM start, 8 AM end -> next-day 8 AM).
     fun withEndDate(newEndDate: LocalDate): EventEditFormState {
         val clamped = if (newEndDate.isBefore(startDate)) startDate else newEndDate
         return copy(endDate = clamped)
@@ -127,20 +113,14 @@ data class EventEditFormState(
         }
     }
 
-    // One-shot conversion: on the first toggle from all-day back to timed in
-    // this editor session, re-seed time fields from defaultDurationMinutes
-    // (the all-day collapse would otherwise leave end at next-day midnight).
-    // The loaded date is preserved; only times change. Subsequent toggles
-    // preserve the user's intervening edits.
+    // one-shot: first all-day -> timed toggle re-seeds times from
+    // defaultDurationMinutes (the collapse would else leave end at next-day
+    // midnight). date preserved; later toggles preserve the user's edits.
     fun withAllDay(newValue: Boolean): EventEditFormState {
-        // Smart-default re-seed: if the current reminder matches the default
-        // for the OLD all-day state, swap it for the new default. If the user
-        // picked something custom, leave it alone. Avoids the 11:45pm-prior-
-        // night annoyance from a timed default applied to an all-day event.
-        //
-        // Gated on `isNewEvent` so an existing event whose saved reminder
-        // happens to equal the current timed default isn't silently mutated
-        // when the user toggles all-day.
+        // re-seed the reminder only if it still matches the OLD state's default
+        // (custom picks left alone); avoids a timed default landing 11:45pm the
+        // prior night on an all-day event. gated on isNewEvent so a saved
+        // reminder matching the default isn't silently mutated.
         val rebasedReminder = if (isNewEvent) {
             val oldDefault = if (allDay) defaultAllDayReminderMinutes else defaultTimedReminderMinutes
             val newDefault = if (newValue) defaultAllDayReminderMinutes else defaultTimedReminderMinutes
@@ -173,14 +153,10 @@ data class EventEditFormState(
             .withNano(0)
             .plusHours(1)
 
-        // Build the initial form state for a new event, honoring the user's
-        // default-duration preference. The data-class default for endTime
-        // captures a literal 60-min span (parameter ordering keeps it from
-        // referencing defaultDurationMinutes), so the new-event path runs
-        // through here to apply the preference. New events start timed, so
-        // the reminder seed comes from defaultTimedReminderMinutes; the
-        // all-day variant gets stored on the form for the smart re-seed when
-        // the user toggles to all-day.
+        // initial form for a new event honoring default-duration. the
+        // data-class endTime default is a literal 60-min span (parameter
+        // ordering blocks referencing defaultDurationMinutes), so new events
+        // route through here to apply the preference.
         fun forNewEvent(
             defaultDurationMinutes: Int,
             defaultTimedReminderMinutes: Int? = null,
@@ -188,11 +164,8 @@ data class EventEditFormState(
             initialStartDate: LocalDate? = null,
         ): EventEditFormState {
             val start = nextRoundHour()
-            // initialStartDate carries the date the user was looking at
-            // when they tapped the FAB (visible day in Day, week start in
-            // Week, today / first-of-visible-month in Month, today in
-            // Schedule). Falls back to LocalDate.now() so unit tests and
-            // any caller that doesn't pass a date keep the prior behavior.
+            // initialStartDate is the date viewed at FAB tap; falls back to
+            // today for callers (and tests) that don't pass one.
             val date = initialStartDate ?: LocalDate.now()
             return EventEditFormState(
                 startDate = date,
@@ -206,14 +179,10 @@ data class EventEditFormState(
             )
         }
 
-        // Build a NEW-event form seeded from an existing event for the
-        // Duplicate action. Copies the user content plus the opened
-        // instance's schedule; drops identity and recurrence so the copy
-        // saves as a separate one-off via insert (EventDraft's whitelist
-        // guarantees no id / sync / ORIGINAL_* columns leak). A recurring
-        // source seeds from the opened instance rather than the parent
-        // DTSTART, so duplicating "this Tuesday" lands on the right day;
-        // the user re-adds repeat in the editor if they want it.
+        // new-event form seeded from an existing event for Duplicate. drops
+        // identity and recurrence so the copy inserts as a one-off. a recurring
+        // source seeds from the opened instance, not parent DTSTART, so
+        // duplicating "this Tuesday" lands on the right day.
         @Suppress("LongParameterList")
         fun forDuplicate(
             source: EventDetail,
@@ -231,10 +200,9 @@ data class EventEditFormState(
                     source.startMillis
                 }
             val effectiveEnd = effectiveStart + (source.endMillis - source.startMillis)
-            // all-day events are stored at UTC midnight; extract in UTC or
-            // the date lands on the prior day in negative-offset zones. The
-            // inverse of EventSave's exclusive-end storage restores the
-            // inclusive last day. Mirrors the existing-event load path.
+            // all-day stored at UTC midnight; extract in UTC or the date lands
+            // a day early in negative-offset zones. -1 day undoes EventSave's
+            // exclusive end. mirrors the existing-event load path.
             val extractionZone =
                 if (source.allDay) java.time.ZoneOffset.UTC else zone
             val sLocal =
@@ -278,23 +246,17 @@ class EventEditViewModel(
     private val remindersRepo: RemindersRepository,
     private val editingEventId: Long? = null,
     private val editingInstanceMillis: Long? = null,
-    // Source event id for the Duplicate action: opens a NEW event seeded
-    // from this event (editingEventId stays null, so save inserts a copy).
+    // Duplicate source: editingEventId stays null so save inserts a copy.
     private val duplicateFromEventId: Long? = null,
     private val storageMode: StorageMode = StorageMode.Unset,
     private val defaultDurationMinutes: Int = 60,
     private val defaultTimedReminderMinutes: Int? = null,
     private val defaultAllDayReminderMinutes: Int? = null,
-    // Snapshotted from AppViewModel.eventColorOverridesFlow at construction
-    // for the currently-edited event. Null = no existing override.
+    // null = no existing override.
     private val initialColorOverrideArgb: Int? = null,
-    // Snapshotted hide set so the picker hides drawer-hidden calendars
-    // (and calendars belonging to drawer-hidden accounts). Snapshot at
-    // construction matches the storageMode / defaults pattern: drawer
-    // toggles mid-edit do not retroactively rebuild the picker.
+    // snapshotted hide set: drawer toggles mid-edit don't rebuild the picker.
     private val hiddenCalendarIds: Set<Long> = emptySet(),
-    // Pre-fill date for the new-event form. Null falls back to today,
-    // preserving prior behavior for callers that don't pass context.
+    // pre-fill date for the new-event form. null falls back to today.
     private val initialStartDate: LocalDate? = null,
 ) : ViewModel() {
     private val _form = MutableStateFlow(
@@ -307,8 +269,7 @@ class EventEditViewModel(
     )
     val form: StateFlow<EventEditFormState> = _form.asStateFlow()
 
-    // Surfaces a failed save attempt to the editor screen. Cleared at the
-    // start of each save() call so a successful retry hides the banner.
+    // cleared at the start of each save() so a successful retry hides the banner.
     private val _saveError = MutableStateFlow(false)
     val saveError: StateFlow<Boolean> = _saveError.asStateFlow()
 
@@ -317,8 +278,8 @@ class EventEditViewModel(
 
     init {
         viewModelScope.launch {
-            // Picker contract lives in EventEditCalendarPicker so the
-            // writable + storage-mode rules can be unit-tested independently.
+            // picker contract lives in EventEditCalendarPicker so the rules
+            // are unit-testable independently.
             val cals =
                 EventEditCalendarPicker.filter(
                     calendars = calendarRepo.observeCalendars().first(),
@@ -337,11 +298,9 @@ class EventEditViewModel(
             _form.value =
                 if (existing != null) {
                     val zone = ZoneId.systemDefault()
-                    // for a recurring event opened from a specific instance, prefill
-                    // with the instance's clock time (preserving duration) rather than
-                    // the parent series's DTSTART. This makes "this instance only" and
-                    // "this and following" edits land on the right occurrence; "all
-                    // events" still updates the whole series at the chosen clock time.
+                    // recurring opened from an instance: prefill the instance's
+                    // clock time (preserving duration), not parent DTSTART, so
+                    // instance/following edits land on the right occurrence.
                     val effectiveStart =
                         if (existing.rrule != null && editingInstanceMillis != null) {
                             editingInstanceMillis
@@ -349,13 +308,9 @@ class EventEditViewModel(
                             existing.startMillis
                         }
                     val effectiveEnd = effectiveStart + (existing.endMillis - existing.startMillis)
-                    // CalendarContract stores all-day events at 00:00 UTC; the
-                    // device zone must not be used to extract the date or the
-                    // form lands on the prior day in negative-offset zones.
-                    // EventSave's all-day path stores `form.endDate + 1 day at
-                    // UTC midnight` as the exclusive end, so the inverse here
-                    // subtracts a day to restore the inclusive last day for
-                    // display.
+                    // all-day stored at 00:00 UTC; extract in UTC or the form
+                    // lands a day early in negative-offset zones. -1 day undoes
+                    // EventSave's exclusive end.
                     val extractionZone =
                         if (existing.allDay) java.time.ZoneOffset.UTC else zone
                     val sLocal =
@@ -401,8 +356,8 @@ class EventEditViewModel(
                         defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
                         colorOverrideArgb = initialColorOverrideArgb,
                     ).copy(calendars = cals)
-                    // Fall back to the first writable calendar if the source's
-                    // calendar is filtered out of the picker (hidden / read-only).
+                    // fall back to first writable if the source calendar is
+                    // filtered out (hidden / read-only).
                     val seedCal =
                         if (cals.any { it.id == seeded.selectedCalendarId }) {
                             seeded.selectedCalendarId
@@ -454,30 +409,17 @@ class EventEditViewModel(
         private val appContext: Context,
         private val eventId: Long? = null,
         private val instanceMillis: Long? = null,
-        // Source event id for Duplicate; opens a new event seeded from it.
+        // Duplicate source: opens a new event seeded from it.
         private val duplicateFromEventId: Long? = null,
-        // Read at construction time on the main thread from AppViewModel.prefs
-        // (already populated by the single startup runBlocking in
-        // AppViewModel.Factory) so the picker filter applies on first frame
-        // without a second blocking DataStore read here.
+        // read from AppViewModel.prefs at construction (already populated by
+        // the startup runBlocking) so the picker filter applies on first frame
+        // without another blocking DataStore read here.
         private val storageMode: StorageMode = StorageMode.Unset,
-        // Same pattern: snapshot the duration preference from AppViewModel.prefs
-        // at construction so the new-event end-time seeds correctly without a
-        // blocking DataStore read in the factory.
         private val defaultDurationMinutes: Int = 60,
-        // Snapshotted reminder defaults; the new-event flow seeds from
-        // timed, and the smart re-seed in withAllDay swaps based on the
-        // toggle direction.
         private val defaultTimedReminderMinutes: Int? = null,
         private val defaultAllDayReminderMinutes: Int? = null,
-        // Snapshot of the existing per-event override for this event, if any.
-        // Same pattern as the others; the caller resolves from
-        // AppViewModel.eventColorOverridesFlow.value before passing.
         private val initialColorOverrideArgb: Int? = null,
-        // Snapshot of drawer-hidden calendar IDs (combined manual +
-        // account hides) so the picker excludes them.
         private val hiddenCalendarIds: Set<Long> = emptySet(),
-        // Pre-fill date for the new-event form. Null falls back to today.
         private val initialStartDate: LocalDate? = null,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

@@ -38,10 +38,7 @@ internal enum class CustomReminderUnit(val labelRes: Int, val minutesPer: Int) {
     Days(R.string.custom_reminder_unit_days, 24 * 60),
 }
 
-// Hard cap on the value side so the multiplied minutes total fits well
-// under Int.MAX_VALUE even at the Days unit. 999 days * 1440 ~= 1.4M
-// minutes, comfortably within range and well beyond any realistic
-// reminder lead time.
+// caps value so value * minutesPer stays well under Int.MAX_VALUE at Days.
 private const val MaxValue = 999
 private const val MaxValueDigits = 4
 
@@ -62,9 +59,7 @@ internal fun CustomReminderDialog(initialMinutes: Int?, onDismiss: () -> Unit, o
                 OutlinedTextField(
                     value = valueText,
                     onValueChange = { input ->
-                        // Constrain to digits and the configured max so users can't
-                        // type a multi-million-minute reminder that overflows
-                        // downstream arithmetic.
+                        // digits-only, capped, to avoid overflow downstream
                         val digits = input.filter { it.isDigit() }.take(MaxValueDigits)
                         valueText = digits
                     },
@@ -103,10 +98,7 @@ internal fun CustomReminderDialog(initialMinutes: Int?, onDismiss: () -> Unit, o
     )
 }
 
-// Pick the unit that gives the cleanest representation of the existing
-// reminder so opening the dialog with a value of 60 shows "1 Hour" not
-// "60 Minutes". Falls back to the largest unit that divides evenly;
-// otherwise minutes.
+// seed with the largest unit that divides evenly so 60 shows "1 Hour".
 private fun seedFromMinutes(minutes: Int?): Pair<CustomReminderUnit, String> {
     val m = minutes ?: 0
     if (m <= 0) return CustomReminderUnit.Minutes to ""

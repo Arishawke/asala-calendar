@@ -8,10 +8,8 @@
  */
 package com.arishawke.asala.calendar.notifications
 
-// Decide what (eventId, originalMinutes) the snooze should fire against
-// given the alertId received in the action intent. alertLookup queries the
-// CalendarAlerts row; it may be unavailable on a provider hiccup or when
-// alertId is -1 (the original ensureCalendarAlert insert failed). Returning
+// pick the (eventId, originalMinutes) the snooze fires against. alertLookup may
+// miss on a provider hiccup or when alertId is -1 (the original insert failed);
 // null tells the caller to bail rather than schedule a phantom alarm.
 internal object SnoozeResolution {
     fun resolve(alertId: Long, alertLookup: (Long) -> Pair<Long, Int>?, intentEventId: Long): Pair<Long, Int>? {

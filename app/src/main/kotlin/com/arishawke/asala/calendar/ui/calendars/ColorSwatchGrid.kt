@@ -39,12 +39,9 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import com.arishawke.asala.calendar.ui.theme.Spacing
 
-// Shared swatch grid backing the create-calendar dialog, the recolor
-// dialog (account avatar + per-calendar), and the new per-event Color
-// row. The currently selected color gets a ring around its swatch. If
-// the selected color isn't in the active palette (because the user
-// switched palettes after saving an override), a "Custom" pip is
-// appended showing the saved hex so the picker is honest about state.
+// shared swatch grid for the calendar / recolor / per-event color rows.
+// if the saved color isn't in the active palette (palette switched after
+// saving), a "Custom" pip shows the saved hex so the picker stays honest.
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ColorSwatchGrid(
@@ -88,9 +85,8 @@ internal fun ColorSwatchGrid(
 
 @Composable
 private fun Swatch(color: Color, argb: Int, selected: Boolean, onSelect: (Int) -> Unit) {
-    // visual 28dp, tap region rounded up to 48dp via
-    // minimumInteractiveComponentSize so a dense palette grid still meets the
-    // Android touch-target floor without enlarging the swatches.
+    // visual 28dp, tap region 48dp via minimumInteractiveComponentSize to
+    // meet the touch-target floor without enlarging the swatch.
     Box(
         modifier = Modifier
             .minimumInteractiveComponentSize()
@@ -112,10 +108,8 @@ private fun Swatch(color: Color, argb: Int, selected: Boolean, onSelect: (Int) -
     )
 }
 
-// The "Custom" pip. Renders when the saved color isn't in the active
-// palette (typically because the user switched palettes after saving
-// an override). Selection-style ring draws because the current value
-// is the saved hex by definition.
+// "Custom" pip for a saved color outside the active palette; always
+// ringed since the saved hex is the current value by definition.
 @Composable
 private fun CustomSwatch(argb: Int, onSelect: (Int) -> Unit) {
     val label = stringResource(R.string.swatch_custom)
@@ -136,8 +130,6 @@ private fun CustomSwatch(argb: Int, onSelect: (Int) -> Unit) {
     )
 }
 
-// The "add a custom color" affordance: an outlined circle with a plus
-// that opens the free HSV / hex picker.
 @Composable
 private fun CustomColorButton(onClick: () -> Unit) {
     val label = stringResource(R.string.cd_pick_custom_color)

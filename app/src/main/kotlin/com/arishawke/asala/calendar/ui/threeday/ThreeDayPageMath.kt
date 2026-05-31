@@ -11,17 +11,15 @@ package com.arishawke.asala.calendar.ui.threeday
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-// 3-day pages roll a fixed stride from an anchor (rolling, not snapped to
-// a calendar boundary). page == center shows [anchor, anchor + 3).
+// pages roll a fixed stride from the anchor, not snapped to a calendar
+// boundary. page == center shows [anchor, anchor + 3).
 internal const val ThreeDayPageSize = 3
 
-// First date shown on a given page.
 internal fun pageStart(anchor: LocalDate, page: Int, center: Int): LocalDate =
     anchor.plusDays((page - center).toLong() * ThreeDayPageSize)
 
-// Page whose 3-day span contains the date. floorDiv (not integer / which
-// truncates toward zero) so dates before the anchor map to the correct
-// earlier page rather than rounding back toward center.
+// floorDiv (not truncating /) so dates before the anchor map to the
+// earlier page rather than rounding toward center.
 internal fun pageForDate(anchor: LocalDate, date: LocalDate, center: Int): Int {
     val days = ChronoUnit.DAYS.between(anchor, date).toInt()
     return center + Math.floorDiv(days, ThreeDayPageSize)

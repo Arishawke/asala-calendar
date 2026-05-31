@@ -138,9 +138,7 @@ internal fun AccountHeader(
 private fun AccountAvatar(accountType: String, account: String, overrideArgb: Int?) {
     val initial = account.firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?"
     val bg = avatarColor(accountType, account, overrideArgb)
-    // White-on-yellow on the default palette fails WCAG 1.4.3 (~1.6:1);
-    // pick black on bright swatches via the same midpoint MultiDayBarRow
-    // uses.
+    // black text on bright swatches for WCAG contrast; same midpoint MultiDayBarRow uses
     val fg = if (bg.luminance() < AvatarLuminanceMidpoint) Color.White else Color.Black
     Box(
         modifier = Modifier
@@ -160,9 +158,8 @@ private fun AccountAvatar(accountType: String, account: String, overrideArgb: In
 
 private const val AvatarLuminanceMidpoint = 0.5f
 
-// Deterministic color for account avatars. Hash basis is "$type:$account" so
-// two accounts with the same display name on different account types don't
-// collide on the same swatch. Override (resolved by the caller) wins.
+// deterministic avatar color; hash on "$type:$account" so same-name accounts on
+// different types don't collide. override wins.
 internal fun avatarColor(accountType: String, account: String, overrideArgb: Int?): Color {
     if (overrideArgb != null) return Color(overrideArgb)
     if (account.isBlank()) return OkabeItoPalette[0]
@@ -179,8 +176,7 @@ private fun accountTypeLabel(accountType: String): String? = when (accountType) 
     "LOCAL" -> stringResource(R.string.account_type_local)
     "com.android.exchange" -> stringResource(R.string.account_type_exchange)
     "" -> null
-    // DAVx5 (formerly DAVdroid) syncs over CalDAV; the raw package id is
-    // not user-friendly, so surface the protocol instead.
+    // DAVx5 syncs over CalDAV; show the protocol, not the raw package id
     else -> if (
         accountType.contains("caldav", ignoreCase = true) ||
         accountType.startsWith("bitfire.at.davdroid")

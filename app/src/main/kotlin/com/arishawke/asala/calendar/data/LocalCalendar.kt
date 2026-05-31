@@ -8,14 +8,12 @@
  */
 package com.arishawke.asala.calendar.data
 
-// Identity of the local Asala calendar Asala Calendar creates and owns.
-// One source of truth so every code path (onboarding gate, settings,
-// repository) refers to the same account row in the provider.
+// single source of truth for the local calendar's provider account row.
 object LocalCalendar {
     const val AccountName = "Asala Local"
     const val DisplayName = "Asala"
 
-    // Okabe-Ito grey, matching OkabeItoPalette[0]. Held as a raw int here
-    // so data-layer callers do not depend on the ui.theme package.
+    // Okabe-Ito grey (OkabeItoPalette[0]); raw int so the data layer
+    // doesn't depend on ui.theme.
     const val DefaultColor: Int = 0xFF999999.toInt()
 }

@@ -70,8 +70,8 @@ fun CalendarPermissionGate(modifier: Modifier = Modifier, content: @Composable (
         )
     }
     var permissionDenied by remember { mutableStateOf(false) }
-    // pendingMode runs the post-permission setup once the user grants access.
-    // Cleared when setup completes; nonzero while the spinner is on screen.
+    // pendingMode runs post-permission setup once access is granted; held
+    // while the spinner shows, cleared when setup completes.
     var pendingMode by remember { mutableStateOf<StorageMode?>(null) }
     var setupInFlight by remember { mutableStateOf(false) }
 
@@ -84,10 +84,9 @@ fun CalendarPermissionGate(modifier: Modifier = Modifier, content: @Composable (
         if (!ok) pendingMode = null
     }
 
-    // Re-check on resume so revoking permission from system settings flips
-    // the gate back to the rationale screen. Without this, the granted
-    // state stays true forever and the next CalendarProvider read crashes
-    // with SecurityException.
+    // re-check on resume so revoking permission in system settings flips
+    // back to the rationale screen; else the next provider read throws
+    // SecurityException.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -118,8 +117,8 @@ fun CalendarPermissionGate(modifier: Modifier = Modifier, content: @Composable (
     val showOnboarding = !granted && storedMode == StorageMode.Unset
 
     when {
-        // Wait for the first prefs read; without this, a returning user who
-        // already chose a mode would briefly see the onboarding screen flash.
+        // wait for the first prefs read, else a returning user flashes the
+        // onboarding screen before their stored mode loads.
         prefsState == null -> LoadingScreen(modifier)
         setupInFlight -> LoadingScreen(modifier)
         granted -> content()
@@ -189,10 +188,8 @@ private fun RationaleScreen(modifier: Modifier, onGrant: () -> Unit) {
     }
 }
 
-// Side effects bundled here so the gate composable stays declarative.
-// LocalOnly and Hybrid both ensure the Asala calendar exists. Mode-driven
-// hiding is computed on read by StorageModeFilter, not persisted here, so
-// later mode toggles never overwrite the user's manual drawer choices.
+// mode-driven hiding is computed on read by StorageModeFilter, not
+// persisted here, so later toggles don't overwrite manual drawer choices.
 private suspend fun runStorageSetup(context: android.content.Context, mode: StorageMode) {
     val repo = CalendarRepository(context.applicationContext.contentResolver)
     StorageModeSetup.ensureLocalCalendarIfNeeded(repo, mode)

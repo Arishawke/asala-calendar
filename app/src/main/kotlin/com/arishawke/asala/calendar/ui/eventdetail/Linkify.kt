@@ -17,16 +17,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 
-// Matches http(s) URLs, bare emails, and tel: links inside plain-text
-// notes / location strings. Phone numbers without a tel: prefix are
-// intentionally not detected - too many false positives on dates,
-// addresses, and event IDs.
-//
-// The URL body class is matched greedily so the full URL is captured
-// (an earlier `+?` non-greedy form truncated URLs after the first
-// match-anchor character, e.g. `https://github.co` for the full repo
-// URL). Trailing punctuation that's likely sentence noise rather than
-// URL content is stripped after the match via `TrailingUrlNoise`.
+// http(s) URLs, bare emails, tel: links. bare phone numbers without tel:
+// are intentionally skipped (too many false positives on dates / IDs).
+// URL body matched greedily: a non-greedy form truncated URLs after the
+// first match-anchor char. trailing sentence noise stripped below.
 private val LinkPattern = Regex(
     "(?i)" +
         "(https?://[\\w\\-._~:/?#\\[\\]@!\$&'()*+,;=%]+)" +
@@ -35,14 +29,12 @@ private val LinkPattern = Regex(
         "|(\\b[\\w._+-]+@[\\w-]+(?:\\.[\\w-]+)+\\b)",
 )
 
-// Punctuation a sentence-end URL is unlikely to actually contain. A
-// trailing closing paren is also dropped to handle `(see https://x.y/z)`.
+// sentence-end punctuation a URL is unlikely to contain. trailing paren
+// also dropped to handle `(see https://x.y/z)`.
 private val TrailingUrlNoise = Regex("[.,;:!?)]+$")
 
-// Build an AnnotatedString with tappable spans for any URLs / emails /
-// tel: links inside a plain-text body. Bare email addresses are wrapped
-// as mailto: at click time; bare http/https URLs and tel: links pass
-// through verbatim.
+// tappable spans for URLs / emails / tel: in a plain-text body. bare
+// emails get a mailto: prefix at click time; the rest pass through verbatim.
 internal fun linkifyAnnotated(text: String, linkColor: Color): AnnotatedString {
     val styles = TextLinkStyles(
         style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline),
@@ -53,10 +45,8 @@ internal fun linkifyAnnotated(text: String, linkColor: Color): AnnotatedString {
             if (match.range.first > cursor) {
                 append(text.substring(cursor, match.range.first))
             }
-            // Strip trailing sentence punctuation so a URL ending a
-            // sentence doesn't include the period; whatever's trimmed gets
-            // appended as plain text after the link so the visible string
-            // matches the input.
+            // trim trailing punctuation off the link, re-append it as plain
+            // text so the visible string still matches the input.
             val rawMatched = match.value
             val trailing = TrailingUrlNoise.find(rawMatched)?.value.orEmpty()
             val matched = if (trailing.isNotEmpty()) {

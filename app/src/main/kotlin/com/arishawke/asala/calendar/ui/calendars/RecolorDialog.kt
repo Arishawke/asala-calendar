@@ -16,13 +16,9 @@ import androidx.compose.ui.res.stringResource
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 
-// Small dialog hosting the active palette's swatch grid. Used for the
-// account avatar long-press recolor, the per-calendar "Change color"
-// menu entry, and the per-event "Color" row in the event editor.
-// Tapping a swatch fires onPick and dismisses; there is no separate
-// save action. If onReset is non-null, a "Reset to calendar color"
-// TextButton appears in the dismiss slot (used by the event editor;
-// drawer call sites pass null).
+// dialog hosting the swatch grid. tapping a swatch picks + dismisses (no
+// separate save). non-null onReset adds a "Reset to calendar color" button
+// for the event editor; drawer call sites pass null.
 @Composable
 internal fun RecolorDialog(
     title: String,

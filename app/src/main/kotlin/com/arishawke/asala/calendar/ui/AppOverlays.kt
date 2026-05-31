@@ -41,11 +41,9 @@ import com.arishawke.asala.calendar.ui.search.SearchScreen
 import com.arishawke.asala.calendar.ui.settings.SettingsScreen
 import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
 
-// All of the secondary surfaces that AppShell composes on top of the
-// main view: settings, search, create-calendar dialog, event detail
-// sheet, event editor, and the one-shot OEM battery advisory. Pulled out
-// of AppShell so the shell stays under the 200-line threshold and the
-// overlays' logic lives in one focused file.
+// secondary surfaces AppShell composes over the main view (settings,
+// search, create-calendar, detail sheet, editor, OEM advisory). split out
+// to keep the shell under the 200-line threshold.
 @SuppressLint("InlinedApi") // POST_NOTIFICATIONS is a compile-time constant; safe to inline on pre-33 (launcher no-ops)
 @Composable
 internal fun AppOverlays(
@@ -139,9 +137,7 @@ internal fun AppOverlays(
     BackHandler(enabled = editId != null) { vm.closeEditor() }
     editId?.let { id ->
         val effectiveId = if (id == -1L) null else id
-        // Each open gets its own ViewModelStore so the editor's form state
-        // starts fresh; the store is cleared when the editor closes (the
-        // composable leaves composition).
+        // own ViewModelStore per open so form state starts fresh; cleared on close
         key(id, editInstanceMillis) {
             ScopedViewModelStore {
                 EventEditScreen(
@@ -156,9 +152,8 @@ internal fun AppOverlays(
         }
     }
 
-    // Drag-reschedule on a recurring event waits here for the user to pick
-    // a scope; non-recurring drags save immediately upstream and never
-    // produce a pending state.
+    // recurring drag waits here for a scope pick; non-recurring drags never
+    // produce a pending state
     pendingReschedule?.let {
         RecurringEditScopeDialog(
             titleRes = R.string.scope_title_edit,

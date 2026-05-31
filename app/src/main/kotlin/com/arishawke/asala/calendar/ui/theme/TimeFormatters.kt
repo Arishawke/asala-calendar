@@ -14,12 +14,10 @@ import androidx.compose.ui.platform.LocalLocale
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// Time-of-day formatter that honors the user's 24-hour preference. Use
-// rememberTimeFormatter() from any @Composable; use timeFormatter() from
-// plain helpers that already have the Boolean and Locale in hand. The
-// Locale parameter is load-bearing on 12-hour patterns: the AM/PM marker
-// otherwise falls back to the JVM default and renders English text in
-// non-English locales.
+// time-of-day formatter honoring the 24-hour preference. rememberTime-
+// Formatter() from a @Composable; timeFormatter() from plain helpers.
+// locale is load-bearing on 12-hour: the AM/PM marker otherwise falls
+// back to the JVM default and renders English in non-English locales.
 
 internal fun timeFormatter(is24Hour: Boolean, locale: Locale): DateTimeFormatter = if (is24Hour) {
     DateTimeFormatter.ofPattern("HH:mm", locale)

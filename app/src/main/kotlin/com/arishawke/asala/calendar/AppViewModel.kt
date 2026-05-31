@@ -46,16 +46,14 @@ import java.time.LocalDate
 
 enum class CalendarView { Year, Month, Week, ThreeDay, Day, Schedule, Tasks }
 
-// Tasks is gated by the tasksEnabled preference. Filter call sites use this
-// to suppress the entry when the toggle is off.
+// tasks entry is suppressed when the tasksEnabled toggle is off
 fun CalendarView.isAlwaysVisible(): Boolean = this != CalendarView.Tasks
 
 data class OpenEvent(val eventId: Long, val instanceMillis: Long)
 
-// Holds a drag-reschedule waiting on the recurring scope picker. detail
-// captures the loaded event so the save path can build a draft without
-// re-fetching. instanceMillis is the original instance start, needed for
-// ThisInstance / ThisAndFollowing scopes.
+// drag-reschedule held until the recurring scope picker resolves. detail
+// avoids a re-fetch in the save path; instanceMillis (original start) is
+// needed for ThisInstance / ThisAndFollowing scopes.
 data class PendingReschedule(
     val detail: EventDetail,
     val instanceMillis: Long,
@@ -71,19 +69,17 @@ data class AppUiState(
     val themeMode: ThemeMode,
 )
 
-// One account hidden from the drawer, resolved with display metadata so the
-// Settings "Hidden accounts" section can render it without joining calendars
-// at the UI layer.
+// drawer-hidden account with display metadata so Settings can render it
+// without joining the calendar list at the UI layer
 data class DrawerHiddenAccount(val accountKey: String, val accountName: String, val accountType: String)
 
-// Cross-view jump payload. `view` is the target screen; each screen's
-// pendingDate handler ignores jumps whose `view` isn't its own so the
-// source screen can't accidentally consume a jump intended for the
-// destination during an AnimatedContent transition.
+// cross-view jump payload. `view` lets each screen's handler ignore jumps
+// not meant for it, so the source screen can't consume a jump intended for
+// the destination during an AnimatedContent transition.
 data class PendingDateJump(val date: LocalDate, val view: CalendarView)
 
-// Matches `accountOverrideKey` in ui/month/drawer/AccountSection.kt. Inlined
-// here so AppViewModel does not have to import a UI-layer helper.
+// mirrors `accountOverrideKey` in ui/month/drawer/AccountSection.kt; inlined
+// to avoid importing a UI-layer helper here
 internal fun drawerAccountKey(accountType: String, accountName: String): String = "$accountType:$accountName"
 
 class AppViewModel(
@@ -95,24 +91,19 @@ class AppViewModel(
 ) : ViewModel() {
     private val currentView = MutableStateFlow(initialPrefs.defaultView)
 
-    // Effective hide set = user toggles (drawer) union storage-mode hides
-    // (Local only blanks the sync calendars). Mode hides are computed from
-    // the live calendar list rather than persisted, so flipping storage
-    // modes never overwrites the user's manual drawer choices.
-    // WhileSubscribed (not Eagerly) because this combine pulls in
-    // calendarRepo.observeCalendars(), which registers a ContentObserver on
-    // CalendarProvider. All collectors live downstream of the permission gate,
-    // so deferring subscription guarantees the observer never registers
-    // before READ_CALENDAR is granted.
+    // effective hide set = drawer toggles union storage-mode hides. mode
+    // hides are computed from the live list, not persisted, so flipping
+    // modes never overwrites manual drawer choices. WhileSubscribed (not
+    // Eagerly) because this combine pulls in observeCalendars() which
+    // registers a CalendarProvider ContentObserver: deferring subscription
+    // keeps the observer from registering before READ_CALENDAR is granted.
     val hiddenCalendarIdsFlow: StateFlow<Set<Long>> =
         combine(
             userPreferences.prefs,
             calendarRepo.observeCalendars(),
         ) { p, cals ->
-            // drawer-hidden accounts contribute every calendar they own to
-            // the effective hide set: if the user can't see the account in
-            // the drawer, they can't toggle its calendars on, so events
-            // stay suppressed until restored.
+            // a drawer-hidden account hides all its calendars: the user
+            // can't toggle them on while the account is hidden
             val accountHiddenIds = cals
                 .filter { drawerAccountKey(it.accountType, it.accountName) in p.drawerHiddenAccountKeys }
                 .mapTo(mutableSetOf()) { it.id }
@@ -124,8 +115,7 @@ class AppViewModel(
             initialValue = initialPrefs.hiddenCalendarIds,
         )
 
-    // User's explicit drawer-hide set. Drawer consumes this to filter
-    // AccountGroups before rendering.
+    // user's explicit drawer-hide set; drawer filters AccountGroups by it
     val drawerHiddenAccountKeysFlow: StateFlow<Set<String>> =
         userPreferences.prefs
             .map { it.drawerHiddenAccountKeys }
@@ -144,53 +134,36 @@ class AppViewModel(
                 initialValue = initialPrefs.collapsedAccounts,
             )
 
-    // Ticker that the Today action increments. Each visible screen owns a
-    // remembered last-seen value, so switching views does not spuriously
-    // re-trigger the jump; only a real increment past the last-seen value
-    // scrolls the active screen back to today.
+    // Today-action ticker. each screen remembers its last-seen value, so
+    // only a real increment (not a view switch) scrolls it back to today.
     private val _todayJumpCounter = MutableStateFlow(0)
     val todayJumpCounter: StateFlow<Int> = _todayJumpCounter.asStateFlow()
 
-    // Cross-view target. Set when the user taps a month-view cell or a
-    // header-dropdown date / month chip; consumed once the destination
-    // screen has scrolled its pager (or list) to the requested date. The
-    // target view is bundled with the date so each screen's pendingDate
-    // handler can ignore jumps not meant for it (every visible screen
-    // observes pendingDateJump, including the source screen during an
-    // AnimatedContent transition, so an unfiltered handler caused a
-    // race: the source screen's "scroll to month containing date" could
-    // consume the value before the destination read it).
+    // cross-view target; consumed once the destination scrolls to the date.
+    // view is bundled so each screen ignores jumps not meant for it: during
+    // an AnimatedContent transition the source screen also observes this,
+    // and an unfiltered handler raced to consume the value first.
     private val _pendingDateJump = MutableStateFlow<PendingDateJump?>(null)
     val pendingDateJump: StateFlow<PendingDateJump?> = _pendingDateJump.asStateFlow()
 
-    // Month-view's currently-visible YearMonth, pushed up so the header
-    // dropdown's month-chip strip can highlight the right chip and scroll
-    // to it on open. Defaults to today's month; MonthScreen overwrites on
-    // every page change. Stale while the user is on other views, but the
-    // chip strip only renders in Month view so that does not matter.
+    // Month-view's visible YearMonth, pushed up for the header chip strip.
+    // stale on other views, but the chip strip only renders in Month view.
     private val _viewedMonth = MutableStateFlow(java.time.YearMonth.from(LocalDate.now()))
     val viewedMonth: StateFlow<java.time.YearMonth> = _viewedMonth.asStateFlow()
 
-    // Currently-focused date across views, used by `openCreateEditor` so
-    // the new-event editor opens on the date the user was looking at
-    // (the visible day in Day view, the visible week's representative
-    // day in Week, etc.) rather than always today. Each view updates this
-    // when its pager moves; Schedule sets it to today on entry.
+    // focused date across views, so openCreateEditor seeds the editor with
+    // the date the user was looking at rather than always today
     private val _viewedDate = MutableStateFlow(LocalDate.now())
     val viewedDate: StateFlow<LocalDate> = _viewedDate.asStateFlow()
 
-    // Set when requestJumpTo navigates between views. The system Back gesture
-    // pops back to this view rather than exiting the app. Cleared when the
-    // user picks a view manually (selectView) so stale history can't strand
-    // them on the wrong screen.
+    // origin view of a requestJumpTo, so Back pops here instead of exiting.
+    // cleared on manual selectView so stale history can't strand the user.
     private val _previousView = MutableStateFlow<CalendarView?>(null)
     val previousView: StateFlow<CalendarView?> = _previousView.asStateFlow()
 
-    // Themed separately from uiState so the theme can be applied before the
-    // calendar permission has been granted. Collecting uiState triggers
-    // calendarRepo.observeCalendars(), which registers a ContentObserver on
-    // CalendarProvider and crashes with SecurityException if permission has
-    // not yet been granted.
+    // separate from uiState so the theme applies before calendar permission:
+    // collecting uiState triggers observeCalendars(), whose CalendarProvider
+    // ContentObserver throws SecurityException before READ_CALENDAR is granted.
     val themeMode: StateFlow<ThemeMode> =
         userPreferences.prefs
             .map { it.themeMode }
@@ -207,10 +180,8 @@ class AppViewModel(
             initialValue = initialPrefs,
         )
 
-    // Per-calendar color override map exposed for screens to thread into
-    // their event-side ViewModels. Synced calendars only get the override
-    // applied at render time, so each event-loading view model takes this
-    // flow alongside hiddenCalendarIdsFlow.
+    // per-calendar color overrides; synced calendars apply them at render
+    // time, so each event-loading view model takes this flow
     val calendarColorOverridesFlow: StateFlow<Map<Long, Int>> =
         userPreferences.prefs
             .map { it.calendarColorOverrides }
@@ -220,11 +191,9 @@ class AppViewModel(
                 initialValue = initialPrefs.calendarColorOverrides,
             )
 
-    // Per-event color override map. Keyed on Events._ID (not instanceId)
-    // so a recurring event's override applies to every instance. Never
-    // written to CalendarContract; lives only here. Threaded into the
-    // same view models as calendarColorOverridesFlow and resolved with
-    // event > calendar > default precedence.
+    // per-event color overrides, keyed on Events._ID (not instanceId) so a
+    // recurring event's override covers every instance. app-local only,
+    // never written to CalendarContract. precedence: event > calendar > default.
     val eventColorOverridesFlow: StateFlow<Map<Long, Int>> =
         userPreferences.prefs
             .map { it.eventColorOverrides }
@@ -234,10 +203,8 @@ class AppViewModel(
                 initialValue = initialPrefs.eventColorOverrides,
             )
 
-    // Apply per-calendar color overrides on the way out of the repo flow so
-    // every downstream consumer (drawer, Month/Week/Day/Schedule) sees the
-    // user's chosen color via CalendarItem.displayColor without each one
-    // having to join against UserPreferences itself.
+    // applies per-calendar overrides at the repo-flow boundary so every
+    // consumer sees CalendarItem.displayColor without joining prefs itself
     private val calendarsWithOverrides: Flow<List<CalendarItem>> =
         combine(
             calendarRepo.observeCalendars(),
@@ -250,9 +217,8 @@ class AppViewModel(
             }
         }
 
-    // Resolved list of drawer-hidden accounts (account key + a display name
-    // and type for Settings' restore section). Exposed instead of a raw
-    // calendar flow so Settings is decoupled from the live calendar list.
+    // resolved drawer-hidden accounts for Settings' restore section;
+    // exposed instead of a raw calendar flow to decouple Settings from it
     val drawerHiddenAccountsFlow: StateFlow<List<DrawerHiddenAccount>> =
         combine(
             calendarRepo.observeCalendars(),
@@ -260,15 +226,12 @@ class AppViewModel(
         ) { cals, prefs ->
             val keys = prefs.drawerHiddenAccountKeys
             if (keys.isEmpty()) return@combine emptyList()
-            // For each hidden key, surface the account once with display
-            // metadata from any of its calendars. Sort by display name so
-            // the list stays stable across emissions.
+            // one entry per hidden key, sorted by name for stable emissions
             keys.mapNotNull { key ->
                 val match = cals.firstOrNull { drawerAccountKey(it.accountType, it.accountName) == key }
                     ?: return@mapNotNull null
-                // A storage mode that excludes this account type should make
-                // it read as nonexistent, so drop it from the restore list
-                // too (the drawer already hides its calendars).
+                // mode-excluded account types read as nonexistent: drop from
+                // the restore list too (the drawer already hides them)
                 if (StorageModeFilter.accountHiddenByMode(match.accountType, prefs.storageMode)) {
                     return@mapNotNull null
                 }
@@ -347,9 +310,8 @@ class AppViewModel(
     }
 
     fun toggleCalendarVisibility(calendarId: Long) {
-        // Toggle the user-only set, not the effective (mode union user) set.
-        // Otherwise a mode-hidden sync calendar would be written back into
-        // the user set on toggle and re-stomp the previous mode hide.
+        // toggle the user-only set, not the effective (mode union user) one,
+        // or a mode-hidden calendar gets written back into the user set
         viewModelScope.launch {
             val current = userPreferences.prefs.first().hiddenCalendarIds
             val next = if (calendarId in current) current - calendarId else current + calendarId
@@ -379,24 +341,18 @@ class AppViewModel(
         viewModelScope.launch { userPreferences.setCollapsedAccounts(next) }
     }
 
-    // null = sheet closed. State backers exposed as internal so the
-    // sheet-state extensions in AppViewModelSheetState.kt can mutate them.
+    // null = sheet closed. backers are internal so the extensions in
+    // AppViewModelSheetState.kt can mutate them.
     internal val detailSheetEventBacker = MutableStateFlow<OpenEvent?>(null)
     val detailSheetEvent: StateFlow<OpenEvent?> = detailSheetEventBacker.asStateFlow()
 
-    // The raw EventDetail for the open sheet, as returned by the repository
-    // (provider DISPLAY_COLOR, no override resolution applied). Loaded
-    // asynchronously after openEventDetail and used by the delete path to
-    // supply parentRrule and parentCalendarId. Null while the sheet is
-    // closed or its data is still in flight.
+    // raw repo EventDetail (provider DISPLAY_COLOR, no override resolution).
+    // loaded async after openEventDetail; null while closed or in flight.
     internal val loadedDetailRawBacker = MutableStateFlow<EventDetail?>(null)
 
-    // The displayed EventDetail: raw + per-event and per-calendar color
-    // overrides resolved on every emission. Re-resolves if an override map
-    // changes while the sheet is open (e.g., a sync push from another app
-    // updating a calendar color). Previously this baked in an eager .value
-    // snapshot at open time; that left the chip and accent colors stale
-    // until the user closed and re-opened the sheet.
+    // displayed EventDetail: raw with overrides re-resolved on every
+    // emission, so an override change while the sheet is open updates it
+    // live. an eager .value snapshot at open time left colors stale.
     val loadedDetail: StateFlow<EventDetail?> = combine(
         loadedDetailRawBacker,
         calendarColorOverridesFlow,
@@ -419,31 +375,24 @@ class AppViewModel(
     internal val editInstanceMillisBacker = MutableStateFlow<Long?>(null)
     val editInstanceMillis: StateFlow<Long?> = editInstanceMillisBacker.asStateFlow()
 
-    // Source event id when the editor was opened via Duplicate; the editor
-    // seeds a new event from it. Null for plain create / edit. Snapshotted
-    // by EventEditScreen at open.
+    // source event id for a Duplicate-opened editor; null for plain create
+    // / edit. snapshotted by EventEditScreen at open.
     internal val editDuplicateSourceIdBacker = MutableStateFlow<Long?>(null)
     val editDuplicateSourceId: StateFlow<Long?> = editDuplicateSourceIdBacker.asStateFlow()
 
-    // Pre-fill date for the create-event editor. Null when the editor is
-    // closed or editing an existing event. Snapshotted from viewedDate at
-    // openCreateEditor time so a later view change doesn't retroactively
-    // shift an open editor.
+    // create-editor pre-fill date, snapshotted from viewedDate at open so a
+    // later view change doesn't shift an open editor. null otherwise.
     internal val editInitialStartDateBacker = MutableStateFlow<LocalDate?>(null)
     val editInitialStartDate: StateFlow<LocalDate?> = editInitialStartDateBacker.asStateFlow()
 
-    // Pending drag-reschedule on a recurring event: held until the user
-    // picks a scope (this / this and following / all) in the dialog. Null
-    // when no recurring drag is in flight; non-recurring drags save
-    // immediately without going through this state.
+    // recurring drag-reschedule held until the user picks a scope. null when
+    // none in flight; non-recurring drags save immediately, bypassing this.
     internal val pendingRescheduleBacker = MutableStateFlow<PendingReschedule?>(null)
     val pendingReschedule: StateFlow<PendingReschedule?> = pendingRescheduleBacker.asStateFlow()
 
-    // Emits an event id when its in-flight drag should snap back to the
-    // original position (e.g. the recurring scope picker was cancelled).
-    // Chips collect this via LocalDragRevertSignal to clear their
-    // optimistic drag offset. Replay = 0 so a chip that mounts late does
-    // not pick up a stale revert.
+    // emits an event id whose in-flight drag should snap back (e.g. scope
+    // picker cancelled); chips clear their offset via LocalDragRevertSignal.
+    // replay = 0 so a late-mounting chip doesn't pick up a stale revert.
     internal val dragRevertSignalBacker = MutableSharedFlow<Long>(extraBufferCapacity = 1)
     val dragRevertSignal: SharedFlow<Long> = dragRevertSignalBacker.asSharedFlow()
 
@@ -456,9 +405,7 @@ class AppViewModel(
     fun deleteLocalCalendar(calendarId: Long) {
         viewModelScope.launch {
             calendarRepo.deleteLocalCalendar(calendarId)
-            // Drop the orphaned per-calendar override so the map doesn't
-            // accumulate stale entries (and so a future calendar that
-            // reuses the same _ID doesn't silently inherit the color).
+            // drop the orphaned override so a recycled _ID doesn't inherit it
             runCatching { userPreferences.setCalendarColorOverride(calendarId, null) }
                 .onFailure { Timber.e(it, "post-delete override cleanup failed for id=%d", calendarId) }
         }
@@ -470,10 +417,8 @@ class AppViewModel(
         }
     }
 
-    // Failure on a DataStore write is rare (disk full / IO error) but
-    // currently silent. Logging via Timber.e makes it observable for
-    // diagnosis if a user reports the wrong chip color after a save.
-    // No UI surfacing yet; revisit if users actually hit it.
+    // log-only on DataStore write failure (rare: disk full / IO); no UI
+    // surfacing yet, revisit if users actually hit it
     fun setAccountAvatarColor(accountKey: String, argb: Int) {
         viewModelScope.launch {
             runCatching { userPreferences.setAccountAvatarColor(accountKey, argb) }
@@ -481,14 +426,10 @@ class AppViewModel(
         }
     }
 
-    // For local calendars we also write CALENDAR_COLOR so exports and other
-    // apps that read the provider see the new color; the override map stays
-    // authoritative on read regardless. For synced calendars we skip the
-    // provider write so the sync adapter cannot clobber it on next sync.
-    // Provider write goes first so if the process dies between the two
-    // writes the user-visible state ends up matching whichever write
-    // succeeded last (override map wins on read; if only the provider
-    // landed, the next setCalendarColorOverride attempt completes the pair).
+    // local calendars also write CALENDAR_COLOR (so other apps/exports see
+    // it); synced ones skip the provider write so the sync adapter can't
+    // clobber it. provider write goes first: on a mid-pair crash the override
+    // map still wins on read, and the next call completes the pair.
     fun setCalendarColorOverride(calendarId: Long, argb: Int) {
         viewModelScope.launch {
             val cal =
@@ -503,9 +444,8 @@ class AppViewModel(
         }
     }
 
-    // Per-event override is app-local only: never touches CalendarContract,
-    // so the sync adapter cannot clobber it and the override works even on
-    // read-only synced calendars. Passing null removes the entry.
+    // app-local only: never touches CalendarContract, so it survives sync
+    // and works on read-only calendars. null removes the entry.
     fun setEventColorOverride(eventId: Long, argb: Int?) {
         viewModelScope.launch {
             runCatching { userPreferences.setEventColorOverride(eventId, argb) }
@@ -568,9 +508,8 @@ class AppViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass == AppViewModel::class.java)
             val userPrefs = UserPreferences(appContext.settingsDataStore)
-            // Block the main thread once at startup to read all persisted prefs.
-            // Without this, the first composition paints with defaults and
-            // recomposes once DataStore emits, causing a visible flash.
+            // block once at startup to read prefs; else first composition
+            // paints defaults then recomposes, causing a visible flash
             val initialPrefs = runBlocking { userPrefs.prefs.first() }
             return AppViewModel(
                 appContext = appContext,

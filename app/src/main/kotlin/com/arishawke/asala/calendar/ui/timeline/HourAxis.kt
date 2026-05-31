@@ -27,16 +27,13 @@ import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-// One hour-axis composable used by the day and week timelines. The week
-// timeline nudges its labels up by 6.dp so they sit on the hour line
-// rather than below it; the day timeline uses 0.dp because the labels
-// fall inside taller rows.
+// shared by day and week timelines. week passes labelOffsetY = -6.dp so labels
+// sit on the hour line; day uses 0.dp since its taller rows hold them inside.
 @Composable
 internal fun HourAxis(labelOffsetY: Dp = 0.dp) {
     val is24Hour = LocalIs24Hour.current
     val locale = LocalLocale.current.platformLocale
-    // Locale matters on 12-hour patterns so the AM/PM marker renders in the
-    // user's language (e.g., "ja_JP" -> "午前 / 午後").
+    // locale drives the AM/PM marker on 12-hour patterns (ja_JP -> 午前/午後).
     val hourFmt = remember(is24Hour, locale) {
         if (is24Hour) DateTimeFormatter.ofPattern("HH:mm", locale) else DateTimeFormatter.ofPattern("h a", locale)
     }

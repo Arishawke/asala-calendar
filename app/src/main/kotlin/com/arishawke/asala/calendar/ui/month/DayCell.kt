@@ -21,9 +21,7 @@ import com.arishawke.asala.calendar.ui.theme.PastDateAlpha
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 
-// Chip area of a month-view day cell. The day number lives in a separate
-// row above the multi-day bars now (see DayNumberBadge), so this cell
-// only owns the timed-event chips and the overflow row.
+// chip area only; the day number lives in DayNumberBadge above the bars
 @Composable
 @Suppress("LongParameterList")
 fun DayCell(

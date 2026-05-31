@@ -42,9 +42,7 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
 private const val OPAQUE_ALPHA = 0xFF000000.toInt()
 
-// Free HSV + hex picker opened from the "Custom" affordance on the swatch
-// grid. Forces opaque colors so event chips stay legible. The wheel and
-// the hex field stay in sync; confirming returns an opaque ARGB.
+// HSV + hex picker. forces opaque colors so event chips stay legible.
 @Composable
 @Suppress("LongMethod")
 internal fun CustomColorPickerDialog(initialArgb: Int, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
@@ -65,7 +63,7 @@ internal fun CustomColorPickerDialog(initialArgb: Int, onConfirm: (Int) -> Unit,
                     onColorChanged = { envelope ->
                         val argb = envelope.color.toArgb() or OPAQUE_ALPHA
                         currentArgb = argb
-                        // Only a wheel / slider drag overwrites the field; a
+                        // only a wheel/slider drag overwrites the field, so a
                         // hex-driven change keeps the user's in-progress text.
                         if (envelope.fromUser) hexText = HexColor.format(argb)
                     },

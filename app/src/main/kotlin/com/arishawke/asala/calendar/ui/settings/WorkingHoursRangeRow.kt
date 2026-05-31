@@ -105,10 +105,8 @@ private fun WorkingHoursRangeDialog(
                     is24Hour = is24Hour,
                     onSelect = { newStart ->
                         start = newStart
-                        // Keep end strictly after start so the dim math
-                        // doesn't render an empty work block; default to a
-                        // 1-hour minimum span when the user crosses the
-                        // current end.
+                        // keep end > start so the dim math never has an
+                        // empty work block; min 1-hour span.
                         if (end <= newStart) end = (newStart + 1).coerceAtMost(TimeUnits.HoursPerDay)
                     },
                 )
@@ -166,11 +164,9 @@ private fun HourDropdown(label: String, selected: Int, range: IntRange, is24Hour
     }
 }
 
-// 24-hour formats 0..24 directly so the "end-of-day" sentinel renders as
-// "24:00". 12-hour routes through DateTimeFormatter with the current
-// locale so AM/PM (or its locale equivalent) is correct for non-English
-// systems; hour=24 collapses to hour=0 since LocalTime.of(24, 0) is
-// invalid.
+// 24-hour formats 0..24 directly so the end-of-day sentinel reads "24:00".
+// 12-hour goes through a locale formatter for correct AM/PM; hour=24
+// collapses to 0 since LocalTime.of(24, 0) is invalid.
 private fun formatHourOfDay(hour: Int, is24Hour: Boolean, locale: Locale): String {
     if (is24Hour) return String.format(locale, "%02d:00", hour)
     val time = LocalTime.of(hour % TimeUnits.HoursPerDay, 0)

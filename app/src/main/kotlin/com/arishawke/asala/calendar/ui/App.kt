@@ -29,10 +29,8 @@ import com.arishawke.asala.calendar.ui.settings.ThemeMode
 import com.arishawke.asala.calendar.ui.theme.AsalaCalendarTheme
 import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
 
-// Top-level Compose entry. Collects only the bits needed before the
-// calendar permission has been granted (theme and 24h preference);
-// AppShell behind the permission gate subscribes to the full uiState
-// and the ContentObserver it carries.
+// top-level Compose entry. collects only what's needed before calendar
+// permission (theme, 24h); AppShell behind the gate takes the full uiState.
 @Composable
 internal fun App() {
     val context = LocalContext.current
@@ -50,10 +48,8 @@ internal fun App() {
     }
     val amoled = themeMode == ThemeMode.Amoled
 
-    // The Android system 24-hour setting is not part of Configuration, so
-    // Compose does not auto-recompose when the user toggles it system-side.
-    // Re-read on ON_RESUME so a setting change while the app was backgrounded
-    // is reflected the next time the user returns.
+    // the 24-hour setting isn't in Configuration, so Compose won't recompose
+    // on a system-side toggle; re-read on ON_RESUME to catch a backgrounded change
     var systemIs24Hour by remember { mutableStateOf(DateFormat.is24HourFormat(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {

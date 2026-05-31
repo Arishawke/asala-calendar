@@ -57,9 +57,8 @@ import java.time.ZoneId
 import kotlin.math.max
 
 @Composable
-// LongMethod: the overflow opt-out gate (enableOverflow -> nullable
-// callback) pushes this a few lines past detekt's 60-line default. The
-// body stays a single render concern; a helper would just relocate it.
+// LongMethod: overflow opt-out gate pushes this past detekt's 60-line default;
+// body stays one render concern, a helper would just relocate it.
 @Suppress("LongParameterList", "LongMethod")
 internal fun TimelineGrid(
     days: List<LocalDate>,
@@ -92,9 +91,8 @@ internal fun TimelineGrid(
     val nowMinutes = rememberNowMinutes(zone = zone, enabled = showNowLine)
 
     var overflowSheet by remember { mutableStateOf<Pair<LocalDate, List<EventItem>>?>(null) }
-    // 3-day opts out of crowded overflow (wide columns, like Day). A null
-    // callback makes DayColumn use threshold Int.MAX_VALUE: nothing
-    // collapses and no "+N" chip is drawn.
+    // 3-day opts out of overflow: null callback -> DayColumn threshold MAX_VALUE,
+    // nothing collapses, no "+N" chip.
     val overflowCallback: ((date: LocalDate, events: List<EventItem>) -> Unit)? =
         if (enableOverflow) {
             { date, evs -> overflowSheet = date to evs }
@@ -102,8 +100,7 @@ internal fun TimelineGrid(
             null
         }
 
-    // Clip events to each day once per data change so columns get stable list
-    // references; without this the now-line tick re-filters every column.
+    // stable per-day lists so the now-line tick doesn't re-filter every column.
     val timedByDay = remember(events, days, zone) { clipEventsByDay(events, days, zone) }
 
     Box(
@@ -127,8 +124,7 @@ internal fun TimelineGrid(
                     onOverflow = overflowCallback,
                     onReschedule = onReschedule,
                     nowMinutes = if (date == today) nowMinutes else null,
-                    // A non-working day's full-column dim supersedes the
-                    // working-hours band dim so the column doesn't double-dim.
+                    // non-working full-column dim supersedes the band dim; avoids double-dim.
                     workingHoursEnabled = workingHoursEnabled && !isNonWorkingDay,
                     workingHoursStartHour = workingHoursStartHour,
                     workingHoursEndHour = workingHoursEndHour,
@@ -152,10 +148,9 @@ internal fun TimelineGrid(
     }
 }
 
-// LongMethod + CyclomaticComplexMethod: DayColumn covers three discrete
-// concerns (background dims, event layout with overflow, now-line) that
-// live here to share a single BoxWithConstraints scope; splitting would
-// require threading BoxScope down through multiple callees.
+// LongMethod/CyclomaticComplexMethod: DayColumn covers three concerns
+// (dims, event layout + overflow, now-line) sharing one BoxWithConstraints
+// scope; splitting would thread BoxScope through every callee.
 @Composable
 @Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
 internal fun DayColumn(
@@ -185,16 +180,10 @@ internal fun DayColumn(
             .padding(horizontal = 1.dp),
     ) {
         HourGuideLines()
-        // Dim the non-working bands behind the chips so events stay
-        // legible inside and outside the working block. Drawn after the
-        // hour lines so it overlays them and before the chip loop so
-        // chips render on top of the dim.
+        // order matters: dim sits over the hour lines, under the chips.
         if (workingHoursEnabled) {
             WorkingHoursDim(workingHoursStartHour, workingHoursEndHour)
         }
-        // Whole-column dim for non-working days. Drawn at the same alpha
-        // as WorkingHoursDim so the two surfaces read identical; suppresses
-        // working-hours via the caller so we don't double-dim.
         if (isNonWorkingDay) {
             NonWorkingDayDim()
         }
@@ -205,11 +194,9 @@ internal fun DayColumn(
         } else {
             Int.MAX_VALUE
         }
-        // threshold is a non-layout constant (3 or Int.MAX_VALUE); safe as a remember key.
         val crowded = remember(events, threshold) { crowdedLayout(events, threshold) }
         crowded.visible.forEach { laid ->
-            // A crowded cluster keeps only column 0; render it full width.
-            // Everything else divides the column as before.
+            // crowded cluster keeps only column 0, rendered full width.
             val isCrowdedPrimary = laid.clusterWidth >= threshold
             val perColumnWidth = if (isCrowdedPrimary) columnWidth else columnWidth / laid.clusterWidth
             val xOffset = if (isCrowdedPrimary) 0.dp else perColumnWidth * laid.columnIndex
@@ -245,9 +232,7 @@ internal fun DayColumn(
                 )
             }
         }
-        // Now-line sits on top of grid lines but under chip taps. Rendered
-        // inside the column so its width tracks the column rather than
-        // spanning all seven days.
+        // rendered inside the column so its width tracks one day, not all seven.
         if (isToday && nowMinutes != null) {
             val yDp = with(density) { (HourHeight.toPx() * nowMinutes / 60f).toDp() }
             NowLineRow(
@@ -279,19 +264,8 @@ private fun HourGuideLines() {
     }
 }
 
-// Two stacked bands that overlay the hours before workingHoursStartHour
-// and after workingHoursEndHour. Sits between HourGuideLines and the
-// chip loop so the grid lines underneath read as faded while chips drawn
-// on top stay full-opacity.
-//
-// Color is a plain black at low alpha rather than a theme token: an
-// earlier surfaceVariant.copy(alpha = 0.5f) only differed from surface
-// by ~5-7% in light theme and was invisible in dark / AMOLED (where
-// surfaceVariant is pure black on a near-black surface). Constant black
-// uniformly darkens both themes and stays visible without overwhelming
-// the work block.
-// Full-column dim for non-working days. Same Color.Black @ 12% alpha as
-// the per-band WorkingHoursDim so the two treatments visually match.
+// plain black, not a theme token: surfaceVariant was invisible on dark/AMOLED.
+// same 12% alpha as WorkingHoursDim so the two treatments match.
 @Composable
 private fun NonWorkingDayDim() {
     Box(
@@ -315,7 +289,7 @@ private fun WorkingHoursDim(startHour: Int, endHour: Int) {
                     .background(dim),
             )
         }
-        // Spacer for the working block; the dim bands are above and below.
+        // working block stays undimmed; bands above and below.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -332,8 +306,7 @@ private fun WorkingHoursDim(startHour: Int, endHour: Int) {
     }
 }
 
-// Minutes from local midnight for an epoch-millis instant, used to place
-// the overflow chip at the top of its cluster.
+// minutes from local midnight, for placing the overflow chip at its cluster top.
 private fun Long.minutesOfDay(zone: ZoneId): Int {
     val t = Instant.ofEpochMilli(this).atZone(zone).toLocalTime()
     return t.hour * TimeUnits.MinutesPerHour + t.minute

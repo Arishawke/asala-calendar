@@ -39,12 +39,7 @@ import java.time.LocalDate
 
 internal const val MaxEventChipsPerCell = 3
 
-// Approximate vertical footprint of a single EventChipCompact (label
-// height + vertical padding) and the "+N more" row. Used to derive how
-// many chips fit before the +N row needs to take a slot. The previous
-// fixed-count approach showed three chips and a +N row regardless of
-// cell height; on dense days that pushed the +N row off the bottom of
-// the cell and into the next week, making the overflow invisible.
+// approx chip row height; drives capacity-by-height so the +N row never spills past the cell
 private val ChipRowHeightApprox: Dp = 18.dp
 
 @Composable
@@ -57,8 +52,7 @@ internal fun EventChips(
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val capacityByHeight = (maxHeight / ChipRowHeightApprox).toInt().coerceAtLeast(0)
         val capacity = capacityByHeight.coerceAtMost(MaxEventChipsPerCell)
-        // When events exceed capacity, reserve one slot for the +N row so
-        // the overflow indicator is always visible when there is overflow.
+        // reserve a slot for the +N row so overflow stays visible
         val needsOverflow = events.size > capacity
         val shown = if (needsOverflow) {
             events.take((capacity - 1).coerceAtLeast(0))
@@ -112,9 +106,8 @@ internal fun EventChips(
                     )
                     if (isClickable) {
                         Spacer(modifier = Modifier.width(2.dp))
-                        // cell budget; below M3's 18dp minimum is intentional.
-                        // KeyboardArrowDown stands in for ExpandMore; the latter
-                        // lives in material-icons-extended (~10MB APK bloat).
+                        // below M3's 18dp min on purpose (cell budget); ExpandMore
+                        // avoided to skip material-icons-extended (~10MB)
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowDown,
                             contentDescription = null,

@@ -26,10 +26,8 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 
-// Dispatches between Month-chips and mini-month panels based on the
-// active view. Month gets a quick-jump chip strip; the timeline-style
-// views get the mini-month with event dots so picking a single date is
-// the natural target.
+// Month gets the quick-jump chip strip; timeline views get the mini-month
+// with event dots since their natural target is a single date.
 @Composable
 internal fun HeaderDropdownPanel(
     currentView: CalendarView,
@@ -65,10 +63,7 @@ internal fun HeaderDropdownPanel(
                     todayFlow,
                 ),
             )
-            // Reset to today's month whenever the user opens the panel
-            // from a fresh state. Driven by the panel's recomposition
-            // entering through the AnimatedVisibility (key change triggers
-            // the effect).
+            // reset to today's month each time the panel re-enters.
             LaunchedEffect(currentView) { vm.resetToToday() }
 
             val state by vm.uiState.collectAsStateWithLifecycle()

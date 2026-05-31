@@ -64,15 +64,9 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
         contentResolver.delete(uri, null, null) > 0
     }
 
-    // Persist the new color back to CALENDAR_COLOR for local calendars so
-    // exports and other apps that read this provider row see the user's
-    // chosen color. The DataStore override is still authoritative on read
-    // (so a sync adapter on a future synced calendar can't clobber it), but
-    // for local calendars we keep both in sync. CALENDAR_COLOR is sync-
-    // adapter-scoped per AOSP (the app-writable set is NAME,
-    // CALENDAR_DISPLAY_NAME, VISIBLE, SYNC_EVENTS); we own the local-
-    // calendar rows so we apply the sync-adapter URI scoping (matching
-    // createLocalCalendar / deleteLocalCalendar) for contract compliance.
+    // CALENDAR_COLOR is sync-adapter-scoped per AOSP (app-writable set is
+    // NAME, CALENDAR_DISPLAY_NAME, VISIBLE, SYNC_EVENTS), so write it under
+    // the sync-adapter URI. DataStore override stays authoritative on read.
     suspend fun updateLocalCalendarColor(calendarId: Long, color: Int): Boolean = withContext(Dispatchers.IO) {
         val uri =
             ContentUris
@@ -86,9 +80,8 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
         contentResolver.update(uri, values, null, null) > 0
     }
 
-    // Apps can update display name without sync-adapter privileges; the
-    // CALENDAR_DISPLAY_NAME column is in the app-writable set per AOSP docs.
-    // We still scope by id via the URI to avoid ambiguous WHERE clauses.
+    // CALENDAR_DISPLAY_NAME is app-writable per AOSP, so no sync-adapter URI;
+    // scope by id via the URI to avoid an ambiguous WHERE clause.
     suspend fun renameLocalCalendar(calendarId: Long, newDisplayName: String): Boolean = withContext(Dispatchers.IO) {
         val trimmed = newDisplayName.trim()
         if (trimmed.isEmpty()) return@withContext false
@@ -143,9 +136,7 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
     }
 
     private companion object {
-        // IS_PRIMARY is intentionally not selected: the column is still
-        // referenced by the ORDER BY (primaries float to the top) but no
-        // call site reads its value off the row.
+        // IS_PRIMARY drives the ORDER BY but is never read off the row, so not selected.
         val Projection =
             arrayOf(
                 CalendarContract.Calendars._ID,

@@ -13,13 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 
-// Opacity used to fade past dates across Month and Week views when the
-// user has enabled "Dim past dates" in Settings.
+// fade for past dates when "Dim past dates" is on.
 internal const val PastDateAlpha: Float = 0.45f
 
-// Calendar-specific semantic color roles, layered on top of Material 3's
-// scheme. Each token names the meaning of the color (todayHighlight, nowLine)
-// rather than its hue, so swapping the source later only changes this file.
+// semantic color roles over the M3 scheme. tokens name meaning not hue, so
+// swapping the source later touches only this file.
 object CalendarTokens {
 
     val todayHighlight: Color
@@ -32,9 +30,8 @@ object CalendarTokens {
         @ReadOnlyComposable
         get() = MaterialTheme.colorScheme.onPrimary
 
-    // Monochrome on purpose: the line should read as ink against the
-    // surface, light or dark, rather than the loud accent color it was
-    // before. onSurface flips with theme.
+    // monochrome on purpose: reads as ink against the surface in either
+    // theme, not the loud accent it used to be. onSurface flips with theme.
     val nowLine: Color
         @Composable
         @ReadOnlyComposable

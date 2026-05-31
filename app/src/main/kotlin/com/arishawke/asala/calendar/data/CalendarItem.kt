@@ -18,12 +18,11 @@ data class CalendarItem(
     val accountType: String,
     val color: Int,
     val visible: Boolean,
-    // matches CalendarContract.Calendars.CAL_ACCESS_*; 500 = CAL_ACCESS_CONTRIBUTOR.
-    // calendars below this are read-only (subscriptions, foreign attendees, holidays).
+    // CalendarContract.Calendars.CAL_ACCESS_*; 500 = CAL_ACCESS_CONTRIBUTOR.
+    // below this is read-only (subscriptions, foreign attendees, holidays).
     val accessLevel: Int,
-    // Local recolor override from UserPreferences. For local calendars the
-    // provider's CALENDAR_COLOR is also updated, but the override map stays
-    // authoritative on read so sync adapters can't clobber the user's choice.
+    // local recolor override; authoritative on read so sync adapters can't
+    // clobber the user's choice (CALENDAR_COLOR is also kept in sync).
     val overrideColor: Int? = null,
 ) {
     val isWritable: Boolean get() = accessLevel >= 500

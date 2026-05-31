@@ -28,22 +28,15 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import com.arishawke.asala.calendar.ui.theme.Spacing
 
-// Small-option-set dropdowns for SettingsScreen. Each one captures a
-// closed option set (palette ids, allowed durations, allowed snooze
-// values) so the option list lives next to the picker it drives. Pulled
-// out of SettingsScreen.kt to keep that file focused on the LazyColumn
-// section composition.
+// closed option sets live next to the pickers they drive.
 
-// Allowed default-event-duration values, in minutes. 0 is intentionally
-// excluded: a zero-length event fails the editor's isEndAfterStart guard
-// and would make the new-event flow unsaveable. Detekt's MagicNumber
-// detector flags each entry; they're meaningful as a set, not as
-// individual named constants.
+// default-event-duration, minutes. 0 excluded: a zero-length event fails
+// the editor's isEndAfterStart guard and is unsaveable. suppress: the
+// values are meaningful as a set, not as individual named constants.
 @Suppress("MagicNumber")
 private val DefaultDurationOptionsMinutes = listOf(15, 30, 45, 60, 90, 120)
 
-// Allowed default-snooze values, in minutes. Mirrors the per-notification
-// snooze picker.
+// default-snooze, minutes. mirrors the per-notification snooze picker.
 @Suppress("MagicNumber")
 private val DefaultSnoozeOptionsMinutes = listOf(5, 10, 15, 30, 60)
 

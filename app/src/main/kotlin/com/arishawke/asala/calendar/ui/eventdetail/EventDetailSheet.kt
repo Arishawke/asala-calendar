@@ -89,11 +89,8 @@ fun EventDetailSheet(
     }
 }
 
-// Adding the status badge + decoration branches pushed cyclomatic
-// complexity and method length past detekt's defaults. Each branch is a
-// single conditional concern (recurring frequency, location, notes,
-// reminder, status, etc.); pulling them into helpers would obscure the
-// sheet's linear top-to-bottom field grouping.
+// detekt thresholds suppressed: each branch is one conditional field;
+// extracting helpers would obscure the sheet's linear field grouping.
 @Suppress("CyclomaticComplexMethod", "LongMethod", "LongParameterList")
 @Composable
 private fun EventDetailContent(
@@ -145,10 +142,8 @@ private fun EventDetailContent(
         modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.xl, vertical = Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
-        // Header: title + calendar identifier. No divider above; the sheet's
-        // own drag handle marks the top boundary. Title picks up the same
-        // italic / strikethrough decoration that chips use so the status is
-        // legible at a glance, with a small badge below for explicit naming.
+        // header. title mirrors the chip italic / strikethrough so status
+        // reads at a glance, with a badge below for explicit naming.
         val titleFontStyle = when (detail.status) {
             CalendarContract.Events.STATUS_TENTATIVE -> FontStyle.Italic
             else -> null
@@ -184,7 +179,7 @@ private fun EventDetailContent(
             Text(detail.calendarDisplayName, style = MaterialTheme.typography.bodyMedium)
         }
 
-        // When: time range, recurrence summary if recurring.
+        // when
         HorizontalDivider()
         Text(
             text = formatWhen(detail, instanceMillis, LocalIs24Hour.current),
@@ -198,9 +193,7 @@ private fun EventDetailContent(
             )
         }
 
-        // Where (conditional). Plain-text URLs / emails inside the location
-        // string are linkified so a meeting URL pasted into "where" stays
-        // tappable, matching the notes treatment.
+        // where. linkified so a meeting URL pasted here stays tappable.
         if (hasLocation) {
             HorizontalDivider()
             val linkColor = MaterialTheme.colorScheme.primary
@@ -211,16 +204,13 @@ private fun EventDetailContent(
             Text(text = locationAnnotated, style = MaterialTheme.typography.bodyMedium)
         }
 
-        // Notes (conditional). HTML-bearing descriptions (some sync
-        // sources' invites) parsed into an AnnotatedString; plain-text
-        // entries left unchanged so their newlines survive.
+        // notes
         if (hasDescription) {
             HorizontalDivider()
             DescriptionText(detail.description.orEmpty())
         }
 
-        // Reminders (conditional). Permission banner shows above the
-        // reminder label when notifications are off.
+        // reminders
         if (hasReminder) {
             HorizontalDivider()
             if (!notificationPermissionGranted) {

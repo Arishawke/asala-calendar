@@ -19,9 +19,7 @@ import com.arishawke.asala.calendar.data.EventEndMillis
 import java.text.DateFormat
 import java.util.Date
 
-// A snapshot of the event row, decoupled from the cursor so the renderer
-// has no provider dependency. ReminderAlarmReceiver reads the row and
-// passes this in; the builder does no I/O.
+// decoupled from the cursor so the builder does no I/O and stays unit-testable
 internal data class ReminderEventSnapshot(
     val title: String,
     val location: String?,
@@ -31,12 +29,8 @@ internal data class ReminderEventSnapshot(
     val displayColor: Int,
 )
 
-// Per-event then per-calendar color override applied at notification-
-// build time. Synced calendars never get either override written back to
-// the provider, so the receiver has to apply both here for the
-// notification accent to match the in-app chip. Precedence matches
-// applyColorOverrides and resolveEventDetailColor: event > calendar >
-// provider.
+// synced calendars never write overrides back to the provider, so apply both here
+// for the accent to match the in-app chip. precedence: event > calendar > provider.
 internal fun resolveReminderColor(
     providerColor: Int,
     eventId: Long,
@@ -47,11 +41,9 @@ internal fun resolveReminderColor(
     ?: calendarOverrides[calendarId]
     ?: providerColor
 
-// Pure builder so the cursor-to-snapshot wiring is unit-testable without
-// a ContentResolver. Recurring rows write DURATION not DTEND; routing
-// both through EventEndMillis.compute keeps the receiver and the detail
-// sheet using the same end-time fallback. param list mirrors the row
-// columns; grouping into a wrapper would just shift verbosity to callers.
+// recurring rows write DURATION not DTEND; routing both through EventEndMillis.compute
+// keeps the receiver and the detail sheet on the same end-time fallback.
+// param list mirrors the row columns, so it stays long.
 @Suppress("LongParameterList")
 internal fun buildReminderEventSnapshot(
     title: String?,
@@ -71,10 +63,8 @@ internal fun buildReminderEventSnapshot(
     displayColor = displayColor,
 )
 
-// Builds the notification posted when a reminder fires. Extracted from the
-// receiver so the three PendingIntent shapes (snooze default, snooze
-// picker, dismiss) and the BigTextStyle layout sit in one focused file
-// rather than inflating the receiver class past the 200-line threshold.
+// extracted from the receiver so the three PendingIntent shapes and the
+// BigTextStyle layout stay under the 200-line threshold.
 internal fun buildReminderNotification(
     context: Context,
     eventId: Long,
@@ -122,7 +112,6 @@ internal fun buildReminderNotification(
         .build()
 }
 
-// Tap body opens MainActivity at the event detail.
 private fun openMainActivityPendingIntent(context: Context, eventId: Long, instanceMillis: Long): PendingIntent {
     val intent =
         Intent(context, MainActivity::class.java).apply {
@@ -139,7 +128,6 @@ private fun openMainActivityPendingIntent(context: Context, eventId: Long, insta
     )
 }
 
-// One-tap default snooze; no picker.
 private fun snoozeDefaultPendingIntent(
     context: Context,
     eventId: Long,
@@ -161,9 +149,8 @@ private fun snoozeDefaultPendingIntent(
     )
 }
 
-// Launch the picker activity directly so the system collapses the
-// notification shade for us. A broadcast trampoline leaves the shade open
-// over the picker (user-reported confusion).
+// launch the activity directly so the shade collapses; a broadcast trampoline
+// leaves the shade open over the picker (user-reported confusion).
 private fun snoozePickerPendingIntent(
     context: Context,
     eventId: Long,

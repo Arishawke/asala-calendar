@@ -45,11 +45,7 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Wrap the body so a thrown exception (provider hiccup, malformed
-                // row, missing string resource) is logged rather than killing the
-                // process. goAsync() still gives us until pending.finish() to do
-                // the work; without runCatching the throwable would propagate up
-                // through the launch scope and crash.
+                // log rather than crash the process on a provider hiccup or bad row
                 runCatching {
                     val prefs = UserPreferences(context.settingsDataStore).prefs.first()
                     val event =

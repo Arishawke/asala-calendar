@@ -16,10 +16,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.TimeZone
 
-// Field assembly for a "this occurrence only" edit: start from the draft, bind
-// it to the parent series' slot, and strip recurrence so the exception is a
-// one-off. Pure + map-shaped so it unit-tests without a ContentResolver, like
-// EventCancellation.buildMap.
+// "this occurrence only" edit: bind the draft to the parent's slot and strip
+// recurrence so the exception is a one-off.
 internal fun thisInstanceExceptionMap(
     draft: EventDraft,
     parentEventId: Long,
@@ -35,19 +33,16 @@ internal fun thisInstanceExceptionMap(
     put(CalendarContract.Events.DTEND, draft.endMillis)
 }
 
-// A recurring parent's truncation must re-send DTSTART, not just the new RRULE:
-// CalendarProvider only rebuilds the Instances table when the update delta
-// carries DTSTART (it early-returns "Missing DTSTART. No need to update
-// instance." otherwise), so an rrule-only update leaves stale occurrences past
-// the new UNTIL. Mirrors Etar's updatePastEvents. Pure + map-shaped to unit-test.
+// truncation must re-send DTSTART, not just RRULE: the provider only rebuilds
+// the Instances table when the delta carries DTSTART (else "Missing DTSTART.
+// No need to update instance."), so rrule-only leaves stale occurrences past UNTIL.
 internal fun parentTruncationMap(parentDtStart: Long?, newRrule: String): Map<String, Any?> = buildMap {
     if (parentDtStart != null) put(CalendarContract.Events.DTSTART, parentDtStart)
     put(CalendarContract.Events.RRULE, newRrule)
 }
 
-// Reads the parent's own (unchanged) DTSTART and re-sends it with the truncated
-// RRULE so the provider regenerates instances. Returns the update row count.
-// callers invoke it from a Dispatchers.IO context.
+// re-sends the parent's own DTSTART with the truncated RRULE so the provider
+// regenerates instances. caller is on Dispatchers.IO.
 private fun ContentResolver.truncateParentRecurrence(eventId: Long, newRrule: String): Int {
     val parentUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
     val dtStart =
@@ -70,11 +65,9 @@ private fun ContentResolver.truncateParentRecurrence(eventId: Long, newRrule: St
     return update(parentUri, cv, null, null)
 }
 
-// Recurring-scope-aware update. Returns the row id that follow-up writes
-// (reminders, attachments) should target: the original event for AllEvents,
-// or the freshly-inserted exception/split row for the recurring scopes.
-// null on failure. Without that distinction, reminders for a per-instance
-// edit silently overwrite the parent series' reminders.
+// scope-aware update. returns the row id follow-up writes (reminders) target:
+// original event for AllEvents, the new exception/split row otherwise; null on
+// failure. without it, per-instance reminders overwrite the parent's.
 internal suspend fun ContentResolver.updateEventScoped(
     eventId: Long,
     draft: EventDraft,
@@ -102,10 +95,8 @@ internal suspend fun ContentResolver.updateEventScoped(
                     parentRrule,
                     RecurrenceExceptionMath.untilUtcForTruncation(instanceMillis, parentAllDay),
                 )
-            // Insert the split series first. If the parent truncation then
-            // fails the user sees a recoverable duplicate rather than silently
-            // losing the following occurrences (survive-over-rollback, as in
-            // the save layer).
+            // insert the split first: if truncation fails the user sees a
+            // recoverable duplicate rather than losing following occurrences.
             val uri = insert(CalendarContract.Events.CONTENT_URI, draft.toContentValues())
                 ?: return@withContext null
             val newId = ContentUris.parseId(uri).takeIf { it > 0L } ?: return@withContext null

@@ -10,9 +10,8 @@ package com.arishawke.asala.calendar.data
 
 import android.provider.CalendarContract
 
-// One side-effect helper shared by the first-run permission gate and the
-// Settings > Storage switch. Idempotent at the user level: if the Asala
-// local calendar already exists for our account, no row is created.
+// shared by the first-run gate and Settings > Storage. idempotent: no row
+// created if the Asala local calendar already exists for our account.
 object StorageModeSetup {
     suspend fun ensureLocalCalendarIfNeeded(repo: CalendarRepository, mode: StorageMode) {
         if (mode != StorageMode.LocalOnly && mode != StorageMode.Hybrid) return

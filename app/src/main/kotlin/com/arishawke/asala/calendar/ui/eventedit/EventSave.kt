@@ -14,16 +14,12 @@ import com.arishawke.asala.calendar.data.RecurringEditScope
 import java.time.ZoneId
 import java.util.TimeZone
 
-// Pure orchestration of the save flow: builds the EventDraft from the
-// form, then routes through the provided suspend lambdas in the right
-// order. Lives outside the ViewModel so the partial-failure contract
-// (event inserted, reminder write rejected -> still SaveResult.Failure)
-// can be unit-tested without spinning up a ContentResolver.
+// builds the EventDraft and routes through the suspend lambdas. lives outside
+// the ViewModel so the partial-failure contract (event inserted, reminder
+// rejected -> still Failure) is unit-testable without a ContentResolver.
 internal object EventSave {
-    // Early-return chain on each save step (calendar id, insert, reminder)
-    // keeps the partial-failure contract readable without nesting the
-    // happy-path body. The body is intentionally one straight line through
-    // the steps, so the detekt thresholds are suppressed here.
+    // early-return chain per save step keeps the partial-failure contract
+    // flat; detekt thresholds suppressed for the intentionally linear body.
     @Suppress("LongParameterList", "LongMethod", "ReturnCount")
     suspend fun attempt(
         form: EventEditFormState,
@@ -32,16 +28,13 @@ internal object EventSave {
         instanceMillis: Long?,
         parentRrule: String?,
         parentAllDay: Boolean = false,
-        // Snapshotted from the loaded EventDetail (null on new events).
-        // Threaded through so the draft preserves a Tentative / Free value
-        // the user set server-side rather than clobbering it back to
-        // CONFIRMED / BUSY on every local edit.
+        // null on new events. preserves a server-set Tentative / Free value
+        // rather than clobbering it to CONFIRMED / BUSY on every local edit.
         loadedStatus: Int? = null,
         loadedAvailability: Int? = null,
         insertEvent: suspend (EventDraft) -> Long?,
-        // returns the id reminders should attach to: original event id for
-        // AllEvents, or the freshly-inserted exception/split id for the
-        // recurring scopes. null on failure.
+        // returns the id reminders attach to: original for AllEvents, or the
+        // new exception/split id for the recurring scopes. null on failure.
         updateEvent: suspend (Long, EventDraft, RecurringEditScope, Long?, String?, Boolean) -> Long?,
         setReminder: suspend (Long, Int?) -> Boolean,
     ): SaveResult {
@@ -106,17 +99,14 @@ internal object EventSave {
 
         return if (editingEventId == null) {
             val id = insertEvent(draft) ?: return SaveResult.Failure
-            // event row created; if the reminder write fails the event still
-            // exists on the calendar, but surface failure so the user knows
-            // the reminder did not stick.
+            // event exists even if the reminder write fails; surface failure
+            // so the user knows the reminder did not stick.
             if (!setReminder(id, form.reminderMinutesBefore)) return SaveResult.Failure
             SaveResult.Success(id)
         } else {
-            // effectiveId is the row reminders should attach to: original
-            // event for AllEvents; freshly-inserted exception or split row
-            // for ThisInstance / ThisAndFollowing. Without this hop the
-            // reminder rewrites the parent series' reminders and the new
-            // exception ships without one.
+            // effectiveId is the row reminders attach to: original for
+            // AllEvents, else the new exception/split row. without this hop the
+            // reminder rewrites the parent series and the exception ships none.
             val effectiveId = updateEvent(editingEventId, draft, scope, instanceMillis, parentRrule, parentAllDay)
                 ?: return SaveResult.Failure
             if (!setReminder(effectiveId, form.reminderMinutesBefore)) return SaveResult.Failure

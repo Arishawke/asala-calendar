@@ -8,8 +8,7 @@
  */
 package com.arishawke.asala.calendar.data
 
-// Single source of truth for wall-clock unit conversions used across the
-// timeline, schedule, settings, and reminder code.
+// shared wall-clock unit conversions.
 internal object TimeUnits {
     const val MinutesPerHour = 60
     const val MillisPerMinute = 60_000L

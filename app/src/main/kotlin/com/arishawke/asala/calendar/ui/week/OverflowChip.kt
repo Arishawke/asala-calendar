@@ -22,8 +22,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 
-// Compact "+N" affordance shown on a crowded overlap cluster. Tapping it
-// opens the overflow sheet listing every event at that time.
+// "+N" chip on a crowded cluster; tap opens the overflow sheet.
 @Composable
 internal fun OverflowChip(count: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val label = stringResource(R.string.week_overflow_count, count)

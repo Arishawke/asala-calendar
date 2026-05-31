@@ -19,19 +19,15 @@ import com.arishawke.asala.calendar.data.shouldClearEventOverrideOnDelete
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// Detail-sheet + editor lifecycle for AppViewModel. State backers live on
-// AppViewModel itself (MutableStateFlow needs a backing field) but the
-// mutators are extracted here so AppViewModel.kt stays focused on the
-// view-state orchestration.
+// detail-sheet + editor mutators for AppViewModel, extracted here so the
+// view-state orchestration stays in AppViewModel.kt. backers live there
+// because MutableStateFlow needs a backing field.
 
 fun AppViewModel.openEventDetail(eventId: Long, instanceMillis: Long) {
     detailSheetEventBacker.update { OpenEvent(eventId, instanceMillis) }
     loadedDetailRawBacker.update { null }
     viewModelScope.launch {
-        // Store the raw detail; color override resolution happens live in
-        // AppViewModel.loadedDetail's combine block, so the sheet keeps up
-        // when an override map changes while the sheet is open (e.g., a
-        // sync push from another app updating a calendar color).
+        // store raw only; override resolution happens live in loadedDetail
         loadedDetailRawBacker.update { eventRepository.fetchEventDetail(eventId) }
     }
 }
@@ -42,9 +38,7 @@ fun AppViewModel.closeEventDetail() {
 }
 
 fun AppViewModel.openCreateEditor() {
-    // Snapshot the currently-viewed date so the editor opens with the
-    // user's contextual date pre-filled instead of always defaulting to
-    // today. Cleared by openEditEditor / closeEditor.
+    // snapshot viewedDate so the editor pre-fills the contextual date, not today
     editInitialStartDateBacker.update { viewedDate.value }
     editInstanceMillisBacker.update { null }
     editDuplicateSourceIdBacker.update { null }
@@ -58,9 +52,8 @@ fun AppViewModel.openEditEditor(eventId: Long, instanceMillis: Long? = null) {
     editEventIdBacker.update { eventId }
 }
 
-// Open the editor in create mode (-1L) seeded from an existing event for
-// the Duplicate action. instanceMillis is the opened occurrence so a
-// recurring duplicate lands on that date.
+// create mode (-1L) seeded from an existing event for Duplicate.
+// instanceMillis is the opened occurrence so a recurring dup lands on it.
 fun AppViewModel.openDuplicateEditor(eventId: Long, instanceMillis: Long? = null) {
     editInitialStartDateBacker.update { null }
     editInstanceMillisBacker.update { instanceMillis }
@@ -92,12 +85,8 @@ fun AppViewModel.deleteEvent(
             parentCalendarId = parentCalendarId,
             parentAllDay = parentAllDay,
         )
-        // AllEvents removes the event row entirely; any per-event color
-        // override is now orphaned and would silently re-attach if the
-        // CalendarProvider ever recycled the id. Other scopes preserve
-        // the original eventId (this-instance writes an exception; this-
-        // and-following truncates the series), so the override is still
-        // relevant.
+        // AllEvents drops the row, orphaning the per-event override (would
+        // re-attach on a recycled id); other scopes keep the eventId.
         if (shouldClearEventOverrideOnDelete(scope)) {
             setEventColorOverride(eventId, null)
         }
@@ -105,10 +94,8 @@ fun AppViewModel.deleteEvent(
     }
 }
 
-// Drag-reschedule entry point. Fetches the event detail, preserves
-// duration, and routes to either an immediate save (non-recurring) or
-// the scope-picker dialog (recurring). All-day events are not supported
-// yet; they are silently ignored at this layer.
+// drag-reschedule entry: preserves duration, routes to immediate save
+// (non-recurring) or the scope picker (recurring). all-day ignored for now.
 fun AppViewModel.rescheduleEvent(eventId: Long, instanceMillis: Long, newStartMillis: Long) {
     viewModelScope.launch {
         val detail = eventRepository.fetchEventDetail(eventId) ?: return@launch
@@ -154,8 +141,7 @@ fun AppViewModel.confirmPendingReschedule(scope: RecurringEditScope) {
 fun AppViewModel.cancelPendingReschedule() {
     val pending = pendingRescheduleBacker.value
     pendingRescheduleBacker.update { null }
-    // Tell the chip to drop its optimistic drag offset so the visual
-    // snaps back to where the event actually still is.
+    // tell the chip to drop its optimistic offset and snap back
     pending?.let { dragRevertSignalBacker.tryEmit(it.detail.eventId) }
 }
 
@@ -166,10 +152,8 @@ private suspend fun AppViewModel.saveRescheduleNow(
     newEnd: Long,
     scope: RecurringEditScope,
 ) {
-    // ThisInstance writes a single exception (must not recur). AllEvents and
-    // ThisAndFollowing both want the parent's RRULE to continue: AllEvents
-    // updates the original series; ThisAndFollowing inserts a new tail that
-    // continues from the new start with the same recurrence shape.
+    // ThisInstance writes a one-off exception (no rrule); the other scopes
+    // keep the parent rrule so the series continues
     val draftRrule = if (scope == RecurringEditScope.ThisInstance) null else detail.rrule
     val draft = EventDraft(
         calendarId = detail.calendarId,

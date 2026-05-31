@@ -10,9 +10,8 @@ package com.arishawke.asala.calendar.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-// Named spacing scale on the M3 8dp grid. Replaces ad-hoc dp values
-// across composables. Pure object (no CompositionLocal) since the app
-// has one window size class.
+// spacing scale on the M3 8dp grid. plain object, no CompositionLocal,
+// since the app has one window size class.
 object Spacing {
     val xs = 4.dp
     val sm = 8.dp

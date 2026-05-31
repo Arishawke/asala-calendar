@@ -72,9 +72,8 @@ import kotlin.math.max
 private const val AllDayLuminanceMidpoint = 0.5f
 
 @Composable
-// Same shape as WeekScreen: pager state + today jump + cross-view jump
-// + render dispatch, plus the polish-sprint workingHours / workingDays
-// params, push this just over detekt's 60-line LongMethod default.
+// pager state + jumps + workingHours/workingDays params exceed detekt's
+// 60-line LongMethod default.
 @Suppress("LongParameterList", "LongMethod")
 fun DayScreen(
     hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
@@ -111,7 +110,7 @@ fun DayScreen(
     val todayPageIndex = DayViewModel.WindowDaysEachSide.toInt()
     val pagerState = rememberPagerState(initialPage = todayPageIndex) { pageCount }
 
-    // Push the visible page's date into the ViewModel so the title and event filter follow.
+    // push the visible page's date into the vm so title + event filter follow.
     LaunchedEffect(pagerState, state.today) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             val date = state.today.plusDays((page - todayPageIndex).toLong())
@@ -136,11 +135,9 @@ fun DayScreen(
         }
     }
 
-    // Targeted jump from another screen (e.g., tapping a month-view cell).
-    // Clamp to the pager window; dates outside ±WindowDaysEachSide land on
-    // the edge. Filtered by target view so a jump to Week / Month /
-    // Schedule doesn't trigger this Day-pager scroll (and a premature
-    // consume that would steal the jump from the actual destination).
+    // jump from another screen, clamped to the pager window. filtered by
+    // target view so a Week/Month/Schedule jump doesn't scroll here and
+    // prematurely consume it from the real destination.
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump, state.today) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.Day } ?: return@LaunchedEffect
@@ -193,8 +190,7 @@ private fun DayPage(
         events.filter { it.isVisibleIn(date, date, zone) }
     }
     val allDay = dayEvents.filter { it.allDay }
-    // Timed events are clipped to the visible day so a midnight-crosser
-    // shows one chip per covered day instead of only on its start day.
+    // clip to the day so a midnight-crosser shows one chip per covered day.
     val timed = remember(dayEvents, date) {
         dayEvents.filter { !it.allDay }.mapNotNull { clipToDay(it, date, zone) }
     }
@@ -210,8 +206,7 @@ private fun DayPage(
             isToday = isToday,
             events = timed,
             zone = zone,
-            // Non-working day supersedes working-hours dim so the column
-            // doesn't double-dim.
+            // non-working day supersedes working-hours dim to avoid double-dim.
             workingHoursEnabled = workingHoursEnabled && !isNonWorkingDay,
             workingHoursStartHour = workingHoursStartHour,
             workingHoursEndHour = workingHoursEndHour,
@@ -242,9 +237,8 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
                     .padding(horizontal = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Pale calendar swatches (Okabe-Ito yellow, Radix amber 9)
-                // fail WCAG 1.4.3 against white text; pick black on bright
-                // backgrounds via the same midpoint MultiDayBarRow uses.
+                // pale swatches fail WCAG 1.4.3 against white text; flip to
+                // black on bright backgrounds (same midpoint as MultiDayBarRow).
                 val rowFg =
                     if (Color(ev.displayColor).luminance() < AllDayLuminanceMidpoint) {
                         Color.White

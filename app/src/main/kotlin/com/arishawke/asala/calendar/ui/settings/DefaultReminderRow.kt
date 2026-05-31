@@ -14,10 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.ui.eventedit.ReminderPicker
 
-// Settings row for the timed / all-day default reminder. Routes through
-// the existing ReminderPicker so the Custom… flow, preset list, and
-// label formatting stay identical to the event editor; only the label
-// resource differs between the timed and all-day rows.
+// reuses ReminderPicker so the custom flow, presets, and labels stay
+// identical to the event editor; only the label resource differs.
 @Composable
 internal fun DefaultReminderRow(labelResId: Int, current: Int?, onChange: (Int?) -> Unit) {
     ReminderPicker(

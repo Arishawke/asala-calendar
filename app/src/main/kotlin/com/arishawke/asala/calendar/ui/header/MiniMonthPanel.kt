@@ -226,10 +226,8 @@ private fun DateCell(
 
 @Composable
 private fun DotRow(events: List<EventItem>) {
-    // Group by calendar so days with many events on one calendar stay
-    // single-dot. Take the first three distinct calendars in insertion
-    // order. Render colored dots; ellipsis-like density beyond that is
-    // intentional (the underlying view shows the rest).
+    // one dot per calendar, first three in insertion order, so a busy day
+    // on a single calendar stays single-dot. overflow shows in the view.
     val dotColors = remember(events) {
         events
             .groupBy { it.calendarId }
@@ -252,8 +250,7 @@ private fun DotRow(events: List<EventItem>) {
                     .background(Color(argb)),
             )
         }
-        // Reserve vertical room so cells stay the same height whether or
-        // not they have dots. 4.dp dot + spacing matches DotRow's max.
+        // reserve room so cells keep equal height with or without dots.
         if (dotColors.isEmpty()) {
             Spacer(modifier = Modifier.size(4.dp))
         }

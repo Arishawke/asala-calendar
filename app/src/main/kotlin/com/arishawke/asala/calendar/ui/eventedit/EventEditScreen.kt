@@ -55,34 +55,24 @@ fun EventEditScreen(
     onSaved: (Long) -> Unit,
 ) {
     val ctx = LocalContext.current
-    // Snapshot the storage mode once at editor open. The Factory keys the
-    // ViewModel on this value and the picker filter is fixed for the life of
-    // the editor; a mid-edit mode flip should not silently rebuild the VM.
+    // snapshot prefs at editor open: a mid-edit pref flip must not rebuild
+    // the VM or shift the open form.
     val storageMode = remember { appViewModel.prefs.value.storageMode }
-    // Same snapshot pattern for default-duration: pref changes mid-edit must
-    // not retroactively shift the open form.
     val defaultDurationMinutes = remember { appViewModel.prefs.value.defaultDurationMinutes }
     val defaultTimedReminderMinutes = remember { appViewModel.prefs.value.defaultTimedReminderMinutes }
     val defaultAllDayReminderMinutes = remember { appViewModel.prefs.value.defaultAllDayReminderMinutes }
-    // Existing per-event override hex if this editor is opening an existing
-    // event. Null in the create flow (no eventId) or when the event has no
-    // override.
-    // Source event id when this editor was opened via Duplicate.
+    // source event id when opened via Duplicate.
     val duplicateSourceId = remember { appViewModel.editDuplicateSourceId.value }
-    // Existing per-event override for the edited event, or the source event
-    // when duplicating, so the copy keeps its color.
+    // existing override for the edited event, or the source when duplicating,
+    // so the copy keeps its color.
     val initialColorOverrideArgb = remember(eventId, duplicateSourceId) {
         (eventId ?: duplicateSourceId)?.let { appViewModel.eventColorOverridesFlow.value[it] }
     }
     val palette = remember { appViewModel.prefs.value.paletteId }
-    // Snapshot the effective hide set (manual hides + account hides +
-    // storage-mode hides) so the picker only shows calendars the user
-    // can actually see in the drawer.
+    // effective hide set so the picker only shows drawer-visible calendars.
     val hiddenCalendarIds = remember { appViewModel.hiddenCalendarIdsFlow.value }
-    // Snapshot the date the user was looking at when they tapped FAB so
-    // the new-event editor opens on that date instead of today. Null for
-    // edit-existing flow; the load path then uses the existing event's
-    // own dates.
+    // date the user was viewing at FAB tap so a new event opens there, not
+    // today. null for edit-existing (load path uses the event's own dates).
     val initialStartDate = remember(eventId) {
         if (eventId == null) appViewModel.editInitialStartDate.value else null
     }
@@ -108,14 +98,12 @@ fun EventEditScreen(
     var showScopeDialog by remember { mutableStateOf(false) }
     var showRationale by remember { mutableStateOf(false) }
 
-    // Persist the per-event color override post-save once we know the event
-    // ID. Writing here instead of inside EventSave keeps color out of the
-    // EventDraft / CalendarContract write entirely.
+    // persist override post-save: keeps color out of EventDraft /
+    // CalendarContract entirely.
     fun persistColorOverride(savedEventId: Long) {
         appViewModel.setEventColorOverride(savedEventId, state.colorOverrideArgb)
     }
 
-    // Proceed with the actual save (called after rationale is resolved).
     fun doSave() {
         if (eventId != null && vm.isEditingRecurring) {
             showScopeDialog = true
@@ -137,8 +125,8 @@ fun EventEditScreen(
         doSave()
     }
 
-    // Show rationale before the system prompt when the user has a reminder
-    // set but notification permission has not been granted.
+    // rationale before the system prompt when a reminder is set but
+    // notification permission is not yet granted.
     fun beginSave() {
         if (state.reminderMinutesBefore != null && !notifGranted) {
             showRationale = true

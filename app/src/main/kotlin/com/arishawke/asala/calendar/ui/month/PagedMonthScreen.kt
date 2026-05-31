@@ -59,10 +59,7 @@ internal fun PagedMonthScreen(
     var overflowDate by remember { mutableStateOf<LocalDate?>(null) }
 
     val firstDayOfWeek = firstDayOfWeekOverride ?: firstDayOfWeekFromLocale()
-    // anchorMonth is the pager origin (page 0 = anchorMonth). Recomputing it
-    // when state.today drifts would force the pager to re-key and lose the
-    // user's swipe history; the InitialPage offset compensates by re-mapping
-    // the user's current page in showMonth() / pageToYearMonth() math.
+    // pager origin captured once: recomputing on a today drift would re-key the pager and lose swipe history
     val anchorMonth = remember { YearMonth.from(state.today) }
     val pagerState = rememberPagerState(initialPage = InitialPage) { PageCount }
 
@@ -73,9 +70,7 @@ internal fun PagedMonthScreen(
         vm.showMonth(month)
         onViewedMonthChange(month)
         onTitleChange(month.format(titleFmt))
-        // The FAB defaults a new event's date to whatever the user is
-        // looking at. For Month: today if today falls in the visible
-        // month, otherwise the 1st of that month.
+        // FAB date default: today if in the visible month, else the 1st
         val viewedDate = if (YearMonth.from(state.today) == month) {
             state.today
         } else {
@@ -93,11 +88,8 @@ internal fun PagedMonthScreen(
         }
     }
 
-    // Cross-view target from the header dropdown's month chips or any
-    // other caller of requestJumpTo. Clamp to the available page range
-    // (240 months total); requests outside that window land on the edge.
-    // Filter by target view so jumps meant for Day / Week / Schedule
-    // don't trigger this Month-pager scroll (and a premature consume).
+    // cross-view jump; clamp to the page range, and filter by view so non-Month
+    // jumps don't scroll here or consume early
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump, anchorMonth) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.Month } ?: return@LaunchedEffect

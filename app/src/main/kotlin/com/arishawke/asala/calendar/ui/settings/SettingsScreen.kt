@@ -51,10 +51,8 @@ fun SettingsScreen(
     val ctx = LocalContext.current
     val vm: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(ctx.applicationContext))
     val s by vm.state.collectAsStateWithLifecycle()
-    // LazyColumn + rememberLazyListState so scroll position survives the
-    // recompose triggered by notification permission callbacks. The prior
-    // verticalScroll(rememberScrollState()) bounced to top on every
-    // recompose, which felt jarring after granting / denying permission.
+    // lazy list state so scroll survives the recompose from permission
+    // callbacks; the prior verticalScroll bounced to top each recompose.
     val listState = rememberLazyListState()
 
     Scaffold(
@@ -238,10 +236,8 @@ fun SettingsScreen(
             item("section-calendars") {
                 SectionHeader(stringResource(R.string.settings_section_calendars_and_accounts))
             }
-            // Hidden-accounts list appears only when the user has hidden
-            // something. When the set drains to zero the rows disappear so
-            // the section does not clutter Settings for users who never use
-            // the feature.
+            // shown only when non-empty so the section never clutters
+            // settings for users who never hide an account.
             if (drawerHiddenAccounts.isNotEmpty()) {
                 item("calendars-hidden-header") {
                     Text(

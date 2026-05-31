@@ -136,10 +136,8 @@ fun EventForm(
     }
 }
 
-// Per-event "Color" row. Tap to open the recolor dialog with the
-// active palette and a "Reset to calendar color" button. Color is
-// app-local (DataStore only), so it's safe to expose on read-only
-// synced calendars too.
+// per-event color is app-local (DataStore only), so it's safe to expose
+// even on read-only synced calendars.
 @Composable
 private fun ColorRow(state: EventEditFormState, palette: PaletteId, onChange: (EventEditFormState) -> Unit) {
     var dialogOpen by remember { mutableStateOf(false) }

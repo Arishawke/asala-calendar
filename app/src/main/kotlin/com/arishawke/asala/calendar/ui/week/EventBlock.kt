@@ -40,10 +40,7 @@ import java.time.ZonedDateTime
 private const val PreviewEventDurationMin = 90L
 private const val DraggingBackgroundAlpha = 0.55f
 
-// 18% calendar color over the surface reads as a subtle informational
-// tint without competing with the chip's title. PR-D lowered this
-// from 0.30f so the type wins over the fill; drag feedback bumps to
-// DraggingBackgroundAlpha for clarity.
+// low tint so the title wins over the fill; drag bumps to DraggingBackgroundAlpha.
 private const val IdleBackgroundAlpha = 0.18f
 
 @Suppress("LongParameterList")

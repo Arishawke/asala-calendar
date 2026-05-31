@@ -129,10 +129,8 @@ class SettingsViewModel(private val prefs: UserPreferences, private val calendar
         viewModelScope.launch { prefs.setWorkingDays(days) }
     }
 
-    // Switching storage mode is non-destructive: only flips visibility and
-    // ensures the local "Asala" calendar exists when needed. Mode-driven
-    // hides are derived on read (StorageModeFilter) so the user's manual
-    // drawer toggles in hiddenCalendarIds are never overwritten here.
+    // non-destructive: mode-driven hides are derived on read
+    // (StorageModeFilter), so manual hiddenCalendarIds toggles survive.
     fun setStorageMode(mode: StorageMode) {
         viewModelScope.launch {
             prefs.setStorageMode(mode)

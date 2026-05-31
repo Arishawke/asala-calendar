@@ -102,17 +102,14 @@ internal fun AppShell(vm: AppViewModel) {
     val application = context.applicationContext as AsalaCalendarApplication
     val drawerHiddenAccountKeys by vm.drawerHiddenAccountKeysFlow.collectAsStateWithLifecycle()
     val viewedMonth by vm.viewedMonth.collectAsStateWithLifecycle()
-    // Shared today source: refreshes on ACTION_DATE_CHANGED and on the
-    // ON_RESUME hook below. Without this, the header dropdown's today
-    // highlight stays on yesterday when the app stays composed across
-    // midnight.
+    // shared today source; refreshes on ACTION_DATE_CHANGED and ON_RESUME so
+    // the header highlight doesn't stick on yesterday across midnight
     val today by application.todayProvider.today.collectAsStateWithLifecycle()
     var headerExpanded by remember { mutableStateOf(false) }
-    // Tasks and Year have no dropdown panel, so suppress the expand chevron.
+    // Tasks and Year have no dropdown panel, so suppress the expand chevron
     val canExpandHeader =
         state.currentView != CalendarView.Tasks && state.currentView != CalendarView.Year
-    // Collapse the panel whenever the user navigates to a different view so
-    // the dropdown does not stay open across view switches.
+    // collapse the panel on view switch
     LaunchedEffect(state.currentView) { headerExpanded = false }
 
     val notifPermissionLauncher = rememberLauncherForActivityResult(
@@ -124,8 +121,7 @@ internal fun AppShell(vm: AppViewModel) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 vm.refreshNotificationPermission()
-                // Belt-and-braces for missed ACTION_DATE_CHANGED broadcasts
-                // (e.g., process napped through midnight under doze).
+                // backstop for ACTION_DATE_CHANGED missed under doze across midnight
                 application.todayProvider.refresh()
                 activity?.consumePendingNotificationOpen()?.let { (eventId, instanceMillis) ->
                     vm.openEventDetail(eventId, instanceMillis)
@@ -136,10 +132,8 @@ internal fun AppShell(vm: AppViewModel) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Composed before the drawer / settings handlers so those take priority
-    // when their states are also active (LIFO: later handler wins). Header
-    // dropdown's BackHandler is added last so a tap-back collapses the
-    // panel before any other action runs.
+    // BackHandlers are LIFO (later wins); order so the header dropdown
+    // collapses first, then drawer close, then popView
     BackHandler(enabled = previousView != null) { vm.popView() }
     BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
     BackHandler(enabled = headerExpanded) { headerExpanded = false }
@@ -147,10 +141,8 @@ internal fun AppShell(vm: AppViewModel) {
     CompositionLocalProvider(LocalDragRevertSignal provides vm.dragRevertSignal) {
         ModalNavigationDrawer(
             drawerState = drawerState,
-            // Only enable gestures while the drawer is open. Closed: swipes are
-            // blocked so they cannot steal week-to-week or month-to-month
-            // navigation. Open: scrim tap (gated by this flag in Material 3)
-            // and swipe-to-close work as expected.
+            // gestures only while open, so a closed-drawer swipe can't steal
+            // week/month navigation (scrim tap is gated by this flag in M3)
             gesturesEnabled = drawerState.isOpen,
             drawerContent = {
                 CalendarDrawerContent(
@@ -229,11 +221,8 @@ internal fun AppShell(vm: AppViewModel) {
                         )
                         AnimatedVisibility(
                             visible = headerExpanded && canExpandHeader,
-                            // 180ms tween (down from the default ~250ms): the
-                            // chip strip's small height delta felt sluggish
-                            // at the default duration since the per-pixel
-                            // speed is much lower than the mini-month panel
-                            // which expands a much larger range.
+                            // 180ms (down from ~250ms default): the chip strip's
+                            // small height delta felt sluggish at the default
                             enter = if (animationsEnabled) {
                                 expandVertically(animationSpec = tween(durationMillis = 180)) +
                                     fadeIn(animationSpec = tween(durationMillis = 180))
@@ -290,10 +279,8 @@ internal fun AppShell(vm: AppViewModel) {
     }
 }
 
-// Top app bar title: text + chevron. Tapping anywhere on the row toggles
-// the header dropdown panel below. The chevron rotates 180deg when the
-// panel is open. Disabled (chevron hidden) for views with no panel
-// content (Tasks today).
+// title row toggles the header dropdown; chevron hidden (enabled=false)
+// for views with no panel content
 @Composable
 private fun HeaderTitle(
     title: String,

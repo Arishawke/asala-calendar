@@ -37,13 +37,10 @@ internal fun MonthChipsPanel(
     modifier: Modifier = Modifier,
 ) {
     val locale = LocalConfiguration.current.locales.get(0)
-    // "MMM yy" so a chip like "Jan 26" stays under ~52dp wide. Two-digit
-    // year keeps the chip strip scannable; the full year shows in the
-    // top app bar title.
+    // "MMM yy" keeps a chip under ~52dp wide; full year lives in the title.
     val fmt = remember(locale) { DateTimeFormatter.ofPattern("MMM yy", locale) }
 
-    // 25-month window centered on today. Selecting a chip outside this
-    // window is rare; user can swipe the Month pager for further jumps.
+    // 25-month window; further jumps come from swiping the Month pager.
     val months = remember(today) {
         (-MonthsEitherSide..MonthsEitherSide).map { offset -> today.plusMonths(offset.toLong()) }
     }
@@ -53,9 +50,7 @@ internal fun MonthChipsPanel(
 
     val listState = rememberLazyListState()
     LaunchedEffect(selectedIndex) {
-        // Land the selected chip a few slots from the left so adjacent
-        // months are visible on either side instead of jamming the chip
-        // against the edge.
+        // offset 2 from the left so adjacent months stay visible, not edge-jammed.
         listState.scrollToItem(index = (selectedIndex - 2).coerceAtLeast(0))
     }
 

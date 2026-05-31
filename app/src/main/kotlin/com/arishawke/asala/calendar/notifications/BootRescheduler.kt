@@ -27,9 +27,8 @@ class BootRescheduler : BroadcastReceiver() {
             Intent.ACTION_MY_PACKAGE_REPLACED,
             Intent.ACTION_TIMEZONE_CHANGED,
             -> {
-                // Fresh installs and reinstalls fire MY_PACKAGE_REPLACED before
-                // the user has granted READ_CALENDAR; querying the provider
-                // would throw SecurityException and crash the receiver.
+                // reinstalls fire MY_PACKAGE_REPLACED before READ_CALENDAR is
+                // granted; querying the provider would throw SecurityException.
                 if (ContextCompat.checkSelfPermission(
                         context,
                         Manifest.permission.READ_CALENDAR,
@@ -41,9 +40,7 @@ class BootRescheduler : BroadcastReceiver() {
                 val pending = goAsync()
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        // Log and swallow any throwable so the receiver does not
-                        // crash the process on boot. goAsync() already keeps the
-                        // process alive until pending.finish().
+                        // swallow throwables so a boot hiccup never crashes the process
                         runCatching {
                             ReminderScheduler.rescheduleAll(context.applicationContext)
                         }.onFailure { Timber.e(it, "boot rescheduler threw") }

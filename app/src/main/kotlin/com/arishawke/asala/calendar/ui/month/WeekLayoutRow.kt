@@ -32,9 +32,7 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import java.time.LocalDate
 
-// Fixed leading column for the ISO 8601 week number when the Settings
-// toggle is on. Narrow enough not to push day cells noticeably; wide
-// enough for two digits at labelSmall plus a few px of margin.
+// leading week-number column width: fits two digits at labelSmall without crowding the cells
 internal val WeekNumberColumnWidth: Dp = 28.dp
 
 @Suppress("LongParameterList")
@@ -86,11 +84,7 @@ internal fun WeekLayoutRow(
 
 @Composable
 private fun WeekNumberColumn(weekStart: LocalDate) {
-    // ISO 8601: weeks start on Monday and week 1 is the week containing
-    // the year's first Thursday, so the column's number applies to the
-    // week-based year rather than the calendar year. Render against the
-    // week's first ISO-week day (the Monday in that week) so partial
-    // weeks at month boundaries pick up the correct number.
+    // ISO week number is week-based-year, anchored on the week's Monday so boundary weeks number correctly
     val isoMonday = weekStart.with(java.time.DayOfWeek.MONDAY)
     val weekNumber = isoMonday.get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear())
     Box(
@@ -124,8 +118,7 @@ private fun WeekLayoutRowCore(
     modifier: Modifier = Modifier,
     blankOutOfMonth: Boolean = false,
 ) {
-    // Events that are already drawn in the week-spanning bar row above;
-    // exclude them from each cell's chip stack so they don't double-render.
+    // bar-row events, excluded from cell chips so they don't double-render
     val barEventIds = remember(segments) { segments.mapTo(mutableSetOf()) { it.eventId } }
     BoxWithConstraints(modifier = modifier) {
         val rowWidth = maxWidth
@@ -150,9 +143,7 @@ private fun WeekLayoutRowCore(
                 rowWidth = rowWidth,
                 maxLanes = MaxBarLanesPerWeek,
                 onSegmentClick = { eventId ->
-                    // A bar tap jumps to Day view focused on the segment's
-                    // first visible cell rather than opening the detail
-                    // sheet; matches the chip-tap UX in this view.
+                    // bar tap jumps to Day view on the segment's first cell, matching chip-tap UX
                     val seg = segments.firstOrNull { it.eventId == eventId }
                     val date = seg?.let { weekDays[it.startCol].date } ?: weekStart
                     onDayCellClick(date)
@@ -172,12 +163,8 @@ private fun WeekLayoutRowCore(
                         )
                         continue
                     }
-                    // Single-day all-day events now render inline in their
-                    // cell (the WeekBucketer skips them). Multi-day all-day
-                    // events stay in the bar row above; filter their IDs
-                    // out of the per-cell list so we don't double-render.
-                    // Timed midnight-crossers continue to render only on
-                    // their start day, matching prior Month-grid density.
+                    // single-day all-day events render inline here; multi-day ones
+                    // live in the bar row, so drop their ids
                     val cellEvents = eventsByDate[gd.date]
                         .orEmpty()
                         .filter { it.eventId !in barEventIds }

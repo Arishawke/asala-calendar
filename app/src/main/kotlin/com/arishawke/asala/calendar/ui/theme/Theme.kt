@@ -31,11 +31,9 @@ val LocalIs24Hour: ProvidableCompositionLocal<Boolean> = compositionLocalOf { fa
 private val FallbackLightColors = lightColorScheme()
 private val FallbackDarkColors = darkColorScheme()
 
-// Material 3's default dark surface (tone 6, ~#141218) reads as near-black
-// on most devices. Lift the surface family by ~6 tones so dark mode feels
-// like a proper dark grey, leaving pure-black for a future AMOLED option.
-// Accent roles (primary / secondary / tertiary) stay untouched so dynamic
-// color still pulls personality from the wallpaper on Android 12+.
+// M3's default dark surface (~#141218) reads near-black; lift the surface
+// family to a proper dark grey, leaving pure black for AMOLED. accents
+// untouched so dynamic color still pulls from the wallpaper.
 private fun ColorScheme.withLiftedDarkSurfaces(): ColorScheme = copy(
     surface = Color(0xFF211F26),
     background = Color(0xFF211F26),
@@ -46,9 +44,8 @@ private fun ColorScheme.withLiftedDarkSurfaces(): ColorScheme = copy(
     surfaceContainerHighest = Color(0xFF403E44),
 )
 
-// AMOLED variant: copy the dark scheme but force every surface tone to
-// pure black so OLED panels can power-gate pixels. Accent roles stay so
-// dynamic color still pulls personality from the wallpaper.
+// AMOLED: force every surface to pure black so OLED panels power-gate
+// pixels. accents stay so dynamic color still pulls from the wallpaper.
 private fun ColorScheme.withAmoledSurfaces(): ColorScheme = copy(
     surface = Color.Black,
     background = Color.Black,
@@ -78,9 +75,8 @@ fun AsalaCalendarTheme(
         else -> FallbackLightColors
     }
 
-    // Keep the system status / nav bar icon contrast in sync with the
-    // resolved theme, so a manual Light override on a dark-system phone
-    // still gets dark icons on the status bar.
+    // sync status/nav bar icon contrast to the resolved theme so a manual
+    // Light override on a dark-system phone still gets dark status icons.
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

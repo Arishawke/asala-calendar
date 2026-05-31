@@ -15,10 +15,8 @@ import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 
-// Shared fling spec for Day / Week / Month pagers. Stiff no-bouncy spring +
-// 0.35 positional threshold is the community-converged recipe for a
-// snappy follow-finger snap. Tween-based specs trade physics for
-// time-predictability; spring feels snappier on a follow-finger drag.
+// shared Day/Week/Month fling. no-bouncy spring + 0.35 threshold is the
+// community recipe for a snappy follow-finger snap; spring beats tween here.
 @Composable
 internal fun rememberCalendarPagerFling(state: PagerState): TargetedFlingBehavior = PagerDefaults.flingBehavior(
     state = state,

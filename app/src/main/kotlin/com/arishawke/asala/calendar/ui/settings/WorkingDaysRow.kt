@@ -37,10 +37,9 @@ import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 
-// Compose's ComposeUnstableCollections lint flags Set<DayOfWeek> as
-// non-inferable-stable. The Settings screen recomposes per user action,
-// not per frame, so the theoretical instability doesn't matter here;
-// suppress rather than reach for kotlinx-collections-immutable.
+// suppress: Set<DayOfWeek> is flagged non-stable, but settings recomposes
+// per user action not per frame, so it doesn't matter here. cheaper than
+// pulling in kotlinx-collections-immutable.
 @Suppress("ComposeUnstableCollections")
 @Composable
 internal fun WorkingDaysRow(

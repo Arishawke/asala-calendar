@@ -22,9 +22,7 @@ import com.arishawke.asala.calendar.data.TimeUnits
 import timber.log.Timber
 
 internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, instanceMillis: Long, minutes: Int) {
-    // Resolve event id and original minutes via the pure helper so the
-    // fallback logic (alertId<=0 or readAlert miss) is exercised by
-    // SnoozeResolutionTest, not just by manual smoke tests.
+    // pure helper so the fallback path is covered by SnoozeResolutionTest
     val resolved =
         SnoozeResolution.resolve(
             alertId = alertId,
@@ -43,21 +41,19 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
         minutes,
     )
 
-    // Cancel the notification first so it disappears even if the provider writes fail.
+    // cancel first so it clears even if the provider writes fail
     NotificationManagerCompat.from(context).cancel(eventId.toInt())
 
     if (alertId > 0) {
-        // Standard snooze pattern: mark original alert dismissed; insert new SCHEDULED row.
+        // mark original dismissed, then insert a fresh SCHEDULED row below
         markAlertState(context, alertId, CalendarContract.CalendarAlerts.STATE_DISMISSED)
     }
 
     val triggerAt = System.currentTimeMillis() + minutes * TimeUnits.MillisPerMinute
     if (alertId > 0) {
-        // Dismiss any orphan SCHEDULED rows for this event+instance left over
-        // from earlier snooze cycles before inserting the new one. Without
-        // this every re-snooze leaks one SCHEDULED row that nothing prunes.
-        // CalendarAlerts permits WHERE on writes (the view-join ambiguity
-        // that bit v0.7.0 was a read-only quirk).
+        // dismiss orphan SCHEDULED rows from earlier snooze cycles first, else every
+        // re-snooze leaks one row that nothing prunes. WHERE on writes is fine here;
+        // the view-join ambiguity that bit v0.7.0 was a read-only quirk.
         try {
             val dismissOrphans =
                 ContentValues().apply {
@@ -105,8 +101,8 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
             putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
             putExtra(ReminderConstants.EXTRA_REMINDER_MINUTES, originalMinutes)
         }
-    // Same request-code shape as ReminderScheduler so re-snoozing the same
-    // (event, instance, minutes) updates the existing alarm in place.
+    // same request-code shape as ReminderScheduler so re-snoozing the same
+    // (event, instance, minutes) updates the alarm in place.
     val pi =
         PendingIntent.getBroadcast(
             context,
@@ -125,9 +121,8 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
 }
 
 internal fun readAlert(context: Context, alertId: Long): Pair<Long, Int>? {
-    // The CalendarAlerts provider joins with view_events, so plain
-    // "_id = ?" is ambiguous and throws SQLiteException. Use the id
-    // appended to the URI instead; no WHERE clause needed.
+    // CalendarAlerts joins view_events, so a plain "_id = ?" is ambiguous and
+    // throws SQLiteException; append the id to the URI instead.
     val cols =
         arrayOf(
             CalendarContract.CalendarAlerts.EVENT_ID,
