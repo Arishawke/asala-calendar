@@ -107,7 +107,9 @@ internal fun AppShell(vm: AppViewModel) {
     // midnight.
     val today by application.todayProvider.today.collectAsStateWithLifecycle()
     var headerExpanded by remember { mutableStateOf(false) }
-    val canExpandHeader = state.currentView != CalendarView.Tasks
+    // Tasks and Year have no dropdown panel, so suppress the expand chevron.
+    val canExpandHeader =
+        state.currentView != CalendarView.Tasks && state.currentView != CalendarView.Year
     // Collapse the panel whenever the user navigates to a different view so
     // the dropdown does not stay open across view switches.
     LaunchedEffect(state.currentView) { headerExpanded = false }
