@@ -21,8 +21,6 @@ Planned and near-term. Rough priority order within each group.
 
 **Editor**
 
-- **Copy / duplicate an event.** Open an existing event and start a new
-  one prefilled with its details, to tweak and save separately.
 - **Natural-language event creation** (`"lunch tomorrow at noon"`).
   Local rule-based parser first; an on-device model only if the local
   parser misses too much.
@@ -32,14 +30,9 @@ Planned and near-term. Rough priority order within each group.
 - **Settings page reorganization + a visual taste pass.** Grouping,
   dividers, and a taste pass on the grown-out sections. Reach for the
   design-taste-frontend / ui-ux-pro-max skills when scoping.
-- **Small, optional donate / support link** in About / Settings. Subtle, no nags;
-  the app stays fully free and GPLv3.
 
 **Color**
 
-- **Free hex / HSV color picker** behind a "Custom" affordance on the
-  fixed-palette grid. If picked up:
-  `github.com/skydoves/colorpicker-compose` v1.1.4 (Apache 2.0).
 - **Per-event color category names** ("Focus", "Travel", "Family").
   Builds on the existing color-override system: a name field plus a
   filter UI keyed off `eventColor_key`.
