@@ -20,6 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -81,6 +85,22 @@ internal fun EventBlock(
     val backgroundAlpha = if (drag.dragging) DraggingBackgroundAlpha else IdleBackgroundAlpha
     val draggingZ = if (drag.dragging) 2f else 0f
 
+    // expose the tap as a button action so TalkBack can open the event; the
+    // pointerInput tap stays for sighted users (clickable would fight the
+    // long-press drag). mergeDescendants reads the rendered title + time.
+    val openAction = onClick
+    val a11yModifier = if (openAction != null) {
+        Modifier.semantics(mergeDescendants = true) {
+            role = Role.Button
+            onClick {
+                openAction()
+                true
+            }
+        }
+    } else {
+        Modifier
+    }
+
     EventChipBlock(
         event = event,
         shape = shape,
@@ -98,7 +118,8 @@ internal fun EventBlock(
             .zIndex(draggingZ)
             .padding(horizontal = 1.dp, vertical = 1.dp)
             .then(drag.dragModifier)
-            .then(drag.tapModifier),
+            .then(drag.tapModifier)
+            .then(a11yModifier),
     )
 }
 
