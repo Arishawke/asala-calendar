@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-A native Android calendar that talks to the system Calendar Provider, dressed in Material 3.
+A private, offline-first calendar for Android, dressed in Material 3.
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@ A native Android calendar that talks to the system Calendar Provider, dressed in
 > [!WARNING]
 > **Personal project, heavy AI assistance.** Asala is a hobby Android app built with substantial AI assistance. It is not production software. Use at your own discretion.
 
-Asala keeps no database of its own. Every event lives in the Android Calendar Provider, so the events you see here are the same events every other calendar app on the device sees. Add, remove, or change accounts in system Settings and the change shows up immediately.
+Asala keeps no database of its own. Every event lives in the Android Calendar Provider, so what you see here is exactly what every other calendar app on the device sees. It ships with no internet permission at all: your data stays on the phone unless a sync account you set up sends it somewhere.
 
 ## Screenshots
 
@@ -43,75 +43,56 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 ## Features
 
-- **Five views, with two ways to scroll Month.** Month, Week, 3-Day, Day, and Schedule. Month either swipes sideways one at a time (paged) or flows as one long vertical timeline (continuous). Today is always highlighted, a now-line shows where you are in the current day, and the highlight rolls over at midnight on its own. Week numbers can show along the side if you want them.
-- **All your calendars in one place.** Work, personal, CalDAV (via the DAVx5 companion app), local. Every event on your device shows up here, colored by the calendar it came from. Days with more events than fit get a tidy "+N more" sheet, and birthdays get a little cake.
-- **Create, edit, duplicate, and delete events.** Including all-day and repeating ones. When you change a repeating event, you choose whether to edit just this one, this and everything after, or the whole series. Changes stay in sync with any other calendar app on the device. Give a single event its own color, from the preset palette or a custom hex, without recoloring the rest of its calendar.
-- **Find anything fast.** Search every calendar by event title, location, or notes, across past and upcoming dates.
-- **Drag events to reschedule.** Pick up an event in Day or Week and drop it on a new time. New events open on the date you're looking at, not somewhere random.
-- **Reminders before things start.** Set a default reminder for timed events and a different one for all-day events. Snooze or jump to the event right from the notification.
-- **Focus on your work week.** Dim non-working hours and non-working days so meetings stand out and after-hours stuff fades back.
-- **Material 3 design.** Dynamic color picks up your wallpaper on Android 12+, with Light, Dark, and AMOLED themes. Time format follows your phone's 24-hour setting, and dates and month names follow your device language.
-- **Tidy drawer.** Toggle calendars on and off without touching system Settings. Hide whole accounts you don't want cluttering the list. Recolor anything; rename or delete the local calendars.
-- **No telemetry.** No analytics, no third-party trackers. Your calendar data leaves the device only if a sync account you set up sends it somewhere.
+### What sets it apart
 
-## Settings
+- **Private and offline.** No telemetry, no trackers, no account to create. Your events never leave the device unless you set up a sync account yourself. Open source, so you can verify that.
+- **Continuous or paged month.** Read months as one endless vertical scroll, or swipe a page at a time. Your choice, in Settings.
+- **Search everything.** Find any event by title, location, or notes, across every calendar and any date, past or future.
+- **All your calendars in one app.** Work, personal, local, and CalDAV (through the DAVx5 companion app), each event colored by the calendar it came from.
+- **Five views.** Month, Week, 3-Day, Day, and Schedule, with a now-line and a today highlight that rolls over at midnight on its own.
+- **Drag to reschedule.** Pick up an event in Day or Week and drop it on a new time.
 
-Persisted via Jetpack DataStore. Five groups, matching the in-app layout:
+### Everything you'd expect
 
-- **General.** Default view on cold start. Week starts on. Default event duration. Time format (Follow system default / 12-hour / 24-hour). Tasks (experimental) toggle.
-- **Appearance.** Theme (System / Light / Dark / AMOLED). Color palette (Okabe-Ito / Radix). Dim past dates. Show working hours, with start and end. Show working days, with a per-weekday picker. Show week number (ISO 8601). Month scroll style (Paged / Continuous).
-- **Notifications.** Reminder status with a notification-permission prompt. Default snooze. Default reminder for timed events. Default reminder for all-day events. Background reliability shortcut on affected OEMs.
-- **Calendars & accounts.** Hidden accounts restore. Sync with a CalDAV server (DAVx5 launcher). Calendar source (Local only / Sync only / Hybrid).
-- **About.** Version. License. Source code. Open source licenses. Support link.
+- Create, edit, duplicate, and delete events, including all-day and repeating ones. Change a repeating event and you choose whether it touches just this one, this and everything after, or the whole series.
+- Reminders before events start, with snooze and separate defaults for timed and all-day events.
+- Per-event colors from a preset palette or a custom hex, without recoloring the rest of the calendar.
+- Material 3 throughout, with dynamic color on Android 12+ and Light, Dark, and AMOLED themes.
+- A focus mode that dims non-working hours and days so meetings stand out.
+- Follows your phone: the 24-hour setting, your device language for dates and month names, and optional ISO week numbers.
+- A tidy drawer to toggle calendars, hide whole accounts, recolor anything, and rename or delete local calendars.
 
 ## Install
 
-Asala is distributed only through GitHub Releases. There is no app-store listing, by choice.
+Asala ships only through GitHub Releases. 
 
-- **Direct APK.** Download the latest `app-release.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed and published as pre-releases.
-- **Auto-updates via Obtainium.** [Obtainium](https://github.com/ImranR98/Obtainium) watches this repository's releases and notifies you when a new version ships. Point it at the releases page to add Asala.
-- **No in-app updater, by design.** Asala does not check for or download updates itself. That keeps its permissions lean: the app ships with no internet or install permissions. For automatic update notices use Obtainium above, otherwise watch the Releases page.
+- **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed and published as pre-releases.
+- **Auto-update via Obtainium.** Point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository and it notifies you when a new version ships.
+- **No in-app updater.** Asala never checks for or downloads updates itself, which is what keeps it free of any internet or install permission.
 
 ## Build from source
 
-Requirements:
-
-- JDK 17 (Eclipse Temurin recommended)
-- Android SDK packages: `platforms;android-36`, `build-tools;36.1.0`, `platform-tools`
-- `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) pointed at your SDK install
+Requires JDK 17 and the Android SDK (`platforms;android-36`, `build-tools;36.1.0`, `platform-tools`) with `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) set.
 
 ```bash
-./gradlew assembleDebug
+./gradlew assembleDebug      # build a debug APK
+./gradlew testDebugUnitTest  # run the unit tests
 ```
 
-The first build downloads Gradle 9.3.1 via the wrapper.
-`minSdk` 28, target and compile SDK 36.
-
-## Tests
-
-```bash
-./gradlew testDebugUnitTest
-```
-
-JVM unit tests live under `app/src/test/`. The day-boundary, recurrence-math, and continuous-Month index suites guard the trickiest pieces: DST transitions, RRULE exception arithmetic, and the LazyColumn entry mapping behind continuous Month view.
+`minSdk` 28, target and compile SDK 36. The first build fetches Gradle 9.3.1 via the wrapper. The unit tests under `app/src/test/` guard the trickiest pieces: DST transitions, RRULE exception math, and the continuous-Month index mapping.
 
 ## Tech
 
-Kotlin and Jetpack Compose on Material 3. Reads and writes the Android Calendar Provider (`CalendarContract`) directly. Month and Week grids use [kizitonwose/Calendar](https://github.com/kizitonwose/Calendar). Settings persist via Jetpack DataStore. Release builds run through R8 with minify and resource shrink (APK around 3.5 MB).
+Kotlin and Jetpack Compose on Material 3, reading and writing the Android Calendar Provider (`CalendarContract`) directly. Month and Week grids use [kizitonwose/Calendar](https://github.com/kizitonwose/Calendar); settings persist via Jetpack DataStore. Release builds run through R8 with minify and resource shrink, landing the APK around 3.5 MB.
 
 ## Roadmap and architecture
 
-- [docs/ROADMAP.md](docs/ROADMAP.md): where Asala is headed. Releases are published on GitHub as pre-releases.
-- [docs/adr/](docs/adr/): architecture decisions.
-  - [ADR-0001](docs/adr/0001-data-layer-is-calendarcontract.md): data layer is `CalendarContract`.
-  - [ADR-0002](docs/adr/0002-calendar-provider-write-conventions.md): Calendar Provider write conventions.
-  - [ADR-0003](docs/adr/0003-launcher-icon-source-and-density.md): launcher icon source and density.
-  - [ADR-0004](docs/adr/0004-quality-gates.md): quality gates.
-  - [ADR-0005](docs/adr/0005-github-native-dependency-scanning.md): GitHub-native dependency scanning.
+- [docs/ROADMAP.md](docs/ROADMAP.md): where Asala is headed.
+- [docs/adr/](docs/adr/): architecture decisions, including why the data layer is `CalendarContract` and the conventions for writing to the Calendar Provider.
 
 ## Contributing
 
-Solo hobby project, but build and code conventions are documented for future contributors. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+Solo hobby project, but the build and code conventions are documented for future contributors. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
 ## License
 
