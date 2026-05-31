@@ -13,6 +13,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   day to open it in Day view, or a month name to open Month view. Pick it from
   the drawer or set it as your default view.
 
+### Changed
+- The continuous (scrolling) Month view now shows only each month's own days.
+  Where a month does not start or end on a week boundary the surrounding cells
+  are left blank instead of filled with the previous and next month's dates, so
+  consecutive months no longer run together. The paged Month view is unchanged
+  and still shows the adjacent days.
+
 ## [0.17.0] - 2026-05-30
 
 ### Added

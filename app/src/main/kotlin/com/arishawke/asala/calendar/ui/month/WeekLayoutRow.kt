@@ -29,6 +29,7 @@ import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.multidaybars.MultiDayBarRow
 import com.arishawke.asala.calendar.ui.multidaybars.WeekSegment
 import com.kizitonwose.calendar.core.CalendarDay
+import com.kizitonwose.calendar.core.DayPosition
 import java.time.LocalDate
 
 // Fixed leading column for the ISO 8601 week number when the Settings
@@ -49,6 +50,7 @@ internal fun WeekLayoutRow(
     onDayCellClick: (LocalDate) -> Unit,
     onOverflowClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
+    blankOutOfMonth: Boolean = false,
 ) {
     if (showWeekNumber) {
         Row(modifier = modifier) {
@@ -60,6 +62,7 @@ internal fun WeekLayoutRow(
                 eventsByDate = eventsByDate,
                 today = today,
                 dimPastDates = dimPastDates,
+                blankOutOfMonth = blankOutOfMonth,
                 onDayCellClick = onDayCellClick,
                 onOverflowClick = onOverflowClick,
                 modifier = Modifier.weight(1f),
@@ -73,6 +76,7 @@ internal fun WeekLayoutRow(
             eventsByDate = eventsByDate,
             today = today,
             dimPastDates = dimPastDates,
+            blankOutOfMonth = blankOutOfMonth,
             onDayCellClick = onDayCellClick,
             onOverflowClick = onOverflowClick,
             modifier = modifier,
@@ -104,7 +108,9 @@ private fun WeekNumberColumn(weekStart: LocalDate) {
     }
 }
 
-@Suppress("LongParameterList")
+// LongMethod: numbers, bars, and chips rows share one BoxWithConstraints
+// scope; splitting would thread that scope through callees.
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 private fun WeekLayoutRowCore(
     weekDays: List<CalendarDay>,
@@ -116,6 +122,7 @@ private fun WeekLayoutRowCore(
     onDayCellClick: (LocalDate) -> Unit,
     onOverflowClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
+    blankOutOfMonth: Boolean = false,
 ) {
     // Events that are already drawn in the week-spanning bar row above;
     // exclude them from each cell's chip stack so they don't double-render.
@@ -125,13 +132,17 @@ private fun WeekLayoutRowCore(
         Column(modifier = Modifier.fillMaxSize()) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 for (gd in weekDays) {
-                    DayNumberBadge(
-                        day = gd,
-                        isToday = gd.date == today,
-                        isPast = dimPastDates && gd.date.isBefore(today),
-                        onClick = { onDayCellClick(gd.date) },
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (blankOutOfMonth && gd.position != DayPosition.MonthDate) {
+                        Box(modifier = Modifier.weight(1f))
+                    } else {
+                        DayNumberBadge(
+                            day = gd,
+                            isToday = gd.date == today,
+                            isPast = dimPastDates && gd.date.isBefore(today),
+                            onClick = { onDayCellClick(gd.date) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
             MultiDayBarRow(
@@ -153,6 +164,14 @@ private fun WeekLayoutRowCore(
                     .weight(1f),
             ) {
                 for (gd in weekDays) {
+                    if (blankOutOfMonth && gd.position != DayPosition.MonthDate) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                        continue
+                    }
                     // Single-day all-day events now render inline in their
                     // cell (the WeekBucketer skips them). Multi-day all-day
                     // events stay in the bar row above; filter their IDs

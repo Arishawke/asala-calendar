@@ -190,6 +190,7 @@ internal fun ContinuousMonthScreen(
                         weekRowHeight = WeekRowHeightMin,
                         onDayCellClick = onDayCellClick,
                         onOverflowClick = { date -> overflowDate = date },
+                        selfContained = true,
                     )
                 }
             }

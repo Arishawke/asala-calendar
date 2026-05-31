@@ -49,22 +49,35 @@ internal fun MonthGrid(
     weekRowHeight: Dp,
     onDayCellClick: (LocalDate) -> Unit,
     onOverflowClick: (LocalDate) -> Unit,
+    selfContained: Boolean = false,
 ) {
     val days = remember(yearMonth, firstDayOfWeek) {
         buildMonthGrid(yearMonth, firstDayOfWeek)
     }
     val zone = remember { ZoneId.systemDefault() }
-    // Six fixed-height rows of seven equal-width cells. Caller decides
-    // the row height: paged mode divides parent height by 6; continuous
-    // mode passes a constant since the LazyColumn parent is unbounded.
+    // Paged mode fills a fixed 6 rows of seven equal-width cells. Self-
+    // contained (continuous) mode renders only the weeks holding this
+    // month's days, blanks the adjacent-month cells, and clips bars to the
+    // month edge. Caller decides the row height: paged divides parent
+    // height by 6; continuous passes a constant since the LazyColumn parent
+    // is unbounded.
+    val weekCount = if (selfContained) remember(days) { weeksWithMonthDays(days) } else 6
     Column(modifier = Modifier.fillMaxWidth()) {
-        for (week in 0 until 6) {
+        for (week in 0 until weekCount) {
             val weekDays = remember(days, week) { days.subList(week * 7, week * 7 + 7) }
             val weekStart = weekDays.first().date
-            val segments = remember(weekStart, allEvents) {
-                LaneAssigner.assignLanes(
-                    WeekBucketer.bucketize(allEvents, weekStart, zone),
-                )
+            val segments = remember(weekStart, allEvents, selfContained) {
+                val raw = WeekBucketer.bucketize(allEvents, weekStart, zone)
+                val clipped = if (selfContained) {
+                    clipSegmentsToColumns(
+                        raw,
+                        weekDays.indexOfFirst { it.position == DayPosition.MonthDate },
+                        weekDays.indexOfLast { it.position == DayPosition.MonthDate },
+                    )
+                } else {
+                    raw
+                }
+                LaneAssigner.assignLanes(clipped)
             }
             WeekLayoutRow(
                 weekDays = weekDays,
@@ -74,6 +87,7 @@ internal fun MonthGrid(
                 today = today,
                 dimPastDates = dimPastDates,
                 showWeekNumber = showWeekNumber,
+                blankOutOfMonth = selfContained,
                 onDayCellClick = onDayCellClick,
                 onOverflowClick = onOverflowClick,
                 modifier = Modifier
