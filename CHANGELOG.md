@@ -1456,21 +1456,3 @@ notification firing from this app lands in M4.
 
 [Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.16.0...HEAD
 [0.16.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.16.0
-[0.15.1]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.15.1
-[0.15.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.15.0
-[0.14.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.14.0
-[0.13.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.13.0
-[0.12.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.12.0
-[0.11.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.11.0
-[0.10.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.10.0
-[0.9.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.9.0
-[0.8.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.8.0
-[0.7.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.7.0
-[0.6.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.6.0
-[0.5.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.5.0
-[0.4.2]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.4.2
-[0.4.1]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.4.1
-[0.4.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.4.0
-[0.3.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.3.0
-[0.2.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.2.0
-[0.1.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.1.0

@@ -5,7 +5,7 @@
 - Single-file orientation for someone auditing this codebase.
 - Audience: working Android devs, debuggers, vibe coders reviewing their own diffs.
 - Names the places that have actually had bugs and points at the tests that pin behavior down.
-- Not a tutorial. For change history see [CHANGELOG.md](../CHANGELOG.md); for design specs see [docs/specs/](specs/).
+- Not a tutorial. For change history see [CHANGELOG.md](../CHANGELOG.md).
 
 > Heads up: much of this code was written with AI assistance. The README's disclaimer is the audit trail; this tour is how you verify rather than trust.
 
@@ -20,7 +20,7 @@ Single Gradle module: `:app`. All Kotlin lives under `app/src/main/kotlin/com/ar
 | [`ui/`](../app/src/main/kotlin/com/arishawke/asala/calendar/ui) | Compose screens, ViewModels, themed components. Sub-packages mirror screen surfaces: `month/`, `week/`, `day/`, `schedule/`, `tasks/`, `eventedit/`, `eventdetail/`, `settings/`, `permissions/`, `calendars/`, `search/`, `notifications/`, `timeline/`, `header/`, `theme/`, `accessibility/`, `components/`. |
 | Root | App shell and top-level state: [MainActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/MainActivity.kt), [AppViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AppViewModel.kt), [AsalaCalendarApplication.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AsalaCalendarApplication.kt), [CalendarViewLabel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/CalendarViewLabel.kt). |
 
-No `:core` / `:data` / `:ui` split. The [debuggability assessment](specs/archive/2026-05-23-debuggability-assessment.md) explains why: package layout already enforces the boundary clarity, and around 15K total lines is still below the threshold where modularization pays back.
+No `:core` / `:data` / `:ui` split. The reasoning: package layout already enforces the boundary clarity, and around 15K total lines is still below the threshold where modularization pays back.
 
 ## Where to start reading
 
@@ -243,7 +243,7 @@ notification posted by ReminderAlarmReceiver
 | Application object | No tests. |
 | Compose screens | A few previews exist. No Compose UI tests, no Robolectric, no instrumented tests. |
 
-> Heads up: the [debuggability assessment](specs/archive/2026-05-23-debuggability-assessment.md) priority 3 is screen tests for the storage-mode onboarding picker, the event-save flow, and the snooze picker.
+> Heads up: a known testing gap is screen tests for the storage-mode onboarding picker, the event-save flow, and the snooze picker.
 
 Run the full suite: `./gradlew :app:testDebugUnitTest`.
 
@@ -262,7 +262,7 @@ Run the full suite: `./gradlew :app:testDebugUnitTest`.
 | --- | --- | --- |
 | `./gradlew :app:spotlessKotlinCheck :app:detekt :app:lintDebug :app:testDebugUnitTest` | Format, static analysis, lint (with baseline), and the JVM unit-test suite. | All green. Must pass before any push. |
 | `./gradlew :app:assembleRelease` | Release APK with R8 minify and resource shrink. | Build succeeds. Any perf verdict must be measured on this APK, not debug. |
-| `adb uninstall com.arishawke.asala.calendar` then `./gradlew :app:installDebug` | Fresh-install path. | Permission gate, storage-mode onboarding, notification permission dialog, and OEM battery advisory all appear and complete cleanly. Required for permission-gated changes per [CLAUDE.md](../CLAUDE.md). |
+| `adb uninstall com.arishawke.asala.calendar` then `./gradlew :app:installDebug` | Fresh-install path. | Permission gate, storage-mode onboarding, notification permission dialog, and OEM battery advisory all appear and complete cleanly. Required for permission-gated changes per [CONTRIBUTING.md](../CONTRIBUTING.md). |
 
 ## Logging
 
@@ -279,7 +279,7 @@ Run the full suite: `./gradlew :app:testDebugUnitTest`.
 - Strategic log points already in place: app startup, calendar permission grant, storage mode switches (LocalOnly/SyncOnly/Hybrid), alarm fire, snooze receiver dispatch, snooze applied, and any caught throwable in the notification action handlers.
 - Never log PII (event titles, locations, attendees) or auth tokens. The lines we have today only log ids and counts.
 
-Manual flow steps: see individual feature specs in [docs/specs/](specs/). Architectural decisions: [docs/adr/](adr/). Conventions (commit style, lint policy, file-size discipline): [CLAUDE.md](../CLAUDE.md) and [CONTRIBUTING.md](../CONTRIBUTING.md).
+Architectural decisions: [docs/adr/](adr/). Conventions (commit style, lint policy, file-size discipline): [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Where to ask for help
 
