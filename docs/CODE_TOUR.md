@@ -277,7 +277,7 @@ Run the full suite: `./gradlew :app:testDebugUnitTest`.
   adb logcat -d -t 1000 > /tmp/asala.log
   ```
 - Strategic log points already in place: app startup, calendar permission grant, storage mode switches (LocalOnly/SyncOnly/Hybrid), alarm fire, snooze receiver dispatch, snooze applied, and any caught throwable in the notification action handlers.
-- Never log PII (event titles, locations, attendees) or auth tokens. The lines we have today only log ids and counts.
+- Never log PII (event titles, locations, attendees) or auth tokens. The lines I have today only log ids and counts.
 
 Architectural decisions: [docs/adr/](adr/). Conventions (commit style, lint policy, file-size discipline): [CONTRIBUTING.md](../CONTRIBUTING.md).
 

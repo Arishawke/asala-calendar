@@ -1,6 +1,6 @@
 # Asala Calendar Roadmap
 
-A forward-looking list of what we plan to add, in Now / Next / Later
+A forward-looking list of what I plan to add, in Now / Next / Later
 order. Not a commitment, and not a history. Shipped work lives in
 [CHANGELOG.md](../CHANGELOG.md); this file is only what is still ahead.
 Detail decreases with distance: Now is specified, Later is a line.
@@ -32,7 +32,7 @@ Planned and near-term. Rough priority order within each group.
 - **Settings page reorganization + a visual taste pass.** Grouping,
   dividers, and a taste pass on the grown-out sections. Reach for the
   design-taste-frontend / ui-ux-pro-max skills when scoping.
-- **Small, optional donate / support link** in About. Subtle, no nags;
+- **Small, optional donate / support link** in About / Settings. Subtle, no nags;
   the app stays fully free and GPLv3.
 
 **Color**
@@ -111,13 +111,16 @@ Ideas and opportunities. May not happen. Kept for reference.
   month surface rather than being a separate view.
 - **ICS export / import of all events.** Offline backup without a sync
   server. Large effort (full ical4j parse / serialize).
-- Hybrid views, e.g. a mini-month atop the Schedule list.
+- **Month / Schedule split view.** A combined surface, e.g. a mini-month
+  atop the Schedule list, or other hybrid month-plus-list layouts.
 - **Dynamic launcher icon showing today's day-of-month number.** Day-1
   through day-31 brand SVGs already exist in `logos/` (gitignored).
   Full feature: 31 activity-aliases, generated foregrounds, a
   `WorkManager` midnight job flipping the enabled alias, boot and
   timezone receivers, and a settings toggle. ADR-0003 has the notes.
 - Honor system font scale up to 200% (audit hardcoded sp / dp values).
+- **In-app font-size control.** A text-size preference inside Asala,
+  independent of the OS font-scale support above.
 - **Multiple timezones per event** (second timezone in editor and
   detail sheet; optional pinned secondary timezone in the Day / Week
   rail), and travel-aware display when the device timezone differs from
