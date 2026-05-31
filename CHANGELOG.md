@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- Year view: a scrollable overview of the whole year as a 3-column grid of
+  mini-months, with today highlighted and dots on days that have events. Tap a
+  day to open it in Day view, or a month name to open Month view. Pick it from
+  the drawer or set it as your default view.
+
 ## [0.17.0] - 2026-05-30
 
 ### Added
