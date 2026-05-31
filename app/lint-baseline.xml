@@ -30,7 +30,7 @@
         errorLine2="    ^">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventEditScreen.kt"
-            line="85"
+            line="89"
             column="5"/>
     </issue>
 
@@ -85,7 +85,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/settings/SettingsScreen.kt"
-            line="53"
+            line="52"
             column="5"/>
     </issue>
 
@@ -108,6 +108,17 @@
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/WeekScreen.kt"
             line="88"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelInjection"
+        message="Implicit dependencies of composables should be made explicit.&#xA;Usages of viewModel to acquire a ViewModel should be done in composable default parameters, so that it is more testable and flexible.&#xA;See https://slackhq.github.io/compose-lints/rules/#viewmodels for more information."
+        errorLine1="    val vm: YearViewModel = viewModel("
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/year/YearScreen.kt"
+            line="59"
             column="5"/>
     </issue>
 
@@ -191,7 +202,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventdetail/EventDetailSheet.kt"
-            line="56"
+            line="57"
             column="5"/>
     </issue>
 
@@ -235,7 +246,7 @@
         errorLine2="    ~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/settings/SettingsScreen.kt"
-            line="45"
+            line="44"
             column="5"/>
     </issue>
 
@@ -270,17 +281,6 @@
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/DateTimePickerRow.kt"
             line="47"
             column="22"/>
-    </issue>
-
-    <issue
-        id="ComposeParameterOrder"
-        message="Parameters in a composable function should be ordered following this pattern: params without defaults, modifiers, params with defaults and optionally, a trailing function that might not have a default param.&#xA;Current params are: [detail: EventDetail?, instanceMillis: Long?, notificationPermissionGranted: Boolean = true, onRequestNotificationPermission: () -> Unit = {}, onDismiss: () -> Unit, onEdit: (Long) -> Unit, onDelete: (Long, RecurringEditScope) -> Unit] but should be [detail: EventDetail?, instanceMillis: Long?, onDismiss: () -> Unit, onEdit: (Long) -> Unit, notificationPermissionGranted: Boolean = true, onRequestNotificationPermission: () -> Unit = {}, onDelete: (Long, RecurringEditScope) -> Unit].&#xA;See https://slackhq.github.io/compose-lints/rules/#ordering-composable-parameters-properly for more information."
-        errorLine1="fun EventDetailSheet("
-        errorLine2="                    ^">
-        <location
-            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventdetail/EventDetailSheet.kt"
-            line="56"
-            column="21"/>
     </issue>
 
     <issue
@@ -378,7 +378,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/CalendarSelector.kt"
-            line="95"
+            line="99"
             column="13"/>
     </issue>
 
@@ -543,7 +543,7 @@
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/settings/SettingsScreen.kt"
-            line="47"
+            line="46"
             column="27"/>
     </issue>
 
@@ -666,6 +666,28 @@
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/week/WeekScreen.kt"
             line="188"
             column="13"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="internal fun YearDayCell(day: CalendarDay, today: LocalDate, events: List&lt;EventItem>, onClick: () -> Unit) {"
+        errorLine2="                                                                     ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/year/YearDayCell.kt"
+            line="44"
+            column="70"/>
+    </issue>
+
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;EventItem> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `events: ImmutableList&lt;EventItem>` or create an `@Immutable` wrapper for this class: `@Immutable data class EventsList(val items: List&lt;EventItem>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="private fun YearDotRow(events: List&lt;EventItem>) {"
+        errorLine2="                               ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/year/YearDayCell.kt"
+            line="77"
+            column="32"/>
     </issue>
 
 </issues>

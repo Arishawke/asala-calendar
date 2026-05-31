@@ -27,10 +27,11 @@ import java.time.LocalDate
 import java.time.Year
 import java.time.ZoneId
 
-data class YearUiState(
-    val today: LocalDate,
-    val eventsByDate: Map<LocalDate, List<EventItem>>,
-)
+// Keep the upstream collector warm briefly after the screen leaves so a
+// quick return does not re-query the provider. Matches MonthViewModel.
+private const val StopTimeoutMillis = 5_000L
+
+data class YearUiState(val today: LocalDate, val eventsByDate: Map<LocalDate, List<EventItem>>)
 
 @Suppress("LongParameterList")
 class YearViewModel(
@@ -68,7 +69,7 @@ class YearViewModel(
             if (state.today == today) state else state.copy(today = today)
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(StopTimeoutMillis),
             initialValue = YearUiState(today = initialToday, eventsByDate = emptyMap()),
         )
 

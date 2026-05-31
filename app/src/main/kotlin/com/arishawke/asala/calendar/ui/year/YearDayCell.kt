@@ -41,12 +41,7 @@ import java.util.Locale
 private const val MaxDotsPerCell = 3
 
 @Composable
-internal fun YearDayCell(
-    day: CalendarDay,
-    today: LocalDate,
-    events: List<EventItem>,
-    onClick: () -> Unit,
-) {
+internal fun YearDayCell(day: CalendarDay, today: LocalDate, events: List<EventItem>, onClick: () -> Unit) {
     val inMonth = day.position == DayPosition.MonthDate
     val isToday = inMonth && day.date == today
     Box(

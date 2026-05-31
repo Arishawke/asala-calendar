@@ -27,13 +27,13 @@ import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.rescheduleEvent
 import com.arishawke.asala.calendar.ui.day.DayScreen
 import com.arishawke.asala.calendar.ui.month.MonthScreen
-import com.arishawke.asala.calendar.ui.year.YearScreen
 import com.arishawke.asala.calendar.ui.schedule.ScheduleScreen
 import com.arishawke.asala.calendar.ui.settings.UserPrefs
 import com.arishawke.asala.calendar.ui.settings.toWorkingDaysMask
 import com.arishawke.asala.calendar.ui.tasks.TasksComingSoonScreen
 import com.arishawke.asala.calendar.ui.threeday.ThreeDayScreen
 import com.arishawke.asala.calendar.ui.week.WeekScreen
+import com.arishawke.asala.calendar.ui.year.YearScreen
 
 // Switches between Month/Week/Day/Schedule/Tasks with the slide-and-fade
 // animation. The animation collapses to None when the user disables

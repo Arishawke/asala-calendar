@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -23,7 +24,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
-import androidx.compose.runtime.setValue
 import com.kizitonwose.calendar.compose.VerticalYearCalendar
 import com.kizitonwose.calendar.compose.yearcalendar.rememberYearCalendarState
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
