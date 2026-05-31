@@ -20,7 +20,10 @@ object StorageModeFilter {
             calendars
                 .filter { it.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL }
                 .mapTo(mutableSetOf()) { it.id }
-        StorageMode.SyncOnly,
+        StorageMode.SyncOnly ->
+            calendars
+                .filter { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
+                .mapTo(mutableSetOf()) { it.id }
         StorageMode.Hybrid,
         StorageMode.Unset,
         -> emptySet()

@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+- "Sync only" calendar source now also hides on-device (local) calendar
+  events from the timeline, not just from the drawer and event editor.
+  Previously local events still rendered, so "Sync only" looked the same
+  as "Both" on the calendar grid.
+
 ## [0.16.0] - 2026-05-30
 
 ### Changed

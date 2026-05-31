@@ -54,15 +54,28 @@ class StorageModeFilterTest {
         assertEquals(emptySet<Long>(), hidden)
     }
 
-    // Sync only never adds to the mode set: the user's manual drawer hides
-    // are the only ones in effect. Returning a non-empty set here would
-    // re-introduce the v0.7.0 hidden-id stomp.
+    // Sync only is the mirror of Local only: it hides every on-device
+    // (local) calendar so only synced calendars render, matching the drawer
+    // and the event-editor picker. A non-empty mode set is safe because
+    // toggleCalendarVisibility writes the user-only set, never the mode
+    // union, so these derived hides never stomp manual drawer toggles.
     @Test
-    fun `SyncOnly returns empty even when local calendars exist`() {
+    fun `SyncOnly returns every local id`() {
         val hidden =
             StorageModeFilter.modeHiddenIds(
                 mode = StorageMode.SyncOnly,
-                calendars = listOf(local1, sync1),
+                calendars = listOf(local1, sync1, local2, sync2),
+            )
+        assertEquals(setOf(local1.id, local2.id), hidden)
+    }
+
+    // No local calendars present: nothing for Sync only to hide.
+    @Test
+    fun `SyncOnly with no local calendars returns empty`() {
+        val hidden =
+            StorageModeFilter.modeHiddenIds(
+                mode = StorageMode.SyncOnly,
+                calendars = listOf(sync1, sync2),
             )
         assertEquals(emptySet<Long>(), hidden)
     }
