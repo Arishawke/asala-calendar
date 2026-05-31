@@ -192,6 +192,8 @@
     <string name="dialog_recolor_account">Account color</string>
     <string name="action_reset_to_calendar_color">Reset to calendar color</string>
     <string name="swatch_custom">Custom color</string>
+    <string name="cd_pick_custom_color">Pick a custom color</string>
+    <string name="custom_color_hex">Hex</string>
 
     <!-- Color palettes (offered by the recolor pickers) -->
     <string name="palette_okabe_ito">Okabe-Ito (color-blind safe)</string>

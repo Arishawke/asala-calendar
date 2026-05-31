@@ -15,6 +15,7 @@ detekt = "1.23.8"
 composeLints = "1.4.3"
 kover = "0.9.8"
 kotlinxSerializationJson = "1.11.0"
+skydovesColorpicker = "1.1.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +34,7 @@ kizitonwose-calendar-compose = { group = "com.kizitonwose.calendar", name = "com
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 jakewharton-timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+skydoves-colorpicker-compose = { group = "com.github.skydoves", name = "colorpicker-compose", version.ref = "skydovesColorpicker" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 compose-lint-checks = { module = "com.slack.lint.compose:compose-lint-checks", version.ref = "composeLints" }
 

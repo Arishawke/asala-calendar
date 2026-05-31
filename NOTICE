@@ -14,6 +14,7 @@ Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
   - kotlinx.serialization. Copyright JetBrains s.r.o.
   - Kotlin standard library and kotlinx.coroutines. Copyright JetBrains s.r.o.
   - Timber. Copyright Jake Wharton.
+  - ColorPicker Compose (com.github.skydoves). Copyright Jaewoong Eum.
 
 MIT License (https://opensource.org/licenses/MIT):
   - Calendar (com.kizitonwose.calendar). Copyright Kizito Nwose.

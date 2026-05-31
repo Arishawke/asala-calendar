@@ -134,6 +134,7 @@ dependencies {
     implementation(libs.kizitonwose.calendar.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.skydoves.colorpicker.compose)
     implementation(libs.jakewharton.timber)
 
     debugImplementation(libs.androidx.compose.ui.tooling)

@@ -19,8 +19,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -49,6 +55,7 @@ internal fun ColorSwatchGrid(
 ) {
     val swatches = palette.swatches
     val selectedInPalette = swatches.any { it.toArgb() == selectedArgb }
+    var showCustom by remember { mutableStateOf(false) }
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -65,6 +72,17 @@ internal fun ColorSwatchGrid(
         if (!selectedInPalette) {
             CustomSwatch(argb = selectedArgb, onSelect = onSelect)
         }
+        CustomColorButton(onClick = { showCustom = true })
+    }
+    if (showCustom) {
+        CustomColorPickerDialog(
+            initialArgb = selectedArgb,
+            onConfirm = { argb ->
+                showCustom = false
+                onSelect(argb)
+            },
+            onDismiss = { showCustom = false },
+        )
     }
 }
 
@@ -116,4 +134,31 @@ private fun CustomSwatch(argb: Int, onSelect: (Int) -> Unit) {
             .clickable { onSelect(argb) }
             .semantics { contentDescription = "$label $hex" },
     )
+}
+
+// The "add a custom color" affordance: an outlined circle with a plus
+// that opens the free HSV / hex picker.
+@Composable
+private fun CustomColorButton(onClick: () -> Unit) {
+    val label = stringResource(R.string.cd_pick_custom_color)
+    Box(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .size(28.dp)
+            .clip(CircleShape)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = CircleShape,
+            )
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "+",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }

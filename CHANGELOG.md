@@ -8,6 +8,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Added
+- Custom event and calendar colors: tap "+" in any color picker to choose a
+  free color with an HSV wheel or a hex code. Custom colors are stored on this
+  device only and are not synced to other apps or devices.
 - Duplicate an event: the event detail sheet now has a Duplicate action that
   opens the editor prefilled with a copy to tweak and save separately.
   Duplicating a repeating event creates a single one-off.
