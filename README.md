@@ -62,7 +62,7 @@ Persisted via Jetpack DataStore. Five groups, matching the in-app layout:
 - **Appearance.** Theme (System / Light / Dark / AMOLED). Color palette (Okabe-Ito / Radix). Dim past dates. Show working hours, with start and end. Show working days, with a per-weekday picker. Show week number (ISO 8601). Month scroll style (Paged / Continuous).
 - **Notifications.** Reminder status with a notification-permission prompt. Default snooze. Default reminder for timed events. Default reminder for all-day events. Background reliability shortcut on affected OEMs.
 - **Calendars & accounts.** Hidden accounts restore. Sync with a CalDAV server (DAVx5 launcher). Calendar source (Local only / Sync only / Hybrid).
-- **About.** Version. License. Source code.
+- **About.** Version. License. Source code. Open source licenses. Support link.
 
 ## Install
 
@@ -70,6 +70,7 @@ Asala is distributed only through GitHub Releases. There is no app-store listing
 
 - **Direct APK.** Download the latest `app-release.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed and published as pre-releases.
 - **Auto-updates via Obtainium.** [Obtainium](https://github.com/ImranR98/Obtainium) watches this repository's releases and notifies you when a new version ships. Point it at the releases page to add Asala.
+- **No in-app updater, by design.** Asala does not check for or download updates itself. That keeps its permissions lean: the app ships with no internet or install permissions. For automatic update notices use Obtainium above, otherwise watch the Releases page.
 
 ## Build from source
 
