@@ -14,7 +14,7 @@ A private, offline-first calendar for Android, dressed in Material 3.
 
 <p align="center">
   <a href="https://github.com/Arishawke/asala-calendar/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Arishawke/asala-calendar/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://github.com/Arishawke/asala-calendar/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/Arishawke/asala-calendar?include_prereleases&label=release"></a>
+  <a href="https://github.com/Arishawke/asala-calendar/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/Arishawke/asala-calendar?label=release"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPLv3-blue.svg"></a>
   <a href="docs/ROADMAP.md"><img alt="Roadmap" src="https://img.shields.io/badge/roadmap-docs%2FROADMAP.md-informational"></a>
 </p>
@@ -66,7 +66,7 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 Asala ships only through GitHub Releases. 
 
-- **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed and published as pre-releases.
+- **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
 - **Auto-update via Obtainium.** Point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository and it notifies you when a new version ships.
 - **No in-app updater.** Asala never checks for or downloads updates itself, which is what keeps it free of any internet or install permission.
 
