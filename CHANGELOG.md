@@ -11,7 +11,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Year view: a scrollable overview of the whole year as a 3-column grid of
   mini-months, with today highlighted and dots on days that have events. Tap a
   day to open it in Day view, or a month name to open Month view. Pick it from
-  the drawer or set it as your default view.
+  the view switcher or set it as your default view.
 
 ### Changed
 - The continuous (scrolling) Month view now shows only each month's own days.
@@ -19,6 +19,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   are left blank instead of filled with the previous and next month's dates, so
   consecutive months no longer run together. The paged Month view is unchanged
   and still shows the adjacent days.
+- Views now switch from a button in the top bar, which opens a dropdown of all
+  views with the current one checked, instead of from the navigation drawer.
+  The drawer now holds only your calendars and Settings.
 
 ## [0.17.0] - 2026-05-30
 

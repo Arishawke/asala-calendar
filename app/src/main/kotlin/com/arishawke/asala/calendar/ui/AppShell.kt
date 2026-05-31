@@ -79,6 +79,7 @@ import com.arishawke.asala.calendar.openCreateEditor
 import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.ui.accessibility.rememberAnimationsEnabled
 import com.arishawke.asala.calendar.ui.header.HeaderDropdownPanel
+import com.arishawke.asala.calendar.ui.header.ViewSwitcherMenu
 import com.arishawke.asala.calendar.ui.month.CalendarDrawerContent
 import com.arishawke.asala.calendar.ui.theme.Spacing
 import kotlinx.coroutines.launch
@@ -153,11 +154,6 @@ internal fun AppShell(vm: AppViewModel) {
             gesturesEnabled = drawerState.isOpen,
             drawerContent = {
                 CalendarDrawerContent(
-                    currentView = state.currentView,
-                    onSelectView = { view ->
-                        vm.selectView(view)
-                        scope.launch { drawerState.close() }
-                    },
                     calendars = state.calendars,
                     hiddenCalendarIds = state.hiddenCalendarIds,
                     drawerHiddenAccountKeys = drawerHiddenAccountKeys,
@@ -179,7 +175,6 @@ internal fun AppShell(vm: AppViewModel) {
                     onRecolorAccount = { key, argb -> vm.setAccountAvatarColor(key, argb) },
                     onRecolorCalendar = { id, argb -> vm.setCalendarColorOverride(id, argb) },
                     palette = prefs.paletteId,
-                    tasksEnabled = prefs.tasksEnabled,
                     localOnly = prefs.storageMode == StorageMode.LocalOnly,
                     syncOnly = prefs.storageMode == StorageMode.SyncOnly,
                 )
@@ -213,6 +208,11 @@ internal fun AppShell(vm: AppViewModel) {
                                 }
                             },
                             actions = {
+                                ViewSwitcherMenu(
+                                    currentView = state.currentView,
+                                    tasksEnabled = prefs.tasksEnabled,
+                                    onSelectView = vm::selectView,
+                                )
                                 IconButton(onClick = { vm.openSearch() }) {
                                     Icon(
                                         Icons.Filled.Search,

@@ -4,6 +4,7 @@
 
     <!-- Top bar -->
     <string name="cd_open_calendars">Open calendars</string>
+    <string name="cd_switch_view">Switch view</string>
     <string name="cd_jump_to_today">Jump to today</string>
     <string name="cd_search">Search events</string>
     <string name="cd_header_expand">Open date picker</string>

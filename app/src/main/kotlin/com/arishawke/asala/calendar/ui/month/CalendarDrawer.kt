@@ -34,11 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.CalendarItem
-import com.arishawke.asala.calendar.isAlwaysVisible
-import com.arishawke.asala.calendar.label
 import com.arishawke.asala.calendar.ui.calendars.DeleteCalendarDialog
 import com.arishawke.asala.calendar.ui.calendars.RecolorDialog
 import com.arishawke.asala.calendar.ui.calendars.RenameCalendarDialog
@@ -49,10 +46,9 @@ import com.arishawke.asala.calendar.ui.month.drawer.accountOverrideKey
 import com.arishawke.asala.calendar.ui.month.drawer.avatarColor
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 fun CalendarDrawerContent(
-    currentView: CalendarView,
-    onSelectView: (CalendarView) -> Unit,
     calendars: List<CalendarItem>,
     hiddenCalendarIds: Set<Long>,
     drawerHiddenAccountKeys: Set<String>,
@@ -71,7 +67,6 @@ fun CalendarDrawerContent(
     palette: PaletteId,
     modifier: Modifier = Modifier,
     onRenameCalendar: (Long, String) -> Unit = { _, _ -> },
-    tasksEnabled: Boolean = false,
     localOnly: Boolean = false,
     syncOnly: Boolean = false,
 ) {
@@ -80,7 +75,6 @@ fun CalendarDrawerContent(
     var showRecolorCalendarFor by remember { mutableStateOf<CalendarItem?>(null) }
     var showRecolorAccountFor by remember { mutableStateOf<AccountGroup?>(null) }
 
-    val views = CalendarView.entries.filter { it.isAlwaysVisible() || tasksEnabled }
     // LocalOnly hides sync calendars; SyncOnly hides local calendars; Hybrid
     // shows everything. Nothing is deleted, just filtered for the drawer.
     val modeFiltered = when {
@@ -103,19 +97,6 @@ fun CalendarDrawerContent(
 
     ModalDrawerSheet(modifier = modifier) {
         LazyColumn {
-            items(items = views, key = { "view-${it.name}" }) { view ->
-                NavigationDrawerItem(
-                    label = { Text(view.label()) },
-                    selected = view == currentView,
-                    onClick = { onSelectView(view) },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
-                )
-            }
-
-            item("divider-views") {
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-            }
-
             item("calendars-header") {
                 Row(
                     modifier = Modifier
