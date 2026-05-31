@@ -28,4 +28,14 @@ object StorageModeFilter {
         StorageMode.Unset,
         -> emptySet()
     }
+
+    // True when the active storage mode treats this account type as
+    // nonexistent: Local only hides every synced account; Sync only hides
+    // the on-device (local) account. Drives full account hiding (drawer +
+    // Settings restore list), not just event hiding.
+    fun accountHiddenByMode(accountType: String, mode: StorageMode): Boolean = when (mode) {
+        StorageMode.LocalOnly -> accountType != CalendarContract.ACCOUNT_TYPE_LOCAL
+        StorageMode.SyncOnly -> accountType == CalendarContract.ACCOUNT_TYPE_LOCAL
+        StorageMode.Hybrid, StorageMode.Unset -> false
+    }
 }

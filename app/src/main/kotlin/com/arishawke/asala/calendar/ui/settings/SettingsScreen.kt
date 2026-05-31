@@ -33,7 +33,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.arishawke.asala.calendar.BuildConfig
 import com.arishawke.asala.calendar.DrawerHiddenAccount
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.notifications.OemBatteryAdvisory
@@ -289,51 +288,15 @@ fun SettingsScreen(
             item("section-about") {
                 SectionHeader(stringResource(R.string.settings_section_about))
             }
-            item("about-version") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_about_version)) },
-                    supportingContent = {
-                        Text("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                    },
-                )
-            }
-            item("about-license") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_about_license)) },
-                    supportingContent = { Text(stringResource(R.string.settings_about_license_value)) },
-                )
-            }
-            item("about-source") {
+            item("about") {
                 val context = LocalContext.current
                 val sourceUrl = stringResource(R.string.settings_about_source_url)
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_about_source)) },
-                    supportingContent = { Text(sourceUrl) },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, sourceUrl.toUri()))
-                    },
-                )
-            }
-            item("about-licenses") {
-                val context = LocalContext.current
                 val licensesUrl = stringResource(R.string.settings_about_licenses_url)
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_about_licenses)) },
-                    supportingContent = { Text(licensesUrl) },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, licensesUrl.toUri()))
-                    },
-                )
-            }
-            item("about-support") {
-                val context = LocalContext.current
                 val supportUrl = stringResource(R.string.settings_about_support_url)
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_about_support)) },
-                    supportingContent = { Text(supportUrl) },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, supportUrl.toUri()))
-                    },
+                AboutSection(
+                    onOpenSource = { context.startActivity(Intent(Intent.ACTION_VIEW, sourceUrl.toUri())) },
+                    onOpenLicenses = { context.startActivity(Intent(Intent.ACTION_VIEW, licensesUrl.toUri())) },
+                    onOpenSupport = { context.startActivity(Intent(Intent.ACTION_VIEW, supportUrl.toUri())) },
                 )
             }
         }

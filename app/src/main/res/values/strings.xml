@@ -320,8 +320,6 @@
 
     <!-- Settings: About section -->
     <string name="settings_section_about">About</string>
-    <string name="settings_about_version">Version</string>
-    <string name="settings_about_license">License</string>
     <string name="settings_about_license_value">GPL-3.0-or-later</string>
     <string name="settings_about_source">Source code</string>
     <string name="settings_about_source_url" translatable="false">https://github.com/Arishawke/asala-calendar</string>

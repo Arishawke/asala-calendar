@@ -256,8 +256,9 @@ class AppViewModel(
     val drawerHiddenAccountsFlow: StateFlow<List<DrawerHiddenAccount>> =
         combine(
             calendarRepo.observeCalendars(),
-            userPreferences.prefs.map { it.drawerHiddenAccountKeys },
-        ) { cals, keys ->
+            userPreferences.prefs,
+        ) { cals, prefs ->
+            val keys = prefs.drawerHiddenAccountKeys
             if (keys.isEmpty()) return@combine emptyList()
             // For each hidden key, surface the account once with display
             // metadata from any of its calendars. Sort by display name so
@@ -265,6 +266,12 @@ class AppViewModel(
             keys.mapNotNull { key ->
                 val match = cals.firstOrNull { drawerAccountKey(it.accountType, it.accountName) == key }
                     ?: return@mapNotNull null
+                // A storage mode that excludes this account type should make
+                // it read as nonexistent, so drop it from the restore list
+                // too (the drawer already hides its calendars).
+                if (StorageModeFilter.accountHiddenByMode(match.accountType, prefs.storageMode)) {
+                    return@mapNotNull null
+                }
                 DrawerHiddenAccount(
                     accountKey = key,
                     accountName = match.accountName,

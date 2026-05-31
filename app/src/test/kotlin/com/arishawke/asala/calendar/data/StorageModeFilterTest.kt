@@ -104,4 +104,34 @@ class StorageModeFilterTest {
             )
         assertEquals(emptySet<Long>(), hidden)
     }
+
+    // accountHiddenByMode mirrors modeHiddenIds at the account-type level so
+    // an excluded account vanishes entirely (drawer + Settings), not just
+    // its events.
+    @Test
+    fun `LocalOnly hides synced account types and keeps local`() {
+        assertEquals(true, StorageModeFilter.accountHiddenByMode("com.google", StorageMode.LocalOnly))
+        assertEquals(
+            false,
+            StorageModeFilter.accountHiddenByMode(CalendarContract.ACCOUNT_TYPE_LOCAL, StorageMode.LocalOnly),
+        )
+    }
+
+    @Test
+    fun `SyncOnly hides the local account type and keeps synced`() {
+        assertEquals(
+            true,
+            StorageModeFilter.accountHiddenByMode(CalendarContract.ACCOUNT_TYPE_LOCAL, StorageMode.SyncOnly),
+        )
+        assertEquals(false, StorageModeFilter.accountHiddenByMode("com.exchange", StorageMode.SyncOnly))
+    }
+
+    @Test
+    fun `Hybrid and Unset hide no account`() {
+        assertEquals(false, StorageModeFilter.accountHiddenByMode("com.google", StorageMode.Hybrid))
+        assertEquals(
+            false,
+            StorageModeFilter.accountHiddenByMode(CalendarContract.ACCOUNT_TYPE_LOCAL, StorageMode.Unset),
+        )
+    }
 }

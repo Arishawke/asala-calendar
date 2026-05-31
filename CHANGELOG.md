@@ -17,6 +17,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - A "Support Asala" link in Settings, under About, that opens the project's
   Ko-fi page.
 
+### Changed
+- The Settings "About" section is now a single compact block: app name,
+  version, and license on two small lines, with a Source / Licenses /
+  Support action row. Support leads with a heart and opens Ko-fi on tap;
+  the raw URLs are no longer shown.
+- In "Local only" and "Sync only" modes the excluded accounts are fully
+  hidden: gone from the drawer and from the Settings hidden-accounts list,
+  as if they do not exist while that mode is active.
+
 ### Fixed
 - "Sync only" calendar source now also hides on-device (local) calendar
   events from the timeline, not just from the drawer and event editor.
