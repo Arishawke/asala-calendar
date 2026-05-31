@@ -8,6 +8,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Added
+- Duplicate an event: the event detail sheet now has a Duplicate action that
+  opens the editor prefilled with a copy to tweak and save separately.
+  Duplicating a repeating event creates a single one-off.
 - A "Support Asala" link in Settings, under About, that opens the project's
   Ko-fi page.
 

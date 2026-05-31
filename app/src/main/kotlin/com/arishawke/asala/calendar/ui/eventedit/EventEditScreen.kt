@@ -67,8 +67,12 @@ fun EventEditScreen(
     // Existing per-event override hex if this editor is opening an existing
     // event. Null in the create flow (no eventId) or when the event has no
     // override.
-    val initialColorOverrideArgb = remember(eventId) {
-        eventId?.let { appViewModel.eventColorOverridesFlow.value[it] }
+    // Source event id when this editor was opened via Duplicate.
+    val duplicateSourceId = remember { appViewModel.editDuplicateSourceId.value }
+    // Existing per-event override for the edited event, or the source event
+    // when duplicating, so the copy keeps its color.
+    val initialColorOverrideArgb = remember(eventId, duplicateSourceId) {
+        (eventId ?: duplicateSourceId)?.let { appViewModel.eventColorOverridesFlow.value[it] }
     }
     val palette = remember { appViewModel.prefs.value.paletteId }
     // Snapshot the effective hide set (manual hides + account hides +
@@ -87,6 +91,7 @@ fun EventEditScreen(
             appContext = ctx.applicationContext,
             eventId = eventId,
             instanceMillis = instanceMillis,
+            duplicateFromEventId = duplicateSourceId,
             storageMode = storageMode,
             defaultDurationMinutes = defaultDurationMinutes,
             defaultTimedReminderMinutes = defaultTimedReminderMinutes,

@@ -53,14 +53,16 @@ import com.arishawke.asala.calendar.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("LongParameterList")
 fun EventDetailSheet(
     detail: EventDetail?,
     instanceMillis: Long?,
-    notificationPermissionGranted: Boolean = true,
-    onRequestNotificationPermission: () -> Unit = {},
     onDismiss: () -> Unit,
     onEdit: (Long) -> Unit,
+    onDuplicate: (Long) -> Unit,
     onDelete: (Long, RecurringEditScope) -> Unit,
+    notificationPermissionGranted: Boolean = true,
+    onRequestNotificationPermission: () -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
@@ -79,6 +81,7 @@ fun EventDetailSheet(
                 notificationPermissionGranted = notificationPermissionGranted,
                 onRequestNotificationPermission = onRequestNotificationPermission,
                 onEdit = { onEdit(detail.eventId) },
+                onDuplicate = { onDuplicate(detail.eventId) },
                 onDelete = { scope -> onDelete(detail.eventId, scope) },
                 onClose = onDismiss,
             )
@@ -91,7 +94,7 @@ fun EventDetailSheet(
 // single conditional concern (recurring frequency, location, notes,
 // reminder, status, etc.); pulling them into helpers would obscure the
 // sheet's linear top-to-bottom field grouping.
-@Suppress("CyclomaticComplexMethod", "LongMethod")
+@Suppress("CyclomaticComplexMethod", "LongMethod", "LongParameterList")
 @Composable
 private fun EventDetailContent(
     detail: EventDetail,
@@ -99,6 +102,7 @@ private fun EventDetailContent(
     notificationPermissionGranted: Boolean,
     onRequestNotificationPermission: () -> Unit,
     onEdit: () -> Unit,
+    onDuplicate: () -> Unit,
     onDelete: (RecurringEditScope) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -239,6 +243,7 @@ private fun EventDetailContent(
             TextButton(onClick = {
                 if (isRecurring) showDeleteScopeDialog = true else showConfirmDelete = true
             }) { Text(stringResource(R.string.action_delete)) }
+            TextButton(onClick = onDuplicate) { Text(stringResource(R.string.action_duplicate)) }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onClose) { Text(stringResource(R.string.action_close)) }
             Button(onClick = onEdit) { Text(stringResource(R.string.action_edit)) }

@@ -29,6 +29,7 @@ import com.arishawke.asala.calendar.closeEventDetail
 import com.arishawke.asala.calendar.confirmPendingReschedule
 import com.arishawke.asala.calendar.deleteEvent
 import com.arishawke.asala.calendar.notifications.OemBatteryAdvisory
+import com.arishawke.asala.calendar.openDuplicateEditor
 import com.arishawke.asala.calendar.openEditEditor
 import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.ui.calendars.CreateCalendarDialog
@@ -116,6 +117,11 @@ internal fun AppOverlays(
                 val iMillis = o.instanceMillis
                 vm.closeEventDetail()
                 vm.openEditEditor(eid, iMillis)
+            },
+            onDuplicate = { eid ->
+                val iMillis = o.instanceMillis
+                vm.closeEventDetail()
+                vm.openDuplicateEditor(eid, iMillis)
             },
             onDelete = { eid, scope ->
                 vm.deleteEvent(

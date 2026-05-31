@@ -205,6 +205,63 @@ data class EventEditFormState(
                 defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
             )
         }
+
+        // Build a NEW-event form seeded from an existing event for the
+        // Duplicate action. Copies the user content plus the opened
+        // instance's schedule; drops identity and recurrence so the copy
+        // saves as a separate one-off via insert (EventDraft's whitelist
+        // guarantees no id / sync / ORIGINAL_* columns leak). A recurring
+        // source seeds from the opened instance rather than the parent
+        // DTSTART, so duplicating "this Tuesday" lands on the right day;
+        // the user re-adds repeat in the editor if they want it.
+        @Suppress("LongParameterList")
+        fun forDuplicate(
+            source: EventDetail,
+            instanceStartMillis: Long?,
+            defaultDurationMinutes: Int,
+            defaultTimedReminderMinutes: Int? = null,
+            defaultAllDayReminderMinutes: Int? = null,
+            colorOverrideArgb: Int? = null,
+            zone: ZoneId = ZoneId.systemDefault(),
+        ): EventEditFormState {
+            val effectiveStart =
+                if (source.rrule != null && instanceStartMillis != null) {
+                    instanceStartMillis
+                } else {
+                    source.startMillis
+                }
+            val effectiveEnd = effectiveStart + (source.endMillis - source.startMillis)
+            // all-day events are stored at UTC midnight; extract in UTC or
+            // the date lands on the prior day in negative-offset zones. The
+            // inverse of EventSave's exclusive-end storage restores the
+            // inclusive last day. Mirrors the existing-event load path.
+            val extractionZone =
+                if (source.allDay) java.time.ZoneOffset.UTC else zone
+            val sLocal =
+                java.time.Instant.ofEpochMilli(effectiveStart).atZone(extractionZone).toLocalDateTime()
+            val eLocal =
+                java.time.Instant.ofEpochMilli(effectiveEnd).atZone(extractionZone).toLocalDateTime()
+            val displayEndDate =
+                if (source.allDay) eLocal.toLocalDate().minusDays(1) else eLocal.toLocalDate()
+            return EventEditFormState(
+                selectedCalendarId = source.calendarId,
+                title = source.title,
+                description = source.description.orEmpty(),
+                location = source.location.orEmpty(),
+                startDate = sLocal.toLocalDate(),
+                startTime = sLocal.toLocalTime(),
+                endDate = displayEndDate,
+                endTime = eLocal.toLocalTime(),
+                allDay = source.allDay,
+                recurrenceFrequency = null,
+                reminderMinutesBefore = source.reminderMinutesBefore,
+                defaultDurationMinutes = defaultDurationMinutes,
+                defaultTimedReminderMinutes = defaultTimedReminderMinutes,
+                defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
+                isNewEvent = true,
+                colorOverrideArgb = colorOverrideArgb,
+            )
+        }
     }
 }
 
@@ -221,6 +278,9 @@ class EventEditViewModel(
     private val remindersRepo: RemindersRepository,
     private val editingEventId: Long? = null,
     private val editingInstanceMillis: Long? = null,
+    // Source event id for the Duplicate action: opens a NEW event seeded
+    // from this event (editingEventId stays null, so save inserts a copy).
+    private val duplicateFromEventId: Long? = null,
     private val storageMode: StorageMode = StorageMode.Unset,
     private val defaultDurationMinutes: Int = 60,
     private val defaultTimedReminderMinutes: Int? = null,
@@ -267,6 +327,12 @@ class EventEditViewModel(
                 )
             val existing = editingEventId?.let { eventRepo.fetchEventDetail(it) }
             loadedDetail = existing
+            val duplicateSource =
+                if (editingEventId == null && duplicateFromEventId != null) {
+                    eventRepo.fetchEventDetail(duplicateFromEventId)
+                } else {
+                    null
+                }
 
             _form.value =
                 if (existing != null) {
@@ -326,6 +392,24 @@ class EventEditViewModel(
                         isNewEvent = false,
                         colorOverrideArgb = initialColorOverrideArgb,
                     )
+                } else if (duplicateSource != null) {
+                    val seeded = EventEditFormState.forDuplicate(
+                        source = duplicateSource,
+                        instanceStartMillis = editingInstanceMillis,
+                        defaultDurationMinutes = defaultDurationMinutes,
+                        defaultTimedReminderMinutes = defaultTimedReminderMinutes,
+                        defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
+                        colorOverrideArgb = initialColorOverrideArgb,
+                    ).copy(calendars = cals)
+                    // Fall back to the first writable calendar if the source's
+                    // calendar is filtered out of the picker (hidden / read-only).
+                    val seedCal =
+                        if (cals.any { it.id == seeded.selectedCalendarId }) {
+                            seeded.selectedCalendarId
+                        } else {
+                            cals.firstOrNull()?.id
+                        }
+                    seeded.copy(selectedCalendarId = seedCal)
                 } else {
                     _form.value.copy(
                         calendars = cals,
@@ -370,6 +454,8 @@ class EventEditViewModel(
         private val appContext: Context,
         private val eventId: Long? = null,
         private val instanceMillis: Long? = null,
+        // Source event id for Duplicate; opens a new event seeded from it.
+        private val duplicateFromEventId: Long? = null,
         // Read at construction time on the main thread from AppViewModel.prefs
         // (already populated by the single startup runBlocking in
         // AppViewModel.Factory) so the picker filter applies on first frame
@@ -403,6 +489,7 @@ class EventEditViewModel(
                 remindersRepo = RemindersRepository(appContext.contentResolver),
                 editingEventId = eventId,
                 editingInstanceMillis = instanceMillis,
+                duplicateFromEventId = duplicateFromEventId,
                 storageMode = storageMode,
                 defaultDurationMinutes = defaultDurationMinutes,
                 defaultTimedReminderMinutes = defaultTimedReminderMinutes,

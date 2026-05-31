@@ -98,6 +98,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_close">Close</string>
     <string name="action_edit">Edit</string>
+    <string name="action_duplicate">Duplicate</string>
 
     <!-- Recurrence summaries -->
     <string name="repeats_daily">Repeats daily</string>

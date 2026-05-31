@@ -412,6 +412,12 @@ class AppViewModel(
     internal val editInstanceMillisBacker = MutableStateFlow<Long?>(null)
     val editInstanceMillis: StateFlow<Long?> = editInstanceMillisBacker.asStateFlow()
 
+    // Source event id when the editor was opened via Duplicate; the editor
+    // seeds a new event from it. Null for plain create / edit. Snapshotted
+    // by EventEditScreen at open.
+    internal val editDuplicateSourceIdBacker = MutableStateFlow<Long?>(null)
+    val editDuplicateSourceId: StateFlow<Long?> = editDuplicateSourceIdBacker.asStateFlow()
+
     // Pre-fill date for the create-event editor. Null when the editor is
     // closed or editing an existing event. Snapshotted from viewedDate at
     // openCreateEditor time so a later view change doesn't retroactively

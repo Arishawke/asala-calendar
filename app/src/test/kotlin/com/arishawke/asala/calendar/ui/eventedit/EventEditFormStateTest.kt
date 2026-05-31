@@ -8,10 +8,14 @@
  */
 package com.arishawke.asala.calendar.ui.eventedit
 
+import com.arishawke.asala.calendar.data.EventDetail
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneOffset
 
 class EventEditFormStateTest {
     private fun timed(): EventEditFormState = EventEditFormState(
@@ -123,5 +127,113 @@ class EventEditFormStateTest {
         val s = timed().withAllDay(true)
         assertEquals(true, s.allDay)
         assertEquals(false, s.convertedFromAllDay)
+    }
+
+    private fun utc(y: Int, mo: Int, d: Int, h: Int, mi: Int): Long =
+        LocalDateTime.of(y, mo, d, h, mi).toInstant(ZoneOffset.UTC).toEpochMilli()
+
+    private fun source(
+        startMillis: Long,
+        endMillis: Long,
+        allDay: Boolean = false,
+        rrule: String? = null,
+    ): EventDetail = EventDetail(
+        eventId = 42L,
+        calendarId = 7L,
+        title = "Standup",
+        description = "notes",
+        location = "Room 1",
+        startMillis = startMillis,
+        endMillis = endMillis,
+        allDay = allDay,
+        eventTimezone = "UTC",
+        rrule = rrule,
+        displayColor = 0xFF112233.toInt(),
+        calendarDisplayName = "Work",
+        reminderMinutesBefore = 10,
+    )
+
+    // A duplicate carries the source's content, lands on its calendar, and
+    // is marked new so the save path inserts rather than updates.
+    @Test
+    fun `forDuplicate copies content and marks the form new`() {
+        val s = EventEditFormState.forDuplicate(
+            source = source(startMillis = utc(2026, 5, 24, 9, 0), endMillis = utc(2026, 5, 24, 10, 0)),
+            instanceStartMillis = null,
+            defaultDurationMinutes = 60,
+            colorOverrideArgb = 0xFFABCDEF.toInt(),
+            zone = ZoneOffset.UTC,
+        )
+        assertEquals("Standup", s.title)
+        assertEquals("notes", s.description)
+        assertEquals("Room 1", s.location)
+        assertEquals(7L, s.selectedCalendarId)
+        assertEquals(10, s.reminderMinutesBefore)
+        assertEquals(0xFFABCDEF.toInt(), s.colorOverrideArgb)
+        assertEquals(true, s.isNewEvent)
+        assertEquals(false, s.allDay)
+        assertEquals(LocalDate.of(2026, 5, 24), s.startDate)
+        assertEquals(LocalTime.of(9, 0), s.startTime)
+        assertEquals(LocalTime.of(10, 0), s.endTime)
+    }
+
+    // v1 decision: a duplicate is a single one-off. The recurrence rule is
+    // dropped so the copy never silently spawns a second infinite series;
+    // the user re-enables repeat in the editor if they want it.
+    @Test
+    fun `forDuplicate drops recurrence to a one-off`() {
+        val s = EventEditFormState.forDuplicate(
+            source = source(
+                startMillis = utc(2026, 5, 24, 9, 0),
+                endMillis = utc(2026, 5, 24, 10, 0),
+                rrule = "FREQ=WEEKLY",
+            ),
+            instanceStartMillis = null,
+            defaultDurationMinutes = 60,
+            zone = ZoneOffset.UTC,
+        )
+        assertNull(s.recurrenceFrequency)
+    }
+
+    // Duplicating a single occurrence of a recurring series seeds the
+    // opened instance's date (preserving duration), not the parent DTSTART,
+    // so "duplicate this Tuesday" lands on that Tuesday.
+    @Test
+    fun `forDuplicate of a recurring instance seeds the opened occurrence`() {
+        val s = EventEditFormState.forDuplicate(
+            source = source(
+                startMillis = utc(2026, 5, 24, 9, 0),
+                endMillis = utc(2026, 5, 24, 10, 0),
+                rrule = "FREQ=WEEKLY",
+            ),
+            instanceStartMillis = utc(2026, 6, 7, 9, 0),
+            defaultDurationMinutes = 60,
+            zone = ZoneOffset.UTC,
+        )
+        assertEquals(LocalDate.of(2026, 6, 7), s.startDate)
+        assertEquals(LocalTime.of(9, 0), s.startTime)
+        assertEquals(LocalDate.of(2026, 6, 7), s.endDate)
+        assertEquals(LocalTime.of(10, 0), s.endTime)
+        assertNull(s.recurrenceFrequency)
+    }
+
+    // All-day events are stored at UTC midnight with an exclusive end; the
+    // form must restore the inclusive last day, extracting in UTC so the
+    // date does not slip in negative-offset zones.
+    @Test
+    fun `forDuplicate of an all-day event restores inclusive UTC dates`() {
+        val s = EventEditFormState.forDuplicate(
+            source = source(
+                startMillis = utc(2026, 5, 24, 0, 0),
+                endMillis = utc(2026, 5, 26, 0, 0),
+                allDay = true,
+            ),
+            instanceStartMillis = null,
+            defaultDurationMinutes = 60,
+            zone = ZoneOffset.UTC,
+        )
+        assertEquals(true, s.allDay)
+        assertEquals(LocalDate.of(2026, 5, 24), s.startDate)
+        assertEquals(LocalDate.of(2026, 5, 25), s.endDate)
     }
 }

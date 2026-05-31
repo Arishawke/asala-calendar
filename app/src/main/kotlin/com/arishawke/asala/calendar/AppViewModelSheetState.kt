@@ -6,6 +6,9 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
+
+@file:Suppress("TooManyFunctions")
+
 package com.arishawke.asala.calendar
 
 import androidx.lifecycle.viewModelScope
@@ -44,19 +47,32 @@ fun AppViewModel.openCreateEditor() {
     // today. Cleared by openEditEditor / closeEditor.
     editInitialStartDateBacker.update { viewedDate.value }
     editInstanceMillisBacker.update { null }
+    editDuplicateSourceIdBacker.update { null }
     editEventIdBacker.update { -1L }
 }
 
 fun AppViewModel.openEditEditor(eventId: Long, instanceMillis: Long? = null) {
     editInitialStartDateBacker.update { null }
     editInstanceMillisBacker.update { instanceMillis }
+    editDuplicateSourceIdBacker.update { null }
     editEventIdBacker.update { eventId }
+}
+
+// Open the editor in create mode (-1L) seeded from an existing event for
+// the Duplicate action. instanceMillis is the opened occurrence so a
+// recurring duplicate lands on that date.
+fun AppViewModel.openDuplicateEditor(eventId: Long, instanceMillis: Long? = null) {
+    editInitialStartDateBacker.update { null }
+    editInstanceMillisBacker.update { instanceMillis }
+    editDuplicateSourceIdBacker.update { eventId }
+    editEventIdBacker.update { -1L }
 }
 
 fun AppViewModel.closeEditor() {
     editEventIdBacker.update { null }
     editInstanceMillisBacker.update { null }
     editInitialStartDateBacker.update { null }
+    editDuplicateSourceIdBacker.update { null }
 }
 
 fun AppViewModel.deleteEvent(
