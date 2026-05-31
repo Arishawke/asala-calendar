@@ -45,20 +45,20 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 ### What sets it apart
 
-- **Private and offline.** No telemetry, no trackers, no account to create. Your events never leave the device unless you set up a sync account yourself. Open source, so you can verify that.
-- **Continuous or paged month.** Read months as one endless vertical scroll, or swipe a page at a time. Your choice, in Settings.
+- **Private and offline.** No telemetry, no trackers, no account to create. Your events never leave the device unless you set up a sync account yourself.
+- **Continuous or paged month.** Read months as one endless vertical scroll, or swipe a page at a time. 
 - **Search everything.** Find any event by title, location, or notes, across every calendar and any date, past or future.
 - **All your calendars in one app.** Work, personal, local, and CalDAV (through the DAVx5 companion app), each event colored by the calendar it came from.
-- **Five views.** Month, Week, 3-Day, Day, and Schedule, with a now-line and a today highlight that rolls over at midnight on its own.
+- **Six views.** Year, Month, Week, 3-Day, Day, and Schedule.
 - **Drag to reschedule.** Pick up an event in Day or Week and drop it on a new time.
 
 ### Everything you'd expect
 
-- Create, edit, duplicate, and delete events, including all-day and repeating ones. Change a repeating event and you choose whether it touches just this one, this and everything after, or the whole series.
+- Create, edit, duplicate, and delete events, including all-day and repeating ones. 
 - Reminders before events start, with snooze and separate defaults for timed and all-day events.
-- Per-event colors from a preset palette or a custom hex, without recoloring the rest of the calendar.
+- Per-event colors from a preset palette or a custom hex.
 - Material 3 throughout, with dynamic color on Android 12+ and Light, Dark, and AMOLED themes.
-- A focus mode that dims non-working hours and days so meetings stand out.
+- A focus mode that dims non-working hours and days.
 - Follows your phone: the 24-hour setting, your device language for dates and month names, and optional ISO week numbers.
 - A tidy drawer to toggle calendars, hide whole accounts, recolor anything, and rename or delete local calendars.
 

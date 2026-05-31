@@ -1,9 +1,7 @@
 # Asala Calendar Roadmap
 
 A forward-looking list of what I plan to add, in Now / Next / Later
-order. Not a commitment, and not a history. Shipped work lives in
-[CHANGELOG.md](../CHANGELOG.md); this file is only what is still ahead.
-Detail decreases with distance: Now is specified, Later is a line.
+order. 
 
 ## Now
 
@@ -13,29 +11,11 @@ Nothing in active development right now. See Next.
 
 Planned and near-term. Rough priority order within each group.
 
-**Week view**
-
-- **Edge auto-scroll while dragging.** Cross-day drag lands on visible
-  columns only; dragging past the edge should scroll the week.
-- **Pinch-to-zoom** (deferred since M2).
-
 **Editor**
 
 - **Natural-language event creation** (`"lunch tomorrow at noon"`).
   Local rule-based parser first; an on-device model only if the local
   parser misses too much.
-
-**Settings**
-
-- **Settings page reorganization + a visual taste pass.** Grouping,
-  dividers, and a taste pass on the grown-out sections. Reach for the
-  design-taste-frontend / ui-ux-pro-max skills when scoping.
-
-**Color**
-
-- **Per-event color category names** ("Focus", "Travel", "Family").
-  Builds on the existing color-override system: a name field plus a
-  filter UI keyed off `eventColor_key`.
 
 **Sync and tasks**
 
@@ -61,20 +41,6 @@ Planned and near-term. Rough priority order within each group.
 - Year-view widget (12 mini-month grids).
 - Midnight auto-update via `AlarmManager` / `WorkManager`.
 
-**Engineering hygiene (owed)**
-
-- File splits over the ~200-line convention (about 8 candidates).
-- Plurals resources to replace hardcoded English "1 day" / "2 days".
-- RTL / bidi text wrapping for languages like Arabic and Hebrew.
-- Compose `stability_config.conf` population.
-- ContentObserver self-change dedupe in the application observer, which
-  currently reruns the reminder reschedule on its own self-writes.
-- Replace the `session = System.nanoTime()` viewModel-keying workaround
-  with `rememberViewModelStoreOwner()` or `androidx.navigation`
-  back-stack entries.
-- Push parent-event fields into `AppViewModel` instead of round-tripping
-  through the `loadedDetail` callback in `MainActivity`.
-
 ## Later
 
 Ideas and opportunities. May not happen. Kept for reference.
@@ -83,8 +49,6 @@ Ideas and opportunities. May not happen. Kept for reference.
   `EventChips.kt` assumes a fixed per-chip height to decide the +N
   overflow row; variable heights break it. Needs a capacity-heuristics
   design pass.
-- **Drag-to-resize event duration** via a bottom-edge handle. Builds on
-  the existing `RescheduleDragState`.
 - **iCal `URL` property support.** Meeting links land in the URL field,
   not notes; `CalendarContract` has no first-class URL column, so
   storage routes through `ExtendedProperties` for CalDAV adapters.
@@ -98,20 +62,10 @@ Ideas and opportunities. May not happen. Kept for reference.
   translucent cross-hatch fill; a not-yet-accepted (invited) event
   shows outline-only with no background fill; an accepted event renders
   normally.
-- **Full year view.** A scrollable 12-month overview of mini-month
-  grids; tap a month to jump in.
 - **Quarter view (3 stacked months).** May merge with the continuous
   month surface rather than being a separate view.
 - **ICS export / import of all events.** Offline backup without a sync
   server. Large effort (full ical4j parse / serialize).
-- **Month / Schedule split view.** A combined surface, e.g. a mini-month
-  atop the Schedule list, or other hybrid month-plus-list layouts.
-- **Dynamic launcher icon showing today's day-of-month number.** Day-1
-  through day-31 brand SVGs already exist in `logos/` (gitignored).
-  Full feature: 31 activity-aliases, generated foregrounds, a
-  `WorkManager` midnight job flipping the enabled alias, boot and
-  timezone receivers, and a settings toggle. ADR-0003 has the notes.
-- Honor system font scale up to 200% (audit hardcoded sp / dp values).
 - **In-app font-size control.** A text-size preference inside Asala,
   independent of the OS font-scale support above.
 - **Multiple timezones per event** (second timezone in editor and
