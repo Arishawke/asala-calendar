@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-05-30
+
 ### Added
 - Custom event and calendar colors: tap "+" in any color picker to choose a
   free color with an HSV wheel or a hex code. Custom colors are stored on this
@@ -1479,5 +1481,6 @@ notification firing from this app lands in M4.
 - Live updates from the Calendar Provider via ContentObserver.
 - Branding as Asala Calendar; GPL v3 license; README.
 
-[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/Arishawke/asala-calendar/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/Arishawke/asala-calendar/releases/tag/v0.16.0
