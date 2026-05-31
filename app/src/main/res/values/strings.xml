@@ -324,4 +324,6 @@
     <string name="settings_about_source_url" translatable="false">https://github.com/Arishawke/asala-calendar</string>
     <string name="settings_about_licenses">Open source licenses</string>
     <string name="settings_about_licenses_url" translatable="false">https://github.com/Arishawke/asala-calendar/blob/main/NOTICE</string>
+    <string name="settings_about_support">Support Asala</string>
+    <string name="settings_about_support_url" translatable="false">https://ko-fi.com/arishawke</string>
 </resources>

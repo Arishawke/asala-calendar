@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- A "Support Asala" link in Settings, under About, that opens the project's
+  Ko-fi page.
+
 ### Fixed
 - "Sync only" calendar source now also hides on-device (local) calendar
   events from the timeline, not just from the drawer and event editor.

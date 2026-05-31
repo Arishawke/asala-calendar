@@ -325,6 +325,17 @@ fun SettingsScreen(
                     },
                 )
             }
+            item("about-support") {
+                val context = LocalContext.current
+                val supportUrl = stringResource(R.string.settings_about_support_url)
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_about_support)) },
+                    supportingContent = { Text(supportUrl) },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, supportUrl.toUri()))
+                    },
+                )
+            }
         }
     }
 }
