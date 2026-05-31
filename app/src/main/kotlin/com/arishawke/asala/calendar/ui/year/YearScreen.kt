@@ -19,6 +19,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
@@ -116,6 +117,8 @@ fun YearScreen(
         state = calendarState,
         modifier = modifier.fillMaxSize(),
         monthColumns = YearMonthColumns,
+        monthHorizontalSpacing = 12.dp,
+        monthVerticalSpacing = 16.dp,
         dayContent = { day ->
             YearDayCell(
                 day = day,
