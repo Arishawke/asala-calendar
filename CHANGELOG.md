@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-05-31
+
 ### Added
 - Year view: a scrollable overview of the whole year as a 3-column grid of
   mini-months, with today highlighted and dots on days that have events. Tap a
