@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+- Editing "this and following" on an event that repeats a set number of times
+  no longer adds extra occurrences. The remaining repeats are now split between
+  the original run and the edited one so the total count stays the same, instead
+  of the edited part starting a fresh full count.
+
 ## [0.18.0] - 2026-05-31
 
 ### Added

@@ -58,4 +58,55 @@ class RecurringExceptionMathTest {
             RecurrenceExceptionMath.appendUntil("FREQ=WEEKLY;COUNT=10", "UNTIL=20260301T085959Z"),
         )
     }
+
+    // "this and following" split: the future series must carry only the
+    // occurrences the truncated parent did NOT keep, else COUNT regenerates the
+    // full series from the new anchor and the total over-generates
+    // ((kept) + (full COUNT) > original). Standard AOSP/Etar + Apple CalDAV
+    // behaviour: split COUNT = original - kept.
+    @Test fun reduceSplitCount_subtracts_kept_instances_from_count() {
+        assertEquals(
+            "FREQ=WEEKLY;COUNT=7",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=WEEKLY;COUNT=10", keptInstances = 3),
+        )
+    }
+
+    // only the COUNT token changes; FREQ/INTERVAL/BYDAY and their order survive.
+    @Test fun reduceSplitCount_preserves_other_tokens_and_order() {
+        assertEquals(
+            "FREQ=WEEKLY;INTERVAL=2;COUNT=6;BYDAY=MO,WE",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=WEEKLY;INTERVAL=2;COUNT=10;BYDAY=MO,WE", keptInstances = 4),
+        )
+    }
+
+    // UNTIL-bounded and open-ended parents do not over-generate via COUNT, so
+    // their split rule is left untouched.
+    @Test fun reduceSplitCount_leaves_until_or_open_ended_rules_unchanged() {
+        assertEquals(
+            "FREQ=DAILY;UNTIL=20260301T235959Z",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=DAILY;UNTIL=20260301T235959Z", keptInstances = 5),
+        )
+        assertEquals(
+            "FREQ=DAILY",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=DAILY", keptInstances = 5),
+        )
+    }
+
+    // splitting at the first instance keeps nothing, so the split keeps the
+    // full original count.
+    @Test fun reduceSplitCount_with_zero_kept_keeps_full_count() {
+        assertEquals(
+            "FREQ=DAILY;COUNT=10",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=DAILY;COUNT=10", keptInstances = 0),
+        )
+    }
+
+    // a split must contain at least its own (edited) instance; never emit
+    // COUNT=0 or a negative count even if kept somehow exceeds the original.
+    @Test fun reduceSplitCount_never_drops_below_one() {
+        assertEquals(
+            "FREQ=DAILY;COUNT=1",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=DAILY;COUNT=3", keptInstances = 5),
+        )
+    }
 }

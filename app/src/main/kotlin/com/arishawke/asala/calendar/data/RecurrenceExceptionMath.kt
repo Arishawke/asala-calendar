@@ -45,6 +45,21 @@ object RecurrenceExceptionMath {
         return (parts + untilSegment).joinToString(";")
     }
 
+    // "this and following" split: the future series carries only the
+    // occurrences the truncated parent did not keep, so the total COUNT is
+    // preserved (RFC 5545: COUNT bounds the rule from its own DTSTART, and the
+    // split's DTSTART is the new anchor). UNTIL-bounded / open-ended rules have
+    // no COUNT to over-generate and pass through unchanged. keptInstances is the
+    // number of occurrences before the split point; never emit COUNT < 1.
+    fun reduceSplitCount(rrule: String, keptInstances: Int): String = rrule.split(";").joinToString(";") { part ->
+        if (!part.startsWith("COUNT=")) {
+            part
+        } else {
+            val original = part.removePrefix("COUNT=").toIntOrNull() ?: return@joinToString part
+            "COUNT=${(original - keptInstances).coerceAtLeast(1)}"
+        }
+    }
+
     private val UTC_ICAL_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'", Locale.ROOT)
     private val UTC_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT)
 }
