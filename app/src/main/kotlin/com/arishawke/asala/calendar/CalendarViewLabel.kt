@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 @Composable
 fun CalendarView.label(): String = stringResource(
     when (this) {
+        CalendarView.Year -> R.string.view_year
         CalendarView.Month -> R.string.view_month
         CalendarView.Week -> R.string.view_week
         CalendarView.ThreeDay -> R.string.view_three_day

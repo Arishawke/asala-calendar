@@ -27,6 +27,7 @@ import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.rescheduleEvent
 import com.arishawke.asala.calendar.ui.day.DayScreen
 import com.arishawke.asala.calendar.ui.month.MonthScreen
+import com.arishawke.asala.calendar.ui.year.YearScreen
 import com.arishawke.asala.calendar.ui.schedule.ScheduleScreen
 import com.arishawke.asala.calendar.ui.settings.UserPrefs
 import com.arishawke.asala.calendar.ui.settings.toWorkingDaysMask
@@ -65,6 +66,19 @@ internal fun CalendarViewSwitcher(
         label = "view-switch",
     ) { view ->
         when (view) {
+            CalendarView.Year -> YearScreen(
+                hiddenCalendarIdsFlow = vm.hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = vm.calendarColorOverridesFlow,
+                eventColorOverridesFlow = vm.eventColorOverridesFlow,
+                onTitleChange = onTitleChange,
+                todayJumpCounter = vm.todayJumpCounter,
+                pendingDateJump = vm.pendingDateJump,
+                onConsumePendingDateJump = vm::consumePendingDateJump,
+                firstDayOfWeekOverride = prefs.weekStartsOn,
+                onDayClick = { date -> vm.requestJumpTo(date, CalendarView.Day) },
+                onMonthClick = { ym -> vm.requestJumpTo(ym.atDay(1), CalendarView.Month) },
+                onViewedDateChange = vm::setViewedDate,
+            )
             CalendarView.Month -> MonthScreen(
                 hiddenCalendarIdsFlow = vm.hiddenCalendarIdsFlow,
                 calendarColorOverridesFlow = vm.calendarColorOverridesFlow,

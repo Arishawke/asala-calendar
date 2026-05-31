@@ -44,7 +44,7 @@ import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.time.LocalDate
 
-enum class CalendarView { Month, Week, ThreeDay, Day, Schedule, Tasks }
+enum class CalendarView { Year, Month, Week, ThreeDay, Day, Schedule, Tasks }
 
 // Tasks is gated by the tasksEnabled preference. Filter call sites use this
 // to suppress the entry when the toggle is off.

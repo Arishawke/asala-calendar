@@ -23,6 +23,7 @@
     <string name="search_empty_results">No matching events</string>
 
     <!-- Views -->
+    <string name="view_year">Year</string>
     <string name="view_month">Month</string>
     <string name="view_week">Week</string>
     <string name="view_three_day">3-Day</string>
