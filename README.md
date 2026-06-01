@@ -64,11 +64,11 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 ## Install
 
-Asala ships only through GitHub Releases. 
+Asala ships through GitHub Releases, with a Google Play release in preparation.
 
 - **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
 - **Auto-update via Obtainium.** Point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository and it notifies you when a new version ships.
-- **No in-app updater.** Asala never checks for or downloads updates itself, which is what keeps it free of any internet or install permission.
+- **No in-app updater.** Asala never checks for or downloads updates itself. Updates arrive through your install source (GitHub via Obtainium, or Google Play once published), which is what keeps the app free of any internet or install permission.
 
 ## Build from source
 
