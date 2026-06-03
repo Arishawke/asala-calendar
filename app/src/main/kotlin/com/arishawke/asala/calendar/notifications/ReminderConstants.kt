@@ -25,4 +25,9 @@ internal object ReminderConstants {
     const val ACTION_FIRE = "com.arishawke.asala.calendar.action.FIRE"
 
     const val EXTRA_OPEN_EVENT_FROM_NOTIF = "notif_open_event"
+
+    // widget date deep-link: open the app at a date in a given CalendarView
+    const val EXTRA_OPEN_DATE_FROM_WIDGET = "widget_open_date"
+    const val EXTRA_OPEN_EPOCHDAY = "asala_open_epochday"
+    const val EXTRA_OPEN_VIEW = "asala_open_view"
 }
