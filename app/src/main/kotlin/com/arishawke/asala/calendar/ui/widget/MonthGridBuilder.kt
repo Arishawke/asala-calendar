@@ -23,6 +23,13 @@ object MonthGridBuilder {
     fun gridStart(month: YearMonth, weekStart: DayOfWeek): LocalDate =
         month.atDay(1).minusDays(leadOffset(month, weekStart).toLong())
 
+    // total cells in the grid (4-6 weeks), week-start aware. the loader sizes its
+    // event-load window to exactly this, so it never over- or under-fetches.
+    fun gridDays(month: YearMonth, weekStart: DayOfWeek): Int {
+        val rows = (leadOffset(month, weekStart) + month.lengthOfMonth() + COLUMNS - 1) / COLUMNS // ceil weeks
+        return rows * COLUMNS
+    }
+
     // full ordered list per date, all-day before timed then by start time. no cap here;
     // build() applies the MAX_CHIPS cap and computes moreCount.
     fun eventsByDate(events: List<MonthEvent>): Map<LocalDate, List<MonthCellEvent>> =
@@ -37,10 +44,8 @@ object MonthGridBuilder {
         today: LocalDate,
         eventsByDate: Map<LocalDate, List<MonthCellEvent>>,
     ): MonthGridData {
-        val lead = leadOffset(month, weekStart)
-        val rows = (lead + month.lengthOfMonth() + COLUMNS - 1) / COLUMNS  // ceil weeks
         val start = gridStart(month, weekStart)
-        val cells = (0 until rows * COLUMNS).map { i ->
+        val cells = (0 until gridDays(month, weekStart)).map { i ->
             val date = start.plusDays(i.toLong())
             val day = eventsByDate[date].orEmpty()
             // reserve a slot for the "+N" row when overflow exists

@@ -39,6 +39,14 @@ class MonthGridBuilderTest {
     }
 
     @Test
+    fun `grid days matches the rendered week count`() {
+        // same months as the grid-span test: load window must equal what build renders
+        assertEquals(5 * 7, MonthGridBuilder.gridDays(june, DayOfWeek.MONDAY))
+        assertEquals(4 * 7, MonthGridBuilder.gridDays(YearMonth.of(2026, 2), DayOfWeek.SUNDAY))
+        assertEquals(6 * 7, MonthGridBuilder.gridDays(YearMonth.of(2026, 5), DayOfWeek.SUNDAY))
+    }
+
+    @Test
     fun `in-month flag and today are marked`() {
         val grid = MonthGridBuilder.build(june, DayOfWeek.MONDAY, today, emptyMap())
         val cells = grid.weeks.flatten()

@@ -35,9 +35,9 @@ object MonthWidgetData {
         val visible = WidgetEventSource.visible(context)
         val weekStart = visible.prefs.weekStartsOn ?: WeekFields.of(Locale.getDefault()).firstDayOfWeek
 
-        // load the whole visible 6-week window so adjacent-month dots are correct.
+        // load exactly the visible grid (4-6 weeks) so adjacent-month chips are correct.
         val start = MonthGridBuilder.gridStart(month, weekStart)
-        val endExclusive = start.plusDays(42)
+        val endExclusive = start.plusDays(MonthGridBuilder.gridDays(month, weekStart).toLong())
         val noTitle = context.getString(R.string.event_no_title)
         val events = WidgetEventSource.events(context, visible, start, endExclusive, zone)
             .map { e ->
