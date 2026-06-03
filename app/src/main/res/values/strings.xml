@@ -333,4 +333,9 @@
     <!-- Home-screen widget -->
     <string name="widget_label">Agenda</string>
     <string name="widget_description">Upcoming events, grouped by day.</string>
+    <string name="widget_today">Today</string>
+    <string name="widget_tomorrow">Tomorrow</string>
+    <string name="widget_empty">Nothing coming up</string>
+    <string name="widget_no_calendars">No calendars shown</string>
+    <string name="widget_grant_access">Tap to grant calendar access</string>
 </resources>
