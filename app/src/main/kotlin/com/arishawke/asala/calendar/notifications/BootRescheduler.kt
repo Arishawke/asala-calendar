@@ -14,6 +14,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import com.arishawke.asala.calendar.ui.widget.WidgetRefreshScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,6 +45,9 @@ class BootRescheduler : BroadcastReceiver() {
                         runCatching {
                             ReminderScheduler.rescheduleAll(context.applicationContext)
                         }.onFailure { Timber.e(it, "boot rescheduler threw") }
+                        runCatching {
+                            WidgetRefreshScheduler.rearmIfPresent(context.applicationContext)
+                        }.onFailure { Timber.e(it, "boot widget re-arm threw") }
                     } finally {
                         pending.finish()
                     }

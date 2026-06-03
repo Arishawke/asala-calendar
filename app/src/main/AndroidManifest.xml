@@ -66,6 +66,15 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/agenda_widget_info" />
         </receiver>
+
+        <service
+            android:name=".ui.widget.WidgetRefreshJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <receiver
+            android:name=".ui.widget.MidnightWidgetRefreshReceiver"
+            android:exported="false" />
     </application>
 
     <queries>
