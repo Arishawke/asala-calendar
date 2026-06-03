@@ -329,4 +329,8 @@
     <string name="settings_about_licenses_url" translatable="false">https://github.com/Arishawke/asala-calendar/blob/main/NOTICE</string>
     <string name="settings_about_support">Support Asala</string>
     <string name="settings_about_support_url" translatable="false">https://ko-fi.com/arishawke</string>
+
+    <!-- Home-screen widget -->
+    <string name="widget_label">Agenda</string>
+    <string name="widget_description">Upcoming events, grouped by day.</string>
 </resources>
