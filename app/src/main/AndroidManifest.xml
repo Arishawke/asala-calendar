@@ -67,6 +67,18 @@
                 android:resource="@xml/agenda_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".ui.widget.MonthWidgetReceiver"
+            android:label="@string/month_widget_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/month_widget_info" />
+        </receiver>
+
         <service
             android:name=".ui.widget.WidgetRefreshJobService"
             android:exported="false"
