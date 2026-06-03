@@ -334,7 +334,7 @@
     <string name="widget_label">Agenda</string>
     <string name="widget_description">Upcoming events, grouped by day.</string>
     <string name="month_widget_label">Month</string>
-    <string name="month_widget_description">A month grid with event dots; tap a day to open it.</string>
+    <string name="month_widget_description">A month grid showing your events; tap a day to open it.</string>
     <string name="widget_today">Today</string>
     <string name="widget_tomorrow">Tomorrow</string>
     <string name="widget_empty">Nothing coming up</string>
