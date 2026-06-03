@@ -13,6 +13,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   light or dark theme, showing only the calendars you have visible. Tap an
   event to open it, or the header to open the app. It refreshes when your
   calendar changes and rolls over at midnight.
+- Home-screen month widget: the current month as a grid, with up to three
+  calendar-colored dots on days that have events and today circled. Tap a day
+  to open it in the Schedule view, or the month header to open Month view. It
+  follows your theme, week-start, and visible calendars, and refreshes with
+  your calendar and at midnight.
 
 ### Fixed
 - Editing "this and following" on an event that repeats a set number of times
