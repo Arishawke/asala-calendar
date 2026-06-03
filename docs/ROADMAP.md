@@ -34,12 +34,11 @@ Planned and near-term. Rough priority order within each group.
     reimplementing? CalDAV `VTODO` natively? Or a local-first store
     first and sync later?
 
-**Widgets** (category not started)
+**Widgets**
 
-- Small widget (day-of-month + next event).
-- Resizable widget at 2x1 / 2x2 / 4x1 / 4x2.
+- Multiple agenda-widget sizes with distinct compact / large layouts (the
+  first agenda widget ships one tuned size that scrolls).
 - Year-view widget (12 mini-month grids).
-- Midnight auto-update via `AlarmManager` / `WorkManager`.
 
 ## Later
 

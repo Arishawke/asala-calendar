@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- Home-screen agenda widget: a resizable, scrollable list of your upcoming
+  events grouped by day (Today, Tomorrow, then by weekday), in your chosen
+  light or dark theme, showing only the calendars you have visible. Tap an
+  event to open it, or the header to open the app. It refreshes when your
+  calendar changes and rolls over at midnight.
+
 ### Fixed
 - Editing "this and following" on an event that repeats a set number of times
   no longer adds extra occurrences. The remaining repeats are now split between
