@@ -30,6 +30,22 @@ object MonthGridBuilder {
         return rows * COLUMNS
     }
 
+    // grid-clamped covered day range for an event, or null if it does not
+    // intersect the grid. all-day end is exclusive (matches EventItem.isVisibleIn);
+    // a malformed end<=start collapses to the start day.
+    fun coveredRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        allDay: Boolean,
+        gridStart: LocalDate,
+        gridLast: LocalDate,
+    ): Pair<LocalDate, LocalDate>? {
+        val lastVisible = maxOf(if (allDay) endDate.minusDays(1) else endDate, startDate)
+        val firstCovered = maxOf(startDate, gridStart)
+        val lastCovered = minOf(lastVisible, gridLast)
+        return if (firstCovered > lastCovered) null else firstCovered to lastCovered
+    }
+
     // full ordered list per date, all-day before timed then by start time. no cap here;
     // build() applies the MAX_CHIPS cap and computes moreCount.
     fun eventsByDate(events: List<MonthEvent>): Map<LocalDate, List<MonthCellEvent>> =
