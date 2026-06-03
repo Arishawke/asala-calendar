@@ -20,19 +20,24 @@ import androidx.lifecycle.lifecycleScope
 import com.arishawke.asala.calendar.notifications.ReminderConstants
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import com.arishawke.asala.calendar.ui.App
+import com.arishawke.asala.calendar.ui.widget.WidgetDeepLink
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private var pendingNotificationOpen: Pair<Long, Long>? = null
+    private var pendingDateOpen: Pair<LocalDate, CalendarView>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // restore pending deep-link before consuming the intent so a config
         // change or process death between tap and consumption doesn't drop it
         savedInstanceState?.let { restorePendingNotificationOpen(it) }
+        savedInstanceState?.let { restorePendingDateOpen(it) }
         enableEdgeToEdge()
         handleNotificationDeepLink(intent)
+        handleDateDeepLink(intent)
         setContent { App() }
     }
 
@@ -40,6 +45,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleNotificationDeepLink(intent)
+        handleDateDeepLink(intent)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -47,6 +53,10 @@ class MainActivity : ComponentActivity() {
         pendingNotificationOpen?.let { (eventId, instanceMillis) ->
             outState.putLong(StatePendingEventId, eventId)
             outState.putLong(StatePendingInstanceMillis, instanceMillis)
+        }
+        pendingDateOpen?.let { (date, view) ->
+            outState.putLong(StatePendingEpochDay, date.toEpochDay())
+            outState.putString(StatePendingView, view.name)
         }
     }
 
@@ -89,8 +99,34 @@ class MainActivity : ComponentActivity() {
         return cur
     }
 
+    private fun handleDateDeepLink(intent: Intent?) {
+        if (intent == null) return
+        pendingDateOpen = WidgetDeepLink.decode(
+            present = intent.getBooleanExtra(ReminderConstants.EXTRA_OPEN_DATE_FROM_WIDGET, false),
+            epochDay = intent.getLongExtra(ReminderConstants.EXTRA_OPEN_EPOCHDAY, Long.MIN_VALUE),
+            viewName = intent.getStringExtra(ReminderConstants.EXTRA_OPEN_VIEW),
+        ) ?: return
+        intent.removeExtra(ReminderConstants.EXTRA_OPEN_DATE_FROM_WIDGET)
+    }
+
+    fun consumePendingDateOpen(): Pair<LocalDate, CalendarView>? {
+        val cur = pendingDateOpen
+        pendingDateOpen = null
+        return cur
+    }
+
+    private fun restorePendingDateOpen(savedInstanceState: Bundle) {
+        pendingDateOpen = WidgetDeepLink.decode(
+            present = true,
+            epochDay = savedInstanceState.getLong(StatePendingEpochDay, Long.MIN_VALUE),
+            viewName = savedInstanceState.getString(StatePendingView),
+        )
+    }
+
     private companion object {
         const val StatePendingEventId = "pending_notification_event_id"
         const val StatePendingInstanceMillis = "pending_notification_instance_millis"
+        const val StatePendingEpochDay = "pending_widget_epochday"
+        const val StatePendingView = "pending_widget_view"
     }
 }

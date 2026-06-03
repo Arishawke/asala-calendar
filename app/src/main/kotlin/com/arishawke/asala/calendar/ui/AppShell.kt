@@ -126,6 +126,9 @@ internal fun AppShell(vm: AppViewModel) {
                 activity?.consumePendingNotificationOpen()?.let { (eventId, instanceMillis) ->
                     vm.openEventDetail(eventId, instanceMillis)
                 }
+                activity?.consumePendingDateOpen()?.let { (date, view) ->
+                    vm.requestJumpTo(date, view)
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
