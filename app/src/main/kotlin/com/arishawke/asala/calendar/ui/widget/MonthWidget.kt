@@ -165,7 +165,7 @@ private fun DayCell(
         }
         cell.events.forEach { chip ->
             Text(
-                text = chip.title,
+                text = if (chip.isLabel) chip.title else " ",
                 maxLines = 1,
                 style = TextStyle(color = colors.onBackground, fontSize = 10.sp),
                 modifier = GlanceModifier
