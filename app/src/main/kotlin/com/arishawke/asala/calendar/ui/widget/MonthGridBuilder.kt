@@ -46,13 +46,52 @@ object MonthGridBuilder {
         return if (firstCovered > lastCovered) null else firstCovered to lastCovered
     }
 
-    // full ordered list per date, all-day before timed then by start time. no cap here;
-    // build() applies the MAX_CHIPS cap and computes moreCount.
-    fun eventsByDate(events: List<MonthEvent>): Map<LocalDate, List<MonthCellEvent>> =
-        events.groupBy { it.date }.mapValues { (_, list) ->
-            list.sortedWith(compareBy({ !it.allDay }, { it.startMillis }))
-                .map { MonthCellEvent(it.title, it.colorArgb) }
-        }
+    // expand each event across the days it covers, tagging label vs strip, then
+    // order each day's slice bands-first (multi-day before single-day) so the
+    // build() cap keeps bands visible. no cap here; build() applies MAX_CHIPS.
+    fun eventsByDate(
+        events: List<MonthEvent>,
+        weekStart: DayOfWeek,
+    ): Map<LocalDate, List<MonthCellEvent>> =
+        events.flatMap { it.expand(weekStart) }
+            .groupBy { it.date }
+            .mapValues { (_, dayEntries) ->
+                val (bands, single) = dayEntries.partition { it.multiDay }
+                (
+                    bands.sortedWith(compareBy({ it.firstCovered }, { it.startMillis })) +
+                        single.sortedWith(compareBy({ !it.allDay }, { it.startMillis }))
+                    ).map { MonthCellEvent(it.title, it.colorArgb, it.isLabel) }
+            }
+
+    // one event's slice on one covered day, carrying the keys eventsByDate orders by.
+    private data class DayEntry(
+        val date: LocalDate,
+        val multiDay: Boolean,
+        val firstCovered: LocalDate,
+        val allDay: Boolean,
+        val startMillis: Long,
+        val title: String,
+        val colorArgb: Int,
+        val isLabel: Boolean,
+    )
+
+    private fun MonthEvent.expand(weekStart: DayOfWeek): List<DayEntry> {
+        val multiDay = lastCovered > firstCovered
+        return generateSequence(firstCovered) { d -> if (d < lastCovered) d.plusDays(1) else null }
+            .map { d ->
+                DayEntry(
+                    date = d,
+                    multiDay = multiDay,
+                    firstCovered = firstCovered,
+                    allDay = allDay,
+                    startMillis = startMillis,
+                    title = title,
+                    colorArgb = colorArgb,
+                    isLabel = d == firstCovered || d.dayOfWeek == weekStart,
+                )
+            }
+            .toList()
+    }
 
     fun build(
         month: YearMonth,

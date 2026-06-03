@@ -14,18 +14,20 @@ import java.time.YearMonth
 
 enum class MonthWidgetState { Ready, NoPermission }
 
-// one event reduced to what a day chip needs. allDay sorts before timed so chip
-// order matches the agenda's within-day order.
+// one event reduced to what the grid needs: its grid-clamped covered range plus
+// sort keys. allDay sorts before timed within a single day's chips.
 data class MonthEvent(
-    val date: LocalDate,
+    val firstCovered: LocalDate,
+    val lastCovered: LocalDate,
     val startMillis: Long,
     val allDay: Boolean,
     val colorArgb: Int,
     val title: String,
 )
 
-// a single chip entry: color bar + title text.
-data class MonthCellEvent(val title: String, val colorArgb: Int)
+// one day's slice of an event. isLabel = show the title (band start or a week's
+// first column); otherwise a title-less continuation strip.
+data class MonthCellEvent(val title: String, val colorArgb: Int, val isLabel: Boolean)
 
 data class MonthDayCell(
     val date: LocalDate,
