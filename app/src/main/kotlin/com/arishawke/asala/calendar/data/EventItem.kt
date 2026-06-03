@@ -43,6 +43,15 @@ data class EventItem(
         .atZone(effectiveZone(zone))
         .toLocalDate()
 
+    // the last calendar day the event occupies, inclusive. mirrors the
+    // clipToDay / expandTimed convention: endMillis-1 so a 00:00 end stays on
+    // the prior day (all-day's exclusive end falls out of the same rule), and a
+    // malformed end<=start collapses to the start day.
+    fun lastDate(zone: ZoneId): LocalDate = java.time.Instant
+        .ofEpochMilli(maxOf(endMillis - 1, startMillis))
+        .atZone(effectiveZone(zone))
+        .toLocalDate()
+
     // all-day endMillis is exclusive (start of the day after the last visible
     // day); timed end is inclusive. without this split all-day events bleed
     // onto the following day.

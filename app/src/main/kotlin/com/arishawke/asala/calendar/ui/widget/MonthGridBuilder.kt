@@ -30,19 +30,17 @@ object MonthGridBuilder {
         return rows * COLUMNS
     }
 
-    // grid-clamped covered day range for an event, or null if it does not
-    // intersect the grid. all-day end is exclusive (matches EventItem.isVisibleIn);
-    // a malformed end<=start collapses to the start day.
+    // grid-clamped covered day range for an event occupying [firstDate, lastDate]
+    // (use EventItem.startDate / lastDate), or null if it does not intersect the
+    // grid. all-day exclusivity and the midnight-end rule live in EventItem.lastDate.
     fun coveredRange(
-        startDate: LocalDate,
-        endDate: LocalDate,
-        allDay: Boolean,
+        firstDate: LocalDate,
+        lastDate: LocalDate,
         gridStart: LocalDate,
         gridLast: LocalDate,
     ): Pair<LocalDate, LocalDate>? {
-        val lastVisible = maxOf(if (allDay) endDate.minusDays(1) else endDate, startDate)
-        val firstCovered = maxOf(startDate, gridStart)
-        val lastCovered = minOf(lastVisible, gridLast)
+        val firstCovered = maxOf(firstDate, gridStart)
+        val lastCovered = minOf(lastDate, gridLast)
         return if (firstCovered > lastCovered) null else firstCovered to lastCovered
     }
 

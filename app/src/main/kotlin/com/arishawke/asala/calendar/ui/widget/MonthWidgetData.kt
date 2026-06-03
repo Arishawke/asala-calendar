@@ -43,7 +43,7 @@ object MonthWidgetData {
         val events = WidgetEventSource.events(context, visible, start, endExclusive, zone)
             .mapNotNull { e ->
                 val (firstCovered, lastCovered) = MonthGridBuilder.coveredRange(
-                    e.startDate(zone), e.endDate(zone), e.allDay, start, gridLast,
+                    e.startDate(zone), e.lastDate(zone), start, gridLast,
                 ) ?: return@mapNotNull null
                 MonthEvent(
                     firstCovered = firstCovered,

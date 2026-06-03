@@ -158,56 +158,49 @@ class MonthGridBuilderTest {
         assertTrue(cell.events.all { !it.isLabel })
     }
 
+    // coveredRange is a pure clamp of [firstDate, lastDate] to the grid window.
+    // all-day exclusivity / the midnight-end rule live in EventItem.lastDate
+    // (see EventItemVisibilityTest), so these tests only exercise the clamp.
     private val rangeStart = LocalDate.of(2026, 6, 1)
     private val rangeLast = LocalDate.of(2026, 7, 12)
 
     @Test
-    fun `coveredRange all-day end is exclusive so a one-day all-day event covers one day`() {
-        // all-day Jun 10, endDate Jun 11 (exclusive)
+    fun `coveredRange keeps an in-grid single day`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 11), allDay = true, rangeStart, rangeLast,
+            LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 10), rangeStart, rangeLast,
         )
         assertEquals(LocalDate.of(2026, 6, 10) to LocalDate.of(2026, 6, 10), r)
     }
 
     @Test
-    fun `coveredRange all-day multi-day event covers start through end minus one`() {
+    fun `coveredRange clamps a band that starts before the grid to grid start`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 15), allDay = true, rangeStart, rangeLast,
+            LocalDate.of(2026, 5, 28), LocalDate.of(2026, 6, 4), rangeStart, rangeLast,
         )
-        assertEquals(LocalDate.of(2026, 6, 10) to LocalDate.of(2026, 6, 14), r)
+        assertEquals(rangeStart to LocalDate.of(2026, 6, 4), r)
     }
 
     @Test
-    fun `coveredRange timed event ending after midnight spans two days`() {
-        // timed Jun 10 18:00 -> Jun 11 01:00; endDate Jun 11 inclusive for timed
+    fun `coveredRange clamps a band that ends after the grid to grid last`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 11), allDay = false, rangeStart, rangeLast,
+            LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 20), rangeStart, rangeLast,
         )
-        assertEquals(LocalDate.of(2026, 6, 10) to LocalDate.of(2026, 6, 11), r)
+        assertEquals(LocalDate.of(2026, 7, 10) to rangeLast, r)
     }
 
     @Test
-    fun `coveredRange event starting before the grid clamps to grid start`() {
+    fun `coveredRange is null when entirely after the grid`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 5, 28), LocalDate.of(2026, 6, 3), allDay = true, rangeStart, rangeLast,
-        )
-        assertEquals(rangeStart to LocalDate.of(2026, 6, 2), r) // all-day end exclusive: Jun 3 - 1 = Jun 2
-    }
-
-    @Test
-    fun `coveredRange event entirely after the grid is null`() {
-        val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 2), allDay = true, rangeStart, rangeLast,
+            LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 2), rangeStart, rangeLast,
         )
         assertNull(r)
     }
 
     @Test
-    fun `coveredRange malformed end before start collapses to the start day`() {
+    fun `coveredRange is null when entirely before the grid`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 9), allDay = false, rangeStart, rangeLast,
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31), rangeStart, rangeLast,
         )
-        assertEquals(LocalDate.of(2026, 6, 10) to LocalDate.of(2026, 6, 10), r)
+        assertNull(r)
     }
 }

@@ -8,11 +8,14 @@
  */
 package com.arishawke.asala.calendar.data
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class EventItemVisibilityTest {
@@ -83,5 +86,59 @@ class EventItemVisibilityTest {
 
         assertFalse(event.isVisibleIn(LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 7), zone))
         assertTrue(event.isVisibleIn(LocalDate.of(2026, 5, 25), LocalDate.of(2026, 5, 31), zone))
+    }
+
+    private fun atUtcStartOfDay(date: LocalDate): Long =
+        date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+    private fun allDay(start: LocalDate, endExclusive: LocalDate) = EventItem(
+        instanceId = 1L,
+        eventId = 1L,
+        calendarId = 1L,
+        title = "AllDay",
+        startMillis = atUtcStartOfDay(start),
+        endMillis = atUtcStartOfDay(endExclusive),
+        allDay = true,
+        displayColor = 0,
+    )
+
+    private fun timed(start: LocalDate, startTime: LocalTime, end: LocalDate, endTime: LocalTime) = EventItem(
+        instanceId = 1L,
+        eventId = 1L,
+        calendarId = 1L,
+        title = "Timed",
+        startMillis = ZonedDateTime.of(start, startTime, zone).toInstant().toEpochMilli(),
+        endMillis = ZonedDateTime.of(end, endTime, zone).toInstant().toEpochMilli(),
+        allDay = false,
+        displayColor = 0,
+    )
+
+    // lastDate is the inclusive last day an event occupies, the per-day-expansion
+    // companion to isVisibleIn. all-day's exclusive end falls out of the same rule.
+    @Test
+    fun `lastDate of an all-day event excludes its exclusive end day`() {
+        // occupies Jun 1, 2, 3; endMillis is the start of Jun 4
+        val event = allDay(LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 4))
+        assertEquals(LocalDate.of(2026, 6, 3), event.lastDate(zone))
+    }
+
+    @Test
+    fun `lastDate of a timed event ending at 13_00 is that day`() {
+        val event = timed(LocalDate.of(2026, 6, 1), LocalTime.of(12, 0), LocalDate.of(2026, 6, 1), LocalTime.of(13, 0))
+        assertEquals(LocalDate.of(2026, 6, 1), event.lastDate(zone))
+    }
+
+    // the bug guard: a 22:00 -> 00:00 event must not occupy the next day, matching
+    // clipToDay's endMillis-1 rule, so the month widget agrees with Day/Schedule.
+    @Test
+    fun `lastDate of a timed event ending exactly at midnight stays on the prior day`() {
+        val event = timed(LocalDate.of(2026, 6, 1), LocalTime.of(22, 0), LocalDate.of(2026, 6, 2), LocalTime.MIDNIGHT)
+        assertEquals(LocalDate.of(2026, 6, 1), event.lastDate(zone))
+    }
+
+    @Test
+    fun `lastDate of a malformed end-before-start collapses to the start day`() {
+        val event = timed(LocalDate.of(2026, 6, 10), LocalTime.of(10, 0), LocalDate.of(2026, 6, 9), LocalTime.of(10, 0))
+        assertEquals(LocalDate.of(2026, 6, 10), event.lastDate(zone))
     }
 }
