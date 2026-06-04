@@ -5,11 +5,13 @@ on:
   # is actually shipping.
   push:
     branches: [main]
-  # Also runs on every PR head so dependency-review.yml has a snapshot
-  # to compare against. Per gradle/actions docs, dependency-review-action
-  # requires submitted graphs for both base and head; without this
-  # trigger, the action loops on "no snapshots found for the head SHA"
-  # until its retry-on-snapshot-warnings-timeout (3600s) expires.
+  # Also runs on every PR so dependency-review.yml has a snapshot to
+  # compare against. dependency-review (on pull_request) looks up the
+  # snapshot by the PR HEAD sha, but on a pull_request event the default
+  # GITHUB_SHA is the synthetic merge commit, so the snapshot lands on
+  # the wrong sha and review loops on "no snapshots found for the head
+  # SHA" until its timeout. The submission step below pins the snapshot
+  # to the head sha to fix that.
   pull_request:
     branches: [main]
   # Weekly refresh in case nothing merges that touches deps. Monday
@@ -40,6 +42,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # On a PR, build the head commit (not the synthetic merge) so the
+          # resolved graph matches the sha the snapshot is pinned to below.
+          # Empty on push/schedule/dispatch, where checkout uses its default.
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -63,6 +70,14 @@ jobs:
         # gradle/actions issue #815 may ship this scoping as a future
         # default for Android.
         uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+        env:
+          # The action has no input for the snapshot sha/ref; it reads these
+          # env vars. On a PR, pin them to the head commit so dependency-review
+          # (which looks up the head sha) finds the snapshot. On push to main
+          # both fall through to the defaults, keeping the default-branch graph
+          # correct.
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GITHUB_REF: ${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}
         with:
           cache-provider: basic
           dependency-graph-include-configurations: '(debug|release)RuntimeClasspath'
