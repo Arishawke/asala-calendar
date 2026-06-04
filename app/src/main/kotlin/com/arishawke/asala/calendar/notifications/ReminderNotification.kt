@@ -178,6 +178,9 @@ private fun dismissPendingIntent(context: Context, eventId: Long, instanceMillis
             action = ReminderConstants.ACTION_DISMISS
             putExtra(ReminderConstants.EXTRA_ALERT_ID, alertId)
             putExtra(ReminderConstants.EXTRA_EVENT_ID, eventId)
+            // dismiss cancels the notification by its per-instance id, so it
+            // must carry the instance the notification was posted under.
+            putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
         }
     return PendingIntent.getBroadcast(
         context,

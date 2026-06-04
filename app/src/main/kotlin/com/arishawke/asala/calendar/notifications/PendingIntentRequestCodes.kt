@@ -23,4 +23,8 @@ internal object PendingIntentRequestCodes {
     fun forSnoozePicker(eventId: Long, instanceMillis: Long): Int = "snoozePicker:$eventId:$instanceMillis".hashCode()
 
     fun forDismiss(eventId: Long, instanceMillis: Long): Int = "dismiss:$eventId:$instanceMillis".hashCode()
+
+    // per-instance so two pending reminders of one recurring event get distinct
+    // shade entries instead of the later one replacing the earlier.
+    fun forNotification(eventId: Long, instanceMillis: Long): Int = "notif:$eventId:$instanceMillis".hashCode()
 }

@@ -48,6 +48,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Editing "this and following" and typing a new repeat count now keeps the count
   you set. Previously, on a series that repeats a set number of times, your new
   count was further reduced by the number of earlier occurrences.
+- A reminder for one occurrence of a repeating event no longer replaces an
+  earlier, still-showing reminder for another occurrence of the same event. Each
+  occurrence now gets its own notification.
 
 ## [0.18.0] - 2026-05-31
 

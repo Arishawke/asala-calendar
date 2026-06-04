@@ -69,8 +69,9 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
                             alertId = alertId,
                             defaultSnoozeMinutes = defaultSnoozeMinutes,
                         )
-                    NotificationManagerCompat.from(context).notify(eventId.toInt(), notification)
-                    Timber.d("posted notification id=%d alertId=%d", eventId, alertId)
+                    val notificationId = PendingIntentRequestCodes.forNotification(eventId, instanceMillis)
+                    NotificationManagerCompat.from(context).notify(notificationId, notification)
+                    Timber.d("posted notification event=%d alertId=%d", eventId, alertId)
                 }.onFailure { Timber.e(it, "alarm receiver body threw") }
             } finally {
                 pending.finish()

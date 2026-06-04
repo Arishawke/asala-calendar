@@ -42,7 +42,7 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
     )
 
     // cancel first so it clears even if the provider writes fail
-    NotificationManagerCompat.from(context).cancel(eventId.toInt())
+    NotificationManagerCompat.from(context).cancel(PendingIntentRequestCodes.forNotification(eventId, instanceMillis))
 
     if (alertId > 0) {
         // mark original dismissed, then insert a fresh SCHEDULED row below

@@ -81,8 +81,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
     private fun handleDismiss(context: Context, intent: Intent) {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
+        val instanceMillis = intent.getLongExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, -1L)
         // cancel first so it clears even if the provider write fails
-        if (eventId > 0) NotificationManagerCompat.from(context).cancel(eventId.toInt())
+        if (eventId > 0) {
+            NotificationManagerCompat.from(context)
+                .cancel(PendingIntentRequestCodes.forNotification(eventId, instanceMillis))
+        }
         if (alertId > 0) markAlertState(context, alertId, CalendarContract.CalendarAlerts.STATE_DISMISSED)
     }
 }
