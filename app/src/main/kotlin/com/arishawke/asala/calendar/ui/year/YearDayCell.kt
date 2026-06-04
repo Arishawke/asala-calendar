@@ -27,8 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.theme.CalendarTokens
 import com.kizitonwose.calendar.core.CalendarDay
@@ -36,18 +42,47 @@ import com.kizitonwose.calendar.core.DayPosition
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 private const val MaxDotsPerCell = 3
 
 @Composable
-internal fun YearDayCell(day: CalendarDay, today: LocalDate, events: List<EventItem>, onClick: () -> Unit) {
+internal fun YearDayCell(
+    day: CalendarDay,
+    today: LocalDate,
+    events: List<EventItem>,
+    locale: Locale,
+    onClick: () -> Unit,
+) {
     val inMonth = day.position == DayPosition.MonthDate
     val isToday = inMonth && day.date == today
+    // year view shows only a bare day number; name the full date for TalkBack
+    // and fold today / event-count into the state, mirroring the mini-month cell.
+    val dateCd = remember(day.date, locale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(day.date)
+    }
+    val todayLabel = if (isToday) stringResource(R.string.state_day_today) else null
+    val countLabel = if (inMonth && events.isNotEmpty()) {
+        pluralStringResource(R.plurals.mini_month_events_count, events.size, events.size)
+    } else {
+        null
+    }
+    val stateLabel = listOfNotNull(todayLabel, countLabel).joinToString(", ").ifEmpty { null }
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .clickable(enabled = inMonth, onClick = onClick),
+            .clickable(enabled = inMonth, onClick = onClick)
+            .then(
+                if (inMonth) {
+                    Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = dateCd
+                        if (stateLabel != null) stateDescription = stateLabel
+                    }
+                } else {
+                    Modifier
+                },
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -123,6 +123,7 @@ fun YearScreen(
                 day = day,
                 today = state.today,
                 events = state.eventsByDate[day.date].orEmpty(),
+                locale = locale,
                 onClick = { onDayClick(day.date) },
             )
         },

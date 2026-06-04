@@ -40,6 +40,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   as part of the event's label in the Month, Week, Day, Schedule, and Search views.
 - Multi-day and all-day event bars are now exposed as buttons to screen readers,
   so a TalkBack double-tap opens the event, matching the timed event blocks.
+- Year view day cells now announce their full date to screen readers, plus
+  whether the day is today and how many events it has, instead of reading only the
+  bare day number.
 
 ## [0.18.0] - 2026-05-31
 
