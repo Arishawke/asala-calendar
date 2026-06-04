@@ -1,6 +1,29 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="#14181F" />
-    <corners android:radius="16dp" />
-</shape>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="180dp"
+    android:viewportWidth="180"
+    android:viewportHeight="180">
+    <path
+        android:fillColor="#14181F"
+        android:pathData="M16,0 H164 A16,16 0 0 1 180,16 V164 A16,16 0 0 1 164,180 H16 A16,16 0 0 1 0,164 V16 A16,16 0 0 1 16,0 Z" />
+    <!-- "Today" section header -->
+    <path android:fillColor="#9AA3B2" android:pathData="M16,16 h34 v7 h-34 z" />
+    <!-- event row -->
+    <path android:fillColor="#4F9CF9" android:pathData="M16,32 h4 v18 h-4 z" />
+    <path android:fillColor="#E7E9EE" android:pathData="M26,34 h96 v5 h-96 z" />
+    <path android:fillColor="#5A6068" android:pathData="M26,43 h44 v4 h-44 z" />
+    <!-- event row -->
+    <path android:fillColor="#3ECF8E" android:pathData="M16,58 h4 v18 h-4 z" />
+    <path android:fillColor="#E7E9EE" android:pathData="M26,60 h82 v5 h-82 z" />
+    <path android:fillColor="#5A6068" android:pathData="M26,69 h50 v4 h-50 z" />
+    <!-- "Tomorrow" section header -->
+    <path android:fillColor="#9AA3B2" android:pathData="M16,88 h50 v7 h-50 z" />
+    <!-- event row -->
+    <path android:fillColor="#F6993F" android:pathData="M16,104 h4 v18 h-4 z" />
+    <path android:fillColor="#E7E9EE" android:pathData="M26,106 h90 v5 h-90 z" />
+    <path android:fillColor="#5A6068" android:pathData="M26,115 h40 v4 h-40 z" />
+    <!-- event row -->
+    <path android:fillColor="#5C8DF6" android:pathData="M16,130 h4 v18 h-4 z" />
+    <path android:fillColor="#E7E9EE" android:pathData="M26,132 h74 v5 h-74 z" />
+    <path android:fillColor="#5A6068" android:pathData="M26,141 h54 v4 h-54 z" />
+</vector>
