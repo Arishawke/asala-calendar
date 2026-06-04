@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalSize
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -51,7 +52,7 @@ import java.time.LocalDate
 private const val WEEK_COLUMNS = 7
 
 class MonthWidget : GlanceAppWidget() {
-    override val sizeMode: SizeMode = SizeMode.Single
+    override val sizeMode: SizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val snapshot = MonthWidgetData.load(context)
@@ -81,6 +82,8 @@ private fun MonthContent(
                 CenteredMessage(context.getString(R.string.widget_grant_access), colors, openApp(context))
             MonthWidgetState.Ready -> {
                 val grid = snapshot.grid!!
+                // shrink chips-per-cell as the widget gets shorter (down to one + "+N").
+                val maxChips = maxChipsPerCell(LocalSize.current.height.value, grid.weeks.size)
                 Text(
                     text = monthLabel(grid.month),
                     style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
@@ -91,7 +94,7 @@ private fun MonthContent(
                 WeekdayRow(grid, colors)
                 // defaultWeight on each row applied inside Column scope here
                 grid.weeks.forEach { week ->
-                    WeekRow(context, week, colors, theme, GlanceModifier.fillMaxWidth().defaultWeight())
+                    WeekRow(context, week, colors, theme, maxChips, GlanceModifier.fillMaxWidth().defaultWeight())
                 }
             }
         }
@@ -121,6 +124,7 @@ private fun WeekRow(
     week: List<MonthDayCell>,
     colors: AgendaWidgetColors,
     theme: ResolvedTheme,
+    maxChips: Int,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     Row(modifier = modifier) {
@@ -128,7 +132,7 @@ private fun WeekRow(
         week.forEach { cell ->
             // vertical-only cell padding: no horizontal gap, so multi-day band
             // segments in adjacent cells meet edge-to-edge.
-            DayCell(context, cell, colors, theme, GlanceModifier.defaultWeight().fillMaxHeight().padding(vertical = MonthDimens.cellPad))
+            DayCell(context, cell, colors, theme, maxChips, GlanceModifier.defaultWeight().fillMaxHeight().padding(vertical = MonthDimens.cellPad))
         }
     }
 }
@@ -142,6 +146,7 @@ private fun DayCell(
     cell: MonthDayCell,
     colors: AgendaWidgetColors,
     theme: ResolvedTheme,
+    maxChips: Int,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     val numberColor = if (cell.inMonth) colors.onBackground else colors.secondary
@@ -165,7 +170,8 @@ private fun DayCell(
         } else {
             Text(text = cell.date.dayOfMonth.toString(), style = TextStyle(color = numberColor))
         }
-        cell.events.forEach { chip ->
+        val shown = cell.events.take(maxChips)
+        shown.forEach { chip ->
             // band segments are square and full-bleed so adjacent days fuse into
             // one bar; single-day chips stay rounded and inset as pills.
             val corner = if (chip.multiDay) 0.dp else MonthDimens.chipCorner
@@ -182,9 +188,11 @@ private fun DayCell(
                     .padding(horizontal = MonthDimens.chipPadH, vertical = MonthDimens.chipPadV),
             )
         }
-        if (cell.moreCount > 0) {
+        // overflow combines what build dropped with chips hidden by the size cap.
+        val more = cell.moreCount + (cell.events.size - shown.size)
+        if (more > 0) {
             Text(
-                text = "+${cell.moreCount}",
+                text = "+$more",
                 style = TextStyle(color = colors.secondary, fontSize = 9.sp),
             )
         }
