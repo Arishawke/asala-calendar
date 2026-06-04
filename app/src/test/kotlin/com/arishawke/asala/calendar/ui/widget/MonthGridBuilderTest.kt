@@ -68,10 +68,10 @@ class MonthGridBuilderTest {
         // all-day first, then by startMillis ascending; single-day events are labels
         assertEquals(
             listOf(
-                MonthCellEvent("A", 0x333333, isLabel = true),
-                MonthCellEvent("C", 0x222222, isLabel = true),
-                MonthCellEvent("B", 0x111111, isLabel = true),
-                MonthCellEvent("D", 0x444444, isLabel = true),
+                MonthCellEvent("A", 0x333333, isLabel = true, multiDay = false),
+                MonthCellEvent("C", 0x222222, isLabel = true, multiDay = false),
+                MonthCellEvent("B", 0x111111, isLabel = true, multiDay = false),
+                MonthCellEvent("D", 0x444444, isLabel = true, multiDay = false),
             ),
             byDate.getValue(d),
         )
@@ -82,11 +82,11 @@ class MonthGridBuilderTest {
         val d = LocalDate.of(2026, 6, 10)
         // 5 events: should show 2 chips (MAX_CHIPS - 1) and moreCount = 3
         val fiveEvents = listOf(
-            MonthCellEvent("E1", 1, isLabel = true),
-            MonthCellEvent("E2", 2, isLabel = true),
-            MonthCellEvent("E3", 3, isLabel = true),
-            MonthCellEvent("E4", 4, isLabel = true),
-            MonthCellEvent("E5", 5, isLabel = true),
+            MonthCellEvent("E1", 1, isLabel = true, multiDay = false),
+            MonthCellEvent("E2", 2, isLabel = true, multiDay = false),
+            MonthCellEvent("E3", 3, isLabel = true, multiDay = false),
+            MonthCellEvent("E4", 4, isLabel = true, multiDay = false),
+            MonthCellEvent("E5", 5, isLabel = true, multiDay = false),
         )
         val byDate = mapOf(d to fiveEvents)
         val grid = MonthGridBuilder.build(june, DayOfWeek.MONDAY, today, byDate)
@@ -98,7 +98,7 @@ class MonthGridBuilderTest {
     @Test
     fun `build shows all events and no overflow when three or fewer`() {
         val d = LocalDate.of(2026, 6, 10)
-        val threeEvents = (1..3).map { MonthCellEvent("E$it", it, isLabel = true) }
+        val threeEvents = (1..3).map { MonthCellEvent("E$it", it, isLabel = true, multiDay = false) }
         val byDate = mapOf(d to threeEvents)
         val grid = MonthGridBuilder.build(june, DayOfWeek.MONDAY, today, byDate)
         val cell = grid.weeks.flatten().single { it.date == d }
@@ -115,13 +115,13 @@ class MonthGridBuilderTest {
         val byDate = MonthGridBuilder.eventsByDate(events, DayOfWeek.MONDAY)
         // Jun 8 is the band start AND the week's first column -> label
         assertEquals(
-            listOf(MonthCellEvent("Trip", 0x123456, isLabel = true)),
+            listOf(MonthCellEvent("Trip", 0x123456, isLabel = true, multiDay = true)),
             byDate.getValue(LocalDate.of(2026, 6, 8)),
         )
         // Jun 9..12 are continuation strips (no title)
         (9..12).forEach { day ->
             assertEquals(
-                listOf(MonthCellEvent("Trip", 0x123456, isLabel = false)),
+                listOf(MonthCellEvent("Trip", 0x123456, isLabel = false, multiDay = true)),
                 byDate.getValue(LocalDate.of(2026, 6, day)),
             )
         }

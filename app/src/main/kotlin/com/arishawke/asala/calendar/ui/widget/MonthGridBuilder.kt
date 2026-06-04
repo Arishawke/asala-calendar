@@ -58,7 +58,7 @@ object MonthGridBuilder {
                 (
                     bands.sortedWith(compareBy({ it.firstCovered }, { it.startMillis })) +
                         single.sortedWith(compareBy({ !it.allDay }, { it.startMillis }))
-                    ).map { MonthCellEvent(it.title, it.colorArgb, it.isLabel) }
+                    ).map { MonthCellEvent(it.title, it.colorArgb, it.isLabel, it.multiDay) }
             }
 
     // one event's slice on one covered day, carrying the keys eventsByDate orders by.

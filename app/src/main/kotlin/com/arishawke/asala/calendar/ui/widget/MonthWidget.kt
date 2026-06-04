@@ -126,7 +126,9 @@ private fun WeekRow(
     Row(modifier = modifier) {
         // defaultWeight on each cell applied inside Row scope here
         week.forEach { cell ->
-            DayCell(context, cell, colors, theme, GlanceModifier.defaultWeight().fillMaxHeight().padding(MonthDimens.cellPad))
+            // vertical-only cell padding: no horizontal gap, so multi-day band
+            // segments in adjacent cells meet edge-to-edge.
+            DayCell(context, cell, colors, theme, GlanceModifier.defaultWeight().fillMaxHeight().padding(vertical = MonthDimens.cellPad))
         }
     }
 }
@@ -164,14 +166,18 @@ private fun DayCell(
             Text(text = cell.date.dayOfMonth.toString(), style = TextStyle(color = numberColor))
         }
         cell.events.forEach { chip ->
+            // band segments are square and full-bleed so adjacent days fuse into
+            // one bar; single-day chips stay rounded and inset as pills.
+            val corner = if (chip.multiDay) 0.dp else MonthDimens.chipCorner
+            val outer = if (chip.multiDay) 0.dp else MonthDimens.cellPad
             Text(
                 text = if (chip.isLabel) chip.title else " ",
                 maxLines = 1,
-                style = TextStyle(color = colors.onBackground, fontSize = 10.sp),
+                style = TextStyle(color = colors.onBackground, fontSize = 9.sp),
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .padding(bottom = MonthDimens.chipGap)
-                    .cornerRadius(MonthDimens.chipCorner)
+                    .padding(start = outer, end = outer, bottom = MonthDimens.chipGap)
+                    .cornerRadius(corner)
                     .background(ColorProvider(Color(chip.colorArgb).copy(alpha = 0.35f)))
                     .padding(horizontal = MonthDimens.chipPadH, vertical = MonthDimens.chipPadV),
             )
@@ -179,7 +185,7 @@ private fun DayCell(
         if (cell.moreCount > 0) {
             Text(
                 text = "+${cell.moreCount}",
-                style = TextStyle(color = colors.secondary, fontSize = 10.sp),
+                style = TextStyle(color = colors.secondary, fontSize = 9.sp),
             )
         }
     }
