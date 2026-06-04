@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -86,8 +89,12 @@ fun MultiDayBarRow(
                     .clip(shape)
                     .background(bg)
                     .then(
+                        // expose as a button + merge the title so TalkBack reads
+                        // and opens the event, matching the timed EventBlock fix.
                         if (onSegmentClick != null) {
-                            Modifier.clickable { onSegmentClick(s.eventId) }
+                            Modifier
+                                .semantics(mergeDescendants = true) { role = Role.Button }
+                                .clickable { onSegmentClick(s.eventId) }
                         } else {
                             Modifier
                         },

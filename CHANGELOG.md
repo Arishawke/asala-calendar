@@ -35,6 +35,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   repeat count no longer crashes. Such rules can arrive from imported or synced
   calendars; the end date is kept and the count dropped, matching how the editor
   already treats the two as mutually exclusive.
+- Screen readers now announce an event's tentative or cancelled status, which was
+  previously conveyed only by italic or strikethrough styling. The status is read
+  as part of the event's label in the Month, Week, Day, Schedule, and Search views.
+- Multi-day and all-day event bars are now exposed as buttons to screen readers,
+  so a TalkBack double-tap opens the event, matching the timed event blocks.
 
 ## [0.18.0] - 2026-05-31
 

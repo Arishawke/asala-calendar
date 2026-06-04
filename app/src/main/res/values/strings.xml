@@ -163,6 +163,9 @@
     <!-- Event STATUS badges (tentative / cancelled rendering) -->
     <string name="status_tentative">Tentative</string>
     <string name="status_cancelled">Cancelled</string>
+    <!-- Screen-reader label folding an event's status into its title, since the
+         italic / strikethrough styling is not perceivable. e.g. "Standup, Cancelled" -->
+    <string name="cd_event_with_status">%1$s, %2$s</string>
 
     <!-- Accessibility label for the cake leading-icon on birthday-type events. -->
     <string name="cd_birthday">Birthday</string>

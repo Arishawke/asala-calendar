@@ -37,6 +37,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -91,6 +95,18 @@ internal fun statusStyling(status: Int): StatusStyling = when (status) {
     )
 }
 
+// tentative / cancelled is shown only as italic / strikethrough, which a
+// screen reader can't perceive, so fold the status into the title's a11y
+// label (e.g. "Standup, Cancelled"). null for confirmed: the title reads as-is.
+@Composable
+internal fun statusContentDescription(title: String, status: Int): String? = when (status) {
+    CalendarContract.Events.STATUS_TENTATIVE ->
+        stringResource(R.string.cd_event_with_status, title, stringResource(R.string.status_tentative))
+    CalendarContract.Events.STATUS_CANCELED ->
+        stringResource(R.string.cd_event_with_status, title, stringResource(R.string.status_cancelled))
+    else -> null
+}
+
 // shared event-chip primitives across Month / Schedule / Search.
 // event.displayColor is already resolved (per-event > per-calendar >
 // default) by the data layer's applyColorOverrides, so variants render
@@ -106,7 +122,17 @@ internal fun EventChipCompact(event: EventItem, modifier: Modifier = Modifier, o
         modifier = modifier
             .fillMaxWidth()
             .then(if (styling.containerAlpha < 1f) Modifier.alpha(styling.containerAlpha) else Modifier)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(
+                // button role + merged title so TalkBack opens the event; the
+                // day cell remains the 48dp+ visual target.
+                if (onClick != null) {
+                    Modifier
+                        .semantics(mergeDescendants = true) { role = Role.Button }
+                        .clickable(onClick = onClick)
+                } else {
+                    Modifier
+                },
+            )
             .padding(horizontal = 2.dp, vertical = 1.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -118,8 +144,11 @@ internal fun EventChipCompact(event: EventItem, modifier: Modifier = Modifier, o
                 .background(Color(event.displayColor)),
         )
         Spacer(modifier = Modifier.width(4.dp))
+        val titleText = event.title.ifBlank { stringResource(R.string.event_no_title) }
+        val statusCd = statusContentDescription(titleText, event.status)
         Text(
-            text = event.title.ifBlank { stringResource(R.string.event_no_title) },
+            text = titleText,
+            modifier = if (statusCd != null) Modifier.semantics { contentDescription = statusCd } else Modifier,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
@@ -201,6 +230,7 @@ private fun EventBlockLabels(
     } else {
         baseTitle
     }
+    val statusCd = statusContentDescription(title, event.status)
     // multi-day pieces show one time via anchorMillis (start on first,
     // end on last, none in the middle); single-day keeps original start.
     val timeLabel: String? = if (multiDay) {
@@ -226,6 +256,7 @@ private fun EventBlockLabels(
             }
             Text(
                 text = title,
+                modifier = if (statusCd != null) Modifier.semantics { contentDescription = statusCd } else Modifier,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -298,8 +329,11 @@ internal fun EventChipRow(
             BirthdayLeadingIcon(size = 16.dp)
             Spacer(modifier = Modifier.width(6.dp))
         }
+        val titleText = event.title.ifBlank { stringResource(R.string.event_no_title) }
+        val statusCd = statusContentDescription(titleText, event.status)
         Text(
-            text = event.title.ifBlank { stringResource(R.string.event_no_title) },
+            text = titleText,
+            modifier = if (statusCd != null) Modifier.semantics { contentDescription = statusCd } else Modifier,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
