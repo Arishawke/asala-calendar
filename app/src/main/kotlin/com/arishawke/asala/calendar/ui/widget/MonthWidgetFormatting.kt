@@ -23,8 +23,7 @@ private const val ACCENT_DARK = 0xFF5C8DF6L
 internal fun monthLabel(month: YearMonth): String =
     month.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
 
-internal fun weekdayNarrow(day: DayOfWeek): String =
-    day.getDisplayName(TextStyle.NARROW, Locale.getDefault())
+internal fun weekdayNarrow(day: DayOfWeek): String = day.getDisplayName(TextStyle.NARROW, Locale.getDefault())
 
 internal fun monthAccent(theme: ResolvedTheme): ColorProvider = when (theme) {
     ResolvedTheme.Light -> ColorProvider(Color(ACCENT_LIGHT))
@@ -50,9 +49,11 @@ internal object MonthDimens {
     val corner = 16.dp
     val headerGap = 4.dp
     val cellPad = 1.dp
+
     // same height for the today circle and the plain-number box below, so a band
     // segment sits at the same y in every cell (today or not) and never jogs.
     val todayCircle = 18.dp
+
     // chip: single-text pill with translucent event color background
     val chipCorner = 4.dp
     val chipGap = 2.dp

@@ -16,8 +16,8 @@ import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.StorageModeFilter
 import com.arishawke.asala.calendar.data.filteredAndRecolored
 import com.arishawke.asala.calendar.drawerAccountKey
-import com.arishawke.asala.calendar.ui.settings.UserPrefs
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
+import com.arishawke.asala.calendar.ui.settings.UserPrefs
 import com.arishawke.asala.calendar.ui.settings.settingsDataStore
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate

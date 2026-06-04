@@ -29,12 +29,7 @@ data class MonthEvent(
 // first column); otherwise a title-less continuation strip. multiDay events
 // render as a square, edge-to-edge band so adjacent days fuse; single-day events
 // stay rounded, inset pills.
-data class MonthCellEvent(
-    val title: String,
-    val colorArgb: Int,
-    val isLabel: Boolean,
-    val multiDay: Boolean,
-)
+data class MonthCellEvent(val title: String, val colorArgb: Int, val isLabel: Boolean, val multiDay: Boolean)
 
 data class MonthDayCell(
     val date: LocalDate,
@@ -44,10 +39,6 @@ data class MonthDayCell(
     val moreCount: Int,
 )
 
-data class MonthGridData(
-    val month: YearMonth,
-    val weekStart: DayOfWeek,
-    val weeks: List<List<MonthDayCell>>,
-)
+data class MonthGridData(val month: YearMonth, val weekStart: DayOfWeek, val weeks: List<List<MonthDayCell>>)
 
 data class MonthWidgetSnapshot(val state: MonthWidgetState, val grid: MonthGridData?)

@@ -105,7 +105,7 @@ private fun MonthContent(
 private fun WeekdayRow(grid: MonthGridData, colors: AgendaWidgetColors) {
     Row(modifier = GlanceModifier.fillMaxWidth().padding(top = MonthDimens.headerGap)) {
         // defaultWeight is RowScope member; applied inside Row lambda
-        (0 until WEEK_COLUMNS).forEach { i ->
+        for (i in 0 until WEEK_COLUMNS) {
             Text(
                 text = weekdayNarrow(grid.weekStart.plus(i.toLong())),
                 style = TextStyle(color = colors.secondary, textAlign = TextAlign.Center),
@@ -117,7 +117,7 @@ private fun WeekdayRow(grid: MonthGridData, colors: AgendaWidgetColors) {
 
 // suppress: List<MonthDayCell> trips ComposeUnstableCollections; widget
 // recomposes on alarm/boot, not per frame, so stability is irrelevant here.
-@Suppress("ComposeUnstableCollections")
+@Suppress("ComposeUnstableCollections", "LongParameterList")
 @Composable
 private fun WeekRow(
     context: Context,
@@ -132,14 +132,21 @@ private fun WeekRow(
         week.forEach { cell ->
             // vertical-only cell padding: no horizontal gap, so multi-day band
             // segments in adjacent cells meet edge-to-edge.
-            DayCell(context, cell, colors, theme, maxChips, GlanceModifier.defaultWeight().fillMaxHeight().padding(vertical = MonthDimens.cellPad))
+            DayCell(
+                context,
+                cell,
+                colors,
+                theme,
+                maxChips,
+                GlanceModifier.defaultWeight().fillMaxHeight().padding(vertical = MonthDimens.cellPad),
+            )
         }
     }
 }
 
 // suppress: List<MonthCellEvent> is flagged non-stable; widget recomposes on alarm/boot,
 // not per frame, so stability is irrelevant here.
-@Suppress("ComposeUnstableCollections")
+@Suppress("ComposeUnstableCollections", "LongParameterList")
 @Composable
 private fun DayCell(
     context: Context,

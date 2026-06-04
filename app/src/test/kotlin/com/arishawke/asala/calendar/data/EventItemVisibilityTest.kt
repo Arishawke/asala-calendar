@@ -88,8 +88,7 @@ class EventItemVisibilityTest {
         assertTrue(event.isVisibleIn(LocalDate.of(2026, 5, 25), LocalDate.of(2026, 5, 31), zone))
     }
 
-    private fun atUtcStartOfDay(date: LocalDate): Long =
-        date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    private fun atUtcStartOfDay(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
     private fun allDay(start: LocalDate, endExclusive: LocalDate) = EventItem(
         instanceId = 1L,

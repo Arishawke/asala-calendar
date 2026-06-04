@@ -20,10 +20,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 object MonthWidgetData {
-    suspend fun load(
-        context: Context,
-        zone: ZoneId = ZoneId.systemDefault(),
-    ): MonthWidgetSnapshot {
+    suspend fun load(context: Context, zone: ZoneId = ZoneId.systemDefault()): MonthWidgetSnapshot {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -43,7 +40,10 @@ object MonthWidgetData {
         val events = WidgetEventSource.events(context, visible, start, endExclusive, zone)
             .mapNotNull { e ->
                 val (firstCovered, lastCovered) = MonthGridBuilder.coveredRange(
-                    e.startDate(zone), e.lastDate(zone), start, gridLast,
+                    e.startDate(zone),
+                    e.lastDate(zone),
+                    start,
+                    gridLast,
                 ) ?: return@mapNotNull null
                 MonthEvent(
                     firstCovered = firstCovered,

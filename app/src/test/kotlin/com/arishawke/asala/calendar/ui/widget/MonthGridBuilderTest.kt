@@ -149,7 +149,12 @@ class MonthGridBuilderTest {
             MonthEvent(d, d, 400, false, 0x444444, "S2"),
             MonthEvent(d, d, 500, false, 0x555555, "S3"),
         )
-        val grid = MonthGridBuilder.build(june, DayOfWeek.MONDAY, today, MonthGridBuilder.eventsByDate(events, DayOfWeek.MONDAY))
+        val grid = MonthGridBuilder.build(
+            june,
+            DayOfWeek.MONDAY,
+            today,
+            MonthGridBuilder.eventsByDate(events, DayOfWeek.MONDAY),
+        )
         val cell = grid.weeks.flatten().single { it.date == d }
         // bands win the two visible slots; the three single-day events fall under "+N"
         assertEquals(listOf("Band A", "Band B"), cell.events.map { it.title })
@@ -167,7 +172,10 @@ class MonthGridBuilderTest {
     @Test
     fun `coveredRange keeps an in-grid single day`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 10), rangeStart, rangeLast,
+            LocalDate.of(2026, 6, 10),
+            LocalDate.of(2026, 6, 10),
+            rangeStart,
+            rangeLast,
         )
         assertEquals(LocalDate.of(2026, 6, 10) to LocalDate.of(2026, 6, 10), r)
     }
@@ -175,7 +183,10 @@ class MonthGridBuilderTest {
     @Test
     fun `coveredRange clamps a band that starts before the grid to grid start`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 5, 28), LocalDate.of(2026, 6, 4), rangeStart, rangeLast,
+            LocalDate.of(2026, 5, 28),
+            LocalDate.of(2026, 6, 4),
+            rangeStart,
+            rangeLast,
         )
         assertEquals(rangeStart to LocalDate.of(2026, 6, 4), r)
     }
@@ -183,7 +194,10 @@ class MonthGridBuilderTest {
     @Test
     fun `coveredRange clamps a band that ends after the grid to grid last`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 20), rangeStart, rangeLast,
+            LocalDate.of(2026, 7, 10),
+            LocalDate.of(2026, 7, 20),
+            rangeStart,
+            rangeLast,
         )
         assertEquals(LocalDate.of(2026, 7, 10) to rangeLast, r)
     }
@@ -191,7 +205,10 @@ class MonthGridBuilderTest {
     @Test
     fun `coveredRange is null when entirely after the grid`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 2), rangeStart, rangeLast,
+            LocalDate.of(2026, 8, 1),
+            LocalDate.of(2026, 8, 2),
+            rangeStart,
+            rangeLast,
         )
         assertNull(r)
     }
@@ -199,7 +216,10 @@ class MonthGridBuilderTest {
     @Test
     fun `coveredRange is null when entirely before the grid`() {
         val r = MonthGridBuilder.coveredRange(
-            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31), rangeStart, rangeLast,
+            LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 5, 31),
+            rangeStart,
+            rangeLast,
         )
         assertNull(r)
     }

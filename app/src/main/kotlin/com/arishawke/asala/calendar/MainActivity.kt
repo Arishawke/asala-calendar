@@ -21,9 +21,9 @@ import com.arishawke.asala.calendar.notifications.ReminderConstants
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import com.arishawke.asala.calendar.ui.App
 import com.arishawke.asala.calendar.ui.widget.WidgetDeepLink
-import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     private var pendingNotificationOpen: Pair<Long, Long>? = null

@@ -20,8 +20,7 @@ object DayPaging {
     val pageCount: Int = (WindowDaysEachSide * 2 + 1).toInt()
     val todayPageIndex: Int = WindowDaysEachSide.toInt()
 
-    fun dateForPage(today: LocalDate, page: Int): LocalDate =
-        today.plusDays((page - todayPageIndex).toLong())
+    fun dateForPage(today: LocalDate, page: Int): LocalDate = today.plusDays((page - todayPageIndex).toLong())
 
     fun pageForDate(today: LocalDate, target: LocalDate): Int =
         (todayPageIndex + ChronoUnit.DAYS.between(today, target))

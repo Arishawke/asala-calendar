@@ -47,10 +47,7 @@ object MonthGridBuilder {
     // expand each event across the days it covers, tagging label vs strip, then
     // order each day's slice bands-first (multi-day before single-day) so the
     // build() cap keeps bands visible. no cap here; build() applies MAX_CHIPS.
-    fun eventsByDate(
-        events: List<MonthEvent>,
-        weekStart: DayOfWeek,
-    ): Map<LocalDate, List<MonthCellEvent>> =
+    fun eventsByDate(events: List<MonthEvent>, weekStart: DayOfWeek): Map<LocalDate, List<MonthCellEvent>> =
         events.flatMap { it.expand(weekStart) }
             .groupBy { it.date }
             .mapValues { (_, dayEntries) ->

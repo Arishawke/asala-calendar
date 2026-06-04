@@ -13,17 +13,16 @@ class AgendaDayGroupingTest {
         allDay: Boolean = false,
         id: Long = startMillis,
         lastDate: LocalDate = date,
-    ) =
-        AgendaEventRow(
-            eventId = id,
-            instanceStartMillis = startMillis,
-            title = "e$id",
-            startMillis = startMillis,
-            allDay = allDay,
-            colorArgb = 0,
-            date = date,
-            lastDate = lastDate,
-        )
+    ) = AgendaEventRow(
+        eventId = id,
+        instanceStartMillis = startMillis,
+        title = "e$id",
+        startMillis = startMillis,
+        allDay = allDay,
+        colorArgb = 0,
+        date = date,
+        lastDate = lastDate,
+    )
 
     @Test
     fun `empty input yields no sections`() {
