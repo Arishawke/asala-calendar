@@ -28,6 +28,14 @@ Unit tests live in `app/src/test/`. They cover JVM-only logic
 (date math, DTO mapping). Provider-level integration tests will move
 into `app/src/androidTest/` when there is something CRUD to instrument.
 
+Before pushing, run the same gate CI enforces, so formatting and
+static-analysis failures surface locally instead of on the PR:
+
+```
+./gradlew spotlessApply
+./gradlew spotlessCheck detekt lintDebug testDebugUnitTest
+```
+
 ## Conventions
 
 - **Commits.** Conventional Commits format
