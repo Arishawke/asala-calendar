@@ -168,7 +168,13 @@ private fun DayCell(
                 )
             }
         } else {
-            Text(text = cell.date.dayOfMonth.toString(), style = TextStyle(color = numberColor))
+            // same footprint as the today circle so chips/bands align across cells.
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = GlanceModifier.size(MonthDimens.todayCircle),
+            ) {
+                Text(text = cell.date.dayOfMonth.toString(), style = TextStyle(color = numberColor))
+            }
         }
         val shown = cell.events.take(maxChips)
         shown.forEach { chip ->

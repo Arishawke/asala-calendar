@@ -50,7 +50,9 @@ internal object MonthDimens {
     val corner = 16.dp
     val headerGap = 4.dp
     val cellPad = 1.dp
-    val todayCircle = 22.dp
+    // same height for the today circle and the plain-number box below, so a band
+    // segment sits at the same y in every cell (today or not) and never jogs.
+    val todayCircle = 18.dp
     // chip: single-text pill with translucent event color background
     val chipCorner = 4.dp
     val chipGap = 2.dp
