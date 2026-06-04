@@ -6,7 +6,8 @@ following licenses.
 
 Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
   - AndroidX / Jetpack libraries: core-ktx, lifecycle-runtime-ktx,
-    lifecycle-viewmodel-compose, activity-compose, datastore-preferences.
+    lifecycle-viewmodel-compose, activity-compose, datastore-preferences,
+    glance-appwidget.
     Copyright The Android Open Source Project.
   - Jetpack Compose: compose-bom, ui, ui-graphics, ui-tooling-preview,
     foundation, material3, material-icons-core.
@@ -18,6 +19,12 @@ Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
 
 MIT License (https://opensource.org/licenses/MIT):
   - Calendar (com.kizitonwose.calendar). Copyright Kizito Nwose.
+
+BSD 3-Clause License (https://opensource.org/licenses/BSD-3-Clause):
+  - Protocol Buffers runtime, repackaged by AndroidX as
+    datastore-preferences-external-protobuf and
+    glance-appwidget-external-protobuf.
+    Copyright Google Inc. / The Android Open Source Project.
 
 Build- and test-only tools, not distributed in the application binary:
   JUnit (EPL-1.0), detekt, ktlint, Spotless, Kover, compose-lint-checks.
