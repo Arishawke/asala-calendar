@@ -59,6 +59,7 @@ object AgendaWidgetData {
                     allDay = e.allDay,
                     colorArgb = e.displayColor,
                     date = e.startDate(zone),
+                    lastDate = e.lastDate(zone),
                 )
             }
         return AgendaDayGrouping.group(rows, today)

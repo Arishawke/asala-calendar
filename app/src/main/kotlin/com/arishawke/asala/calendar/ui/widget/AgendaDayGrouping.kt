@@ -11,13 +11,21 @@ package com.arishawke.asala.calendar.ui.widget
 import java.time.LocalDate
 
 object AgendaDayGrouping {
-    // rows -> ordered day sections from today forward. within a day, all-day
-    // events sort before timed, then by start time. past days are dropped.
+    // rows -> ordered day sections from today forward. an event still running
+    // today (lastDate >= today) shows under today even if it began earlier;
+    // only fully-past events (lastDate < today) drop. within a day, all-day
+    // events sort before timed, then by start time.
     fun group(rows: List<AgendaEventRow>, today: LocalDate): List<AgendaDaySection> = rows
-        .filter { !it.date.isBefore(today) }
-        .sortedWith(compareBy({ it.date }, { !it.allDay }, { it.startMillis }))
-        .groupBy { it.date }
-        .map { (date, events) -> AgendaDaySection(date, relativeDay(date, today), events) }
+        .filter { !it.lastDate.isBefore(today) }
+        .groupBy { maxOf(it.date, today) }
+        .toSortedMap()
+        .map { (date, events) ->
+            AgendaDaySection(
+                date,
+                relativeDay(date, today),
+                events.sortedWith(compareBy({ !it.allDay }, { it.startMillis })),
+            )
+        }
 
     private fun relativeDay(date: LocalDate, today: LocalDate): RelativeDay = when (date) {
         today -> RelativeDay.Today

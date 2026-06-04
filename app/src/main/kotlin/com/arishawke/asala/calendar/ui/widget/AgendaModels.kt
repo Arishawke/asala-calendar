@@ -13,8 +13,10 @@ import java.time.LocalDate
 enum class RelativeDay { Today, Tomorrow, Other }
 
 // instanceStartMillis is the instance BEGIN, used as the deep-link instance id
-// (matches the notification path). date is precomputed in the device zone with
-// the same all-day/UTC handling as EventItem.startDate.
+// (matches the notification path). date is the start day; lastDate is the
+// inclusive last day the event covers (EventItem.lastDate), so an event that
+// began before today but is still running surfaces under today instead of being
+// dropped. both use the device zone with the same all-day/UTC handling.
 data class AgendaEventRow(
     val eventId: Long,
     val instanceStartMillis: Long,
@@ -23,6 +25,7 @@ data class AgendaEventRow(
     val allDay: Boolean,
     val colorArgb: Int,
     val date: LocalDate,
+    val lastDate: LocalDate,
 )
 
 data class AgendaDaySection(val date: LocalDate, val relativeDay: RelativeDay, val events: List<AgendaEventRow>)
