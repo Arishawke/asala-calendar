@@ -30,35 +30,7 @@ class SettingsViewModel(private val prefs: UserPreferences, private val calendar
         prefs.prefs.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue =
-            UserPrefs(
-                themeMode = ThemeMode.System,
-                defaultView = CalendarView.Month,
-                weekStartsOn = null,
-                is24HourOverride = null,
-                hiddenCalendarIds = emptySet(),
-                drawerHiddenAccountKeys = emptySet(),
-                collapsedAccounts = emptySet(),
-                dimPastDates = false,
-                defaultSnoozeMinutes = 10,
-                oemAdvisoryShown = false,
-                storageMode = StorageMode.Unset,
-                tasksEnabled = false,
-                accountAvatarColors = emptyMap(),
-                calendarColorOverrides = emptyMap(),
-                defaultDurationMinutes = 60,
-                eventColorOverrides = emptyMap(),
-                paletteId = PaletteId.OkabeIto,
-                workingHoursEnabled = false,
-                workingHoursStartHour = 9,
-                workingHoursEndHour = 17,
-                defaultTimedReminderMinutes = null,
-                defaultAllDayReminderMinutes = null,
-                workingDaysEnabled = false,
-                workingDays = WorkingDaysDefault,
-                showWeekNumber = false,
-                monthScrollStyle = MonthScrollStyle.Paged,
-            ),
+            initialValue = UserPrefs.Defaults,
         )
 
     fun setTheme(mode: ThemeMode) {

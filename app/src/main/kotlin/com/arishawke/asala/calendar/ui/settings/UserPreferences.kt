@@ -105,43 +105,77 @@ data class UserPrefs(
     val showWeekNumber: Boolean,
     // see [[MonthScrollStyle]].
     val monthScrollStyle: MonthScrollStyle,
-)
+) {
+    companion object {
+        // the values an empty DataStore yields. UserPreferences.prefs and the
+        // Settings stateIn both derive from this so they can't drift apart.
+        val Defaults = UserPrefs(
+            themeMode = ThemeMode.System,
+            defaultView = CalendarView.Month,
+            weekStartsOn = null,
+            is24HourOverride = null,
+            hiddenCalendarIds = emptySet(),
+            drawerHiddenAccountKeys = emptySet(),
+            collapsedAccounts = emptySet(),
+            dimPastDates = false,
+            defaultSnoozeMinutes = 10,
+            oemAdvisoryShown = false,
+            storageMode = StorageMode.Unset,
+            tasksEnabled = false,
+            accountAvatarColors = emptyMap(),
+            calendarColorOverrides = emptyMap(),
+            defaultDurationMinutes = 60,
+            eventColorOverrides = emptyMap(),
+            paletteId = PaletteId.OkabeIto,
+            workingHoursEnabled = false,
+            workingHoursStartHour = 9,
+            workingHoursEndHour = 17,
+            defaultTimedReminderMinutes = null,
+            defaultAllDayReminderMinutes = null,
+            workingDaysEnabled = false,
+            workingDays = WorkingDaysDefault,
+            showWeekNumber = false,
+            monthScrollStyle = MonthScrollStyle.Paged,
+        )
+    }
+}
 
 class UserPreferences(private val dataStore: DataStore<Preferences>) {
     val prefs: Flow<UserPrefs> =
         dataStore.data.map { p ->
+            val d = UserPrefs.Defaults
             UserPrefs(
-                themeMode = parseEnum(p[KEY_THEME], ThemeMode.System) { ThemeMode.valueOf(it) },
-                defaultView = parseEnum(p[KEY_DEFAULT_VIEW], CalendarView.Month) { CalendarView.valueOf(it) },
+                themeMode = parseEnum(p[KEY_THEME], d.themeMode) { ThemeMode.valueOf(it) },
+                defaultView = parseEnum(p[KEY_DEFAULT_VIEW], d.defaultView) { CalendarView.valueOf(it) },
                 weekStartsOn = p[KEY_WEEK_START]?.let { runCatching { DayOfWeek.valueOf(it) }.getOrNull() },
                 is24HourOverride = p[KEY_24H],
                 hiddenCalendarIds =
                 p[KEY_HIDDEN_CALENDAR_IDS]
                     ?.mapNotNullTo(mutableSetOf()) { it.toLongOrNull() }
-                    ?: emptySet(),
-                drawerHiddenAccountKeys = p[KEY_DRAWER_HIDDEN_ACCOUNT_KEYS] ?: emptySet(),
-                collapsedAccounts = p[KEY_COLLAPSED_ACCOUNTS] ?: emptySet(),
-                dimPastDates = p[KEY_DIM_PAST_DATES] ?: false,
-                defaultSnoozeMinutes = p[KEY_DEFAULT_SNOOZE_MIN] ?: 10,
-                oemAdvisoryShown = p[KEY_OEM_ADVISORY_SHOWN] ?: false,
-                storageMode = parseEnum(p[KEY_STORAGE_MODE], StorageMode.Unset) { StorageMode.valueOf(it) },
-                tasksEnabled = p[KEY_TASKS_ENABLED] ?: false,
+                    ?: d.hiddenCalendarIds,
+                drawerHiddenAccountKeys = p[KEY_DRAWER_HIDDEN_ACCOUNT_KEYS] ?: d.drawerHiddenAccountKeys,
+                collapsedAccounts = p[KEY_COLLAPSED_ACCOUNTS] ?: d.collapsedAccounts,
+                dimPastDates = p[KEY_DIM_PAST_DATES] ?: d.dimPastDates,
+                defaultSnoozeMinutes = p[KEY_DEFAULT_SNOOZE_MIN] ?: d.defaultSnoozeMinutes,
+                oemAdvisoryShown = p[KEY_OEM_ADVISORY_SHOWN] ?: d.oemAdvisoryShown,
+                storageMode = parseEnum(p[KEY_STORAGE_MODE], d.storageMode) { StorageMode.valueOf(it) },
+                tasksEnabled = p[KEY_TASKS_ENABLED] ?: d.tasksEnabled,
                 accountAvatarColors = decodeStringIntMap(p[KEY_ACCOUNT_AVATAR_COLORS]),
                 calendarColorOverrides = decodeLongIntMap(p[KEY_CALENDAR_COLOR_OVERRIDES]),
-                defaultDurationMinutes = p[KEY_DEFAULT_DURATION_MIN] ?: 60,
+                defaultDurationMinutes = p[KEY_DEFAULT_DURATION_MIN] ?: d.defaultDurationMinutes,
                 eventColorOverrides = decodeLongIntMap(p[KEY_EVENT_COLOR_OVERRIDES]),
-                paletteId = parseEnum(p[KEY_PALETTE_ID], PaletteId.OkabeIto) { PaletteId.valueOf(it) },
-                workingHoursEnabled = p[KEY_WORKING_HOURS_ENABLED] ?: false,
+                paletteId = parseEnum(p[KEY_PALETTE_ID], d.paletteId) { PaletteId.valueOf(it) },
+                workingHoursEnabled = p[KEY_WORKING_HOURS_ENABLED] ?: d.workingHoursEnabled,
                 workingHoursStartHour = (p[KEY_WORKING_HOURS_START] ?: WorkingHoursDefaultStart)
                     .coerceIn(0, MaxWorkingHoursStart),
                 workingHoursEndHour = (p[KEY_WORKING_HOURS_END] ?: WorkingHoursDefaultEnd)
                     .coerceIn(0, TimeUnits.HoursPerDay),
                 defaultTimedReminderMinutes = p[KEY_DEFAULT_TIMED_REMINDER_MIN],
                 defaultAllDayReminderMinutes = p[KEY_DEFAULT_ALL_DAY_REMINDER_MIN],
-                workingDaysEnabled = p[KEY_WORKING_DAYS_ENABLED] ?: false,
+                workingDaysEnabled = p[KEY_WORKING_DAYS_ENABLED] ?: d.workingDaysEnabled,
                 workingDays = decodeWorkingDays(p[KEY_WORKING_DAYS]),
-                showWeekNumber = p[KEY_SHOW_WEEK_NUMBER] ?: false,
-                monthScrollStyle = parseEnum(p[KEY_MONTH_SCROLL_STYLE], MonthScrollStyle.Paged) {
+                showWeekNumber = p[KEY_SHOW_WEEK_NUMBER] ?: d.showWeekNumber,
+                monthScrollStyle = parseEnum(p[KEY_MONTH_SCROLL_STYLE], d.monthScrollStyle) {
                     MonthScrollStyle.valueOf(it)
                 },
             )
