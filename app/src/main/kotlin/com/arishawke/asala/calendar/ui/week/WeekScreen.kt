@@ -192,8 +192,7 @@ internal fun WeekPage(
     val visibleEvents = remember(days, events) {
         events.filter { it.isVisibleIn(days.first(), days.last(), zone) }
     }
-    val allDayEvents = visibleEvents.filter { it.allDay }
-    val timedEvents = visibleEvents.filter { !it.allDay }
+    val (allDayEvents, timedEvents) = remember(visibleEvents) { visibleEvents.partition { it.allDay } }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // leading slot matches hour-axis width so headers align with columns;

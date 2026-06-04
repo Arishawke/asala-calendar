@@ -184,7 +184,7 @@ private fun DayPage(
     val dayEvents = remember(events, date) {
         events.filter { it.isVisibleIn(date, date, zone) }
     }
-    val allDay = dayEvents.filter { it.allDay }
+    val allDay = remember(dayEvents) { dayEvents.filter { it.allDay } }
     // clip to the day so a midnight-crosser shows one chip per covered day.
     val timed = remember(dayEvents, date) {
         dayEvents.filter { !it.allDay }.mapNotNull { clipToDay(it, date, zone) }

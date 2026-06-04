@@ -164,11 +164,14 @@ private fun WeekLayoutRowCore(
                         continue
                     }
                     // single-day all-day events render inline here; multi-day ones
-                    // live in the bar row, so drop their ids
-                    val cellEvents = eventsByDate[gd.date]
-                        .orEmpty()
-                        .filter { it.eventId !in barEventIds }
-                        .sortedWith(compareByDescending<EventItem> { it.allDay }.thenBy { it.startMillis })
+                    // live in the bar row, so drop their ids. keyed on the date so a
+                    // reused cell slot recomputes rather than reusing another day's list.
+                    val cellEvents = remember(eventsByDate, gd.date, barEventIds) {
+                        eventsByDate[gd.date]
+                            .orEmpty()
+                            .filter { it.eventId !in barEventIds }
+                            .sortedWith(compareByDescending<EventItem> { it.allDay }.thenBy { it.startMillis })
+                    }
                     DayCell(
                         day = gd,
                         events = cellEvents,
