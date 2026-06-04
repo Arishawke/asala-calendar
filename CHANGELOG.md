@@ -45,6 +45,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   bare day number.
 - A widget date deep-link carrying an out-of-range date is now ignored instead of
   preventing the app from opening.
+- Editing "this and following" and typing a new repeat count now keeps the count
+  you set. Previously, on a series that repeats a set number of times, your new
+  count was further reduced by the number of earlier occurrences.
 
 ## [0.18.0] - 2026-05-31
 

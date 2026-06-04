@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.data
 import android.provider.CalendarContract
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EventMutationsTest {
@@ -123,5 +124,30 @@ class EventMutationsTest {
     @Test
     fun `countInstancesBefore is zero for no instances`() {
         assertEquals(0, countInstancesBefore(emptyList(), beforeMillis = 50L))
+    }
+
+    // The COUNT budget is divided across parent + future only when the user left
+    // the inherited count untouched. If they retyped it (or switched to UNTIL /
+    // open-ended), the split keeps their value as-is instead of subtracting the
+    // kept occurrences from it.
+    @Test
+    fun `shouldReduceSplitCount is true when the split keeps the parent's count`() {
+        assertTrue(shouldReduceSplitCount("FREQ=DAILY;COUNT=10", "FREQ=DAILY;COUNT=10"))
+    }
+
+    @Test
+    fun `shouldReduceSplitCount is false when the user retyped the count`() {
+        assertFalse(shouldReduceSplitCount("FREQ=DAILY;COUNT=10", "FREQ=DAILY;COUNT=5"))
+    }
+
+    @Test
+    fun `shouldReduceSplitCount is false when the parent is not count-bounded`() {
+        assertFalse(shouldReduceSplitCount("FREQ=DAILY;UNTIL=20261231T235959Z", "FREQ=DAILY;COUNT=10"))
+        assertFalse(shouldReduceSplitCount("FREQ=DAILY", "FREQ=DAILY;COUNT=10"))
+    }
+
+    @Test
+    fun `shouldReduceSplitCount is false when the split dropped the count`() {
+        assertFalse(shouldReduceSplitCount("FREQ=DAILY;COUNT=10", "FREQ=DAILY;UNTIL=20261231T235959Z"))
     }
 }

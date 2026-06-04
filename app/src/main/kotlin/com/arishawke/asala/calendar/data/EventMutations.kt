@@ -60,6 +60,15 @@ private fun ContentResolver.queryEventDtStart(eventId: Long): Long? {
 // so this rule is unit-testable without a ContentResolver.
 internal fun countInstancesBefore(begins: List<Long>, beforeMillis: Long): Int = begins.count { it < beforeMillis }
 
+// the COUNT budget is divided across parent + future only when the user left the
+// inherited count untouched. if they retyped it (or switched the split to UNTIL /
+// open-ended), honor the split rule as-is rather than subtracting the parent's
+// kept occurrences from a value the user chose.
+internal fun shouldReduceSplitCount(parentRrule: String?, splitRrule: String): Boolean {
+    val parentCount = RecurrenceRule.countOf(parentRrule) ?: return false
+    return RecurrenceRule.countOf(splitRrule) == parentCount
+}
+
 // counts the parent's occurrences in [fromMillis, beforeMillis) via the
 // provider's own expansion (BYDAY/INTERVAL-proof) so a split can carry the
 // remaining COUNT. returns 0 if instances can't be read, which degrades to the
@@ -130,10 +139,12 @@ internal suspend fun ContentResolver.updateEventScoped(
             // preserve the total occurrence count: a COUNT-bounded series must
             // split its COUNT across parent + future, else the future series
             // regenerates the full count from its new anchor and over-generates.
-            // gate on the PARENT being COUNT-bounded (the budget to divide);
-            // reduceSplitCount no-ops on UNTIL / open-ended split rules.
+            // only when the split still carries the inherited count, so a count
+            // the user retyped in the editor is honored as-is.
             val splitDraft =
-                if (splitRrule != null && parentDtStart != null && RecurrenceRule.countOf(parentRrule) != null) {
+                if (splitRrule != null && parentDtStart != null &&
+                    shouldReduceSplitCount(parentRrule, splitRrule)
+                ) {
                     val kept = countParentInstancesBefore(eventId, parentDtStart, instanceMillis)
                     draft.copy(rrule = RecurrenceExceptionMath.reduceSplitCount(splitRrule, kept))
                 } else {
