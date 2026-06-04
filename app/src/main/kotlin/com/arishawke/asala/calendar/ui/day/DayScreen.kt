@@ -66,7 +66,6 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import kotlin.math.max
 
 private const val AllDayLuminanceMidpoint = 0.5f
@@ -106,14 +105,12 @@ fun DayScreen(
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
 
-    val pageCount = (DayViewModel.WindowDaysEachSide * 2 + 1).toInt()
-    val todayPageIndex = DayViewModel.WindowDaysEachSide.toInt()
-    val pagerState = rememberPagerState(initialPage = todayPageIndex) { pageCount }
+    val pagerState = rememberPagerState(initialPage = DayPaging.todayPageIndex) { DayPaging.pageCount }
 
     // push the visible page's date into the vm so title + event filter follow.
     LaunchedEffect(pagerState, state.today) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            val date = state.today.plusDays((page - todayPageIndex).toLong())
+            val date = DayPaging.dateForPage(state.today, page)
             vm.selectDate(date)
             // FAB defaults a new event to the day the user is viewing.
             onViewedDateChange(date)
@@ -131,7 +128,7 @@ fun DayScreen(
     LaunchedEffect(jumpCounter) {
         if (jumpCounter != lastHandledJump) {
             lastHandledJump = jumpCounter
-            pagerState.animateScrollToPage(todayPageIndex)
+            pagerState.animateScrollToPage(DayPaging.todayPageIndex)
         }
     }
 
@@ -141,9 +138,7 @@ fun DayScreen(
     val pendingJump by pendingDateJump.collectAsStateWithLifecycle()
     LaunchedEffect(pendingJump, state.today) {
         val jump = pendingJump?.takeIf { it.view == CalendarView.Day } ?: return@LaunchedEffect
-        val daysFromToday = ChronoUnit.DAYS.between(state.today, jump.date).toInt()
-        val target = (todayPageIndex + daysFromToday).coerceIn(0, pageCount - 1)
-        pagerState.animateScrollToPage(target)
+        pagerState.animateScrollToPage(DayPaging.pageForDate(state.today, jump.date))
         onConsumePendingDateJump()
     }
 
@@ -153,7 +148,7 @@ fun DayScreen(
         beyondViewportPageCount = 1,
         flingBehavior = rememberCalendarPagerFling(pagerState),
     ) { page ->
-        val pageDate = state.today.plusDays((page - todayPageIndex).toLong())
+        val pageDate = DayPaging.dateForPage(state.today, page)
         DayPage(
             date = pageDate,
             today = state.today,

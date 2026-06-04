@@ -15,10 +15,12 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.filteredAndRecolored
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
@@ -35,19 +37,20 @@ class DayViewModel(
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
 
-    // fetch window pinned to initial today; a shifting window would
-    // re-subscribe the ContentObserver every midnight. the today-highlight
-    // still refreshes via todayFlow.
     private val initialToday: LocalDate = todayFlow.value
     private val selectedDate = MutableStateFlow(initialToday)
-    private val windowStart = initialToday.minusDays(WindowDaysEachSide)
-    private val windowEndExclusive = initialToday.plusDays(WindowDaysEachSide + 1)
 
-    private val events = eventRepo.observeEvents(
-        startDate = windowStart,
-        endExclusive = windowEndExclusive,
-        zone = zone,
-    )
+    // load events for a small window around the day in view, re-querying as the
+    // user navigates (like the week view). this lets a jump from the month view
+    // reach any day with its events, instead of a fixed window pinned to today.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val events = selectedDate.flatMapLatest { d ->
+        eventRepo.observeEvents(
+            startDate = d.minusDays(DayLoadBufferDays),
+            endExclusive = d.plusDays(DayLoadBufferDays + 1),
+            zone = zone,
+        )
+    }
 
     val uiState: StateFlow<DayUiState> =
         combine(
@@ -99,6 +102,8 @@ class DayViewModel(
     }
 
     companion object {
-        const val WindowDaysEachSide: Long = 60L
+        // days loaded either side of the day in view, so adjacent pages the pager
+        // pre-renders already have their events before selectedDate catches up.
+        private const val DayLoadBufferDays: Long = 7L
     }
 }

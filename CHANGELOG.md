@@ -21,6 +21,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   refreshes with your calendar and at midnight.
 
 ### Fixed
+- Tapping a day in the month view now opens that exact day. Previously a day more
+  than about two months from today opened a nearer day instead, because the day
+  view only covered a short range around today.
 - Editing "this and following" on an event that repeats a set number of times
   no longer adds extra occurrences. The remaining repeats are now split between
   the original run and the edited one so the total count stays the same, instead
