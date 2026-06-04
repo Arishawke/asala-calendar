@@ -16,10 +16,11 @@ object WidgetDeepLink {
     fun parseView(name: String?): CalendarView =
         runCatching { CalendarView.valueOf(name ?: "") }.getOrDefault(CalendarView.Schedule)
 
-    // decode the date deep-link extras; null when absent or the epoch-day is the
-    // missing sentinel, so a malformed intent is dropped rather than mis-jumped.
+    // decode the date deep-link extras; null when absent, the epoch-day is the
+    // missing sentinel, or it is out of LocalDate's range (a crafted intent to
+    // the exported launcher), so a malformed intent is dropped, never crashes.
     fun decode(present: Boolean, epochDay: Long, viewName: String?): Pair<LocalDate, CalendarView>? {
         if (!present || epochDay == Long.MIN_VALUE) return null
-        return LocalDate.ofEpochDay(epochDay) to parseView(viewName)
+        return runCatching { LocalDate.ofEpochDay(epochDay) }.getOrNull()?.let { it to parseView(viewName) }
     }
 }

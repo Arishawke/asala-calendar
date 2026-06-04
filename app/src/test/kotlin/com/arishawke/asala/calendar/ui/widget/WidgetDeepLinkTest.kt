@@ -32,4 +32,12 @@ class WidgetDeepLinkTest {
             WidgetDeepLink.decode(present = true, epochDay = 20000L, viewName = "Month"),
         )
     }
+
+    // a crafted intent to the exported launcher can carry an out-of-range
+    // epoch-day; it must drop to null, not throw DateTimeException on open.
+    @Test
+    fun `decode returns null for an out-of-range epoch-day`() {
+        assertNull(WidgetDeepLink.decode(present = true, epochDay = Long.MAX_VALUE, viewName = "Schedule"))
+        assertNull(WidgetDeepLink.decode(present = true, epochDay = Long.MIN_VALUE + 1, viewName = "Schedule"))
+    }
 }

@@ -43,6 +43,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Year view day cells now announce their full date to screen readers, plus
   whether the day is today and how many events it has, instead of reading only the
   bare day number.
+- A widget date deep-link carrying an out-of-range date is now ignored instead of
+  preventing the app from opening.
 
 ## [0.18.0] - 2026-05-31
 
