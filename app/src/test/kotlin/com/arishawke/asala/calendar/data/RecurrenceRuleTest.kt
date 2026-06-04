@@ -120,4 +120,18 @@ class RecurrenceRuleTest {
             )
         assertEquals("FREQ=WEEKLY;UNTIL=20261231T235959Z", r)
     }
+
+    // RFC 5545 §3.3.10 forbids UNTIL and COUNT in the same rule, but imported
+    // ICS / CalDAV rows can carry both. Prefer UNTIL and drop COUNT rather than
+    // throwing, so saving such an event can't crash the editor.
+    @Test fun prefers_until_when_both_until_and_count_present() {
+        val r =
+            RecurrenceRule.build(
+                frequency = RecurrenceFrequency.Weekly,
+                interval = 1,
+                untilUtc = LocalDate.of(2026, 12, 31),
+                count = 10,
+            )
+        assertEquals("FREQ=WEEKLY;UNTIL=20261231T235959Z", r)
+    }
 }

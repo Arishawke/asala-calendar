@@ -31,6 +31,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Screen readers can now open an event from the Week, Day, and 3-Day views.
   Each event block is exposed as a button labelled with the event, so a
   TalkBack double-tap opens its details.
+- Editing and saving an event whose repeat rule carried both an end date and a
+  repeat count no longer crashes. Such rules can arrive from imported or synced
+  calendars; the end date is kept and the count dropped, matching how the editor
+  already treats the two as mutually exclusive.
 
 ## [0.18.0] - 2026-05-31
 

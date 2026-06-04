@@ -325,6 +325,10 @@ class EventEditViewModel(
                             .toLocalDateTime()
                     val displayEndDate =
                         if (existing.allDay) eLocal.toLocalDate().minusDays(1) else eLocal.toLocalDate()
+                    // an imported rrule may carry both UNTIL and COUNT (RFC 5545
+                    // forbids it, but CalDAV rows can); prefer UNTIL so the form
+                    // invariant holds and the end-mode radios don't both select.
+                    val recurrenceUntil = RecurrenceRule.untilDateOf(existing.rrule)
                     EventEditFormState(
                         calendars = cals,
                         selectedCalendarId = existing.calendarId,
@@ -338,8 +342,8 @@ class EventEditViewModel(
                         allDay = existing.allDay,
                         recurrenceFrequency = RecurrenceRule.frequencyOf(existing.rrule),
                         recurrenceInterval = RecurrenceRule.intervalOf(existing.rrule),
-                        recurrenceUntilDate = RecurrenceRule.untilDateOf(existing.rrule),
-                        recurrenceCount = RecurrenceRule.countOf(existing.rrule),
+                        recurrenceUntilDate = recurrenceUntil,
+                        recurrenceCount = if (recurrenceUntil != null) null else RecurrenceRule.countOf(existing.rrule),
                         reminderMinutesBefore = existing.reminderMinutesBefore,
                         defaultDurationMinutes = defaultDurationMinutes,
                         defaultTimedReminderMinutes = defaultTimedReminderMinutes,

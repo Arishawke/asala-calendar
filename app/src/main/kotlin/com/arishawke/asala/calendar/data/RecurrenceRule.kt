@@ -65,12 +65,13 @@ object RecurrenceRule {
         count: Int? = null,
         allDay: Boolean = false,
     ): String {
-        require(!(untilUtc != null && count != null)) {
-            "Specify either untilUtc or count, not both"
-        }
+        // RFC 5545 forbids UNTIL and COUNT in the same rule, but imported ICS /
+        // CalDAV rows can carry both. Prefer UNTIL and drop COUNT rather than
+        // throwing, so editing such an event can't crash the save.
+        val effectiveCount = if (untilUtc != null) null else count
         val parts = mutableListOf("FREQ=${frequency.name.uppercase()}")
         if (interval != 1) parts += "INTERVAL=$interval"
-        if (count != null) parts += "COUNT=$count"
+        if (effectiveCount != null) parts += "COUNT=$effectiveCount"
         if (untilUtc != null) {
             val ymd = String.format(
                 Locale.ROOT,
