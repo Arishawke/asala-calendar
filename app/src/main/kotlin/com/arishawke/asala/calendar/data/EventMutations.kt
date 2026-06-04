@@ -75,12 +75,7 @@ internal fun shouldReduceSplitCount(parentRrule: String?, splitRrule: String): B
 // prior full-count behaviour rather than dropping occurrences.
 private fun ContentResolver.countParentInstancesBefore(eventId: Long, fromMillis: Long, beforeMillis: Long): Int {
     if (beforeMillis <= fromMillis) return 0
-    val uri =
-        CalendarContract.Instances.CONTENT_URI.buildUpon().run {
-            ContentUris.appendId(this, fromMillis)
-            ContentUris.appendId(this, beforeMillis)
-            build()
-        }
+    val uri = instancesUriFor(fromMillis, beforeMillis)
     val begins =
         query(
             uri,

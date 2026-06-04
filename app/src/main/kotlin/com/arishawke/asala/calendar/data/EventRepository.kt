@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.data
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
+import android.net.Uri
 import android.provider.CalendarContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,14 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.ZoneId
+
+// Instances query URI scoped to the window via the two path ids.
+internal fun instancesUriFor(startMillis: Long, endMillis: Long): Uri =
+    CalendarContract.Instances.CONTENT_URI.buildUpon().run {
+        ContentUris.appendId(this, startMillis)
+        ContentUris.appendId(this, endMillis)
+        build()
+    }
 
 class EventRepository(private val contentResolver: ContentResolver) {
     // streams instances overlapping [startDate, endExclusive); re-emits on provider change.
@@ -35,12 +44,7 @@ class EventRepository(private val contentResolver: ContentResolver) {
     private fun queryInstances(startDate: LocalDate, endExclusive: LocalDate, zone: ZoneId): List<EventItem> {
         val (startMillis, endMillis) = dayRangeMillis(startDate, endExclusive, zone)
 
-        val uri =
-            CalendarContract.Instances.CONTENT_URI.buildUpon().run {
-                ContentUris.appendId(this, startMillis)
-                ContentUris.appendId(this, endMillis)
-                build()
-            }
+        val uri = instancesUriFor(startMillis, endMillis)
 
         val cursor =
             contentResolver.query(
@@ -65,12 +69,7 @@ class EventRepository(private val contentResolver: ContentResolver) {
     ): List<EventItem> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyList()
         val (startMillis, endMillis) = dayRangeMillis(startDate, endExclusive, zone)
-        val uri =
-            CalendarContract.Instances.CONTENT_URI.buildUpon().run {
-                ContentUris.appendId(this, startMillis)
-                ContentUris.appendId(this, endMillis)
-                build()
-            }
+        val uri = instancesUriFor(startMillis, endMillis)
         val escaped = escapeLikePattern(query.trim())
         val selection =
             "(${CalendarContract.Instances.TITLE} LIKE ? ESCAPE '\\') OR " +
