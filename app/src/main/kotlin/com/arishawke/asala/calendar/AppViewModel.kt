@@ -102,13 +102,12 @@ class AppViewModel(
             userPreferences.prefs,
             calendarRepo.observeCalendars(),
         ) { p, cals ->
-            // a drawer-hidden account hides all its calendars: the user
-            // can't toggle them on while the account is hidden
-            val accountHiddenIds = cals
-                .filter { drawerAccountKey(it.accountType, it.accountName) in p.drawerHiddenAccountKeys }
-                .mapTo(mutableSetOf()) { it.id }
-            p.hiddenCalendarIds + accountHiddenIds +
-                StorageModeFilter.modeHiddenIds(p.storageMode, cals)
+            computeHiddenCalendarIds(
+                hiddenCalendarIds = p.hiddenCalendarIds,
+                drawerHiddenAccountKeys = p.drawerHiddenAccountKeys,
+                storageMode = p.storageMode,
+                calendars = cals,
+            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

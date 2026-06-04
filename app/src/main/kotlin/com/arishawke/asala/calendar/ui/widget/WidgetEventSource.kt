@@ -9,13 +9,12 @@
 package com.arishawke.asala.calendar.ui.widget
 
 import android.content.Context
+import com.arishawke.asala.calendar.computeHiddenCalendarIds
 import com.arishawke.asala.calendar.data.CalendarItem
 import com.arishawke.asala.calendar.data.CalendarRepository
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
-import com.arishawke.asala.calendar.data.StorageModeFilter
 import com.arishawke.asala.calendar.data.filteredAndRecolored
-import com.arishawke.asala.calendar.drawerAccountKey
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
 import com.arishawke.asala.calendar.ui.settings.UserPrefs
 import com.arishawke.asala.calendar.ui.settings.settingsDataStore
@@ -24,20 +23,20 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 // single source of truth for widget visibility + event load, shared by the
-// agenda and month widgets. mirrors AppViewModel.hiddenCalendarIdsFlow exactly:
-// explicit drawer hides + account-key hides + storage-mode hides.
+// agenda and month widgets. visibility goes through computeHiddenCalendarIds so
+// the widgets and the in-app views resolve the hidden set identically.
 object WidgetEventSource {
     data class Visible(val prefs: UserPrefs, val calendars: List<CalendarItem>, val hidden: Set<Long>)
 
     suspend fun visible(context: Context): Visible {
         val prefs = UserPreferences(context.settingsDataStore).prefs.first()
         val calendars = CalendarRepository(context.contentResolver).calendars()
-        val accountHidden = calendars
-            .filter { drawerAccountKey(it.accountType, it.accountName) in prefs.drawerHiddenAccountKeys }
-            .mapTo(mutableSetOf()) { it.id }
-        val hidden = prefs.hiddenCalendarIds +
-            accountHidden +
-            StorageModeFilter.modeHiddenIds(prefs.storageMode, calendars)
+        val hidden = computeHiddenCalendarIds(
+            hiddenCalendarIds = prefs.hiddenCalendarIds,
+            drawerHiddenAccountKeys = prefs.drawerHiddenAccountKeys,
+            storageMode = prefs.storageMode,
+            calendars = calendars,
+        )
         return Visible(prefs, calendars, hidden)
     }
 
