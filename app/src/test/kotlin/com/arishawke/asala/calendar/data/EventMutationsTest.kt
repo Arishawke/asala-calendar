@@ -99,4 +99,29 @@ class EventMutationsTest {
         assertFalse(map.containsKey(CalendarContract.Events.DTSTART))
         assertEquals("FREQ=WEEKLY;UNTIL=20260604T035459Z", map[CalendarContract.Events.RRULE])
     }
+
+    // The "this and following" COUNT split keeps the parent occurrences that
+    // fall strictly before the split instance, so the future series carries the
+    // remaining COUNT. Instances range queries are end-inclusive, so an instance
+    // whose start equals the split point IS the split itself and must not be
+    // counted, or the edited run loses one occurrence.
+    @Test
+    fun `countInstancesBefore counts starts strictly before the split point`() {
+        assertEquals(2, countInstancesBefore(listOf(10L, 20L, 30L, 40L), beforeMillis = 30L))
+    }
+
+    @Test
+    fun `countInstancesBefore excludes an instance exactly at the split point`() {
+        assertEquals(0, countInstancesBefore(listOf(30L), beforeMillis = 30L))
+    }
+
+    @Test
+    fun `countInstancesBefore counts all when every start precedes the split`() {
+        assertEquals(3, countInstancesBefore(listOf(1L, 2L, 3L), beforeMillis = 100L))
+    }
+
+    @Test
+    fun `countInstancesBefore is zero for no instances`() {
+        assertEquals(0, countInstancesBefore(emptyList(), beforeMillis = 50L))
+    }
 }

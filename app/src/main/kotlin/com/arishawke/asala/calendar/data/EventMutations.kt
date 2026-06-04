@@ -54,6 +54,12 @@ private fun ContentResolver.queryEventDtStart(eventId: Long): Long? {
         }
 }
 
+// pure core of countParentInstancesBefore: counts provider-expanded instance
+// starts strictly before the split point. range queries are overlap-inclusive,
+// so the split instance itself (begin == beforeMillis) is excluded. extracted
+// so this rule is unit-testable without a ContentResolver.
+internal fun countInstancesBefore(begins: List<Long>, beforeMillis: Long): Int = begins.count { it < beforeMillis }
+
 // counts the parent's occurrences in [fromMillis, beforeMillis) via the
 // provider's own expansion (BYDAY/INTERVAL-proof) so a split can carry the
 // remaining COUNT. returns 0 if instances can't be read, which degrades to the
@@ -66,21 +72,18 @@ private fun ContentResolver.countParentInstancesBefore(eventId: Long, fromMillis
             ContentUris.appendId(this, beforeMillis)
             build()
         }
-    return query(
-        uri,
-        arrayOf(CalendarContract.Instances.BEGIN),
-        "${CalendarContract.Instances.EVENT_ID} = ?",
-        arrayOf(eventId.toString()),
-        null,
-    )?.use { c ->
-        val beginIdx = c.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN)
-        var kept = 0
-        while (c.moveToNext()) {
-            // range queries are overlap-inclusive; exclude the split instance itself.
-            if (c.getLong(beginIdx) < beforeMillis) kept++
-        }
-        kept
-    } ?: 0
+    val begins =
+        query(
+            uri,
+            arrayOf(CalendarContract.Instances.BEGIN),
+            "${CalendarContract.Instances.EVENT_ID} = ?",
+            arrayOf(eventId.toString()),
+            null,
+        )?.use { c ->
+            val beginIdx = c.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN)
+            buildList<Long> { while (c.moveToNext()) add(c.getLong(beginIdx)) }
+        }.orEmpty()
+    return countInstancesBefore(begins, beforeMillis)
 }
 
 // re-sends the parent's own DTSTART with the truncated RRULE so the provider
