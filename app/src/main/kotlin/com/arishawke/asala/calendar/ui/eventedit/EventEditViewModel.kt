@@ -193,33 +193,23 @@ data class EventEditFormState(
             colorOverrideArgb: Int? = null,
             zone: ZoneId = ZoneId.systemDefault(),
         ): EventEditFormState {
-            val effectiveStart =
-                if (source.rrule != null && instanceStartMillis != null) {
-                    instanceStartMillis
-                } else {
-                    source.startMillis
-                }
-            val effectiveEnd = effectiveStart + (source.endMillis - source.startMillis)
-            // all-day stored at UTC midnight; extract in UTC or the date lands
-            // a day early in negative-offset zones. -1 day undoes EventSave's
-            // exclusive end. mirrors the existing-event load path.
-            val extractionZone =
-                if (source.allDay) java.time.ZoneOffset.UTC else zone
-            val sLocal =
-                java.time.Instant.ofEpochMilli(effectiveStart).atZone(extractionZone).toLocalDateTime()
-            val eLocal =
-                java.time.Instant.ofEpochMilli(effectiveEnd).atZone(extractionZone).toLocalDateTime()
-            val displayEndDate =
-                if (source.allDay) eLocal.toLocalDate().minusDays(1) else eLocal.toLocalDate()
+            val range = extractLocalRange(
+                startMillis = source.startMillis,
+                endMillis = source.endMillis,
+                allDay = source.allDay,
+                rrule = source.rrule,
+                instanceStartMillis = instanceStartMillis,
+                zone = zone,
+            )
             return EventEditFormState(
                 selectedCalendarId = source.calendarId,
                 title = source.title,
                 description = source.description.orEmpty(),
                 location = source.location.orEmpty(),
-                startDate = sLocal.toLocalDate(),
-                startTime = sLocal.toLocalTime(),
-                endDate = displayEndDate,
-                endTime = eLocal.toLocalTime(),
+                startDate = range.startDate,
+                startTime = range.startTime,
+                endDate = range.endDate,
+                endTime = range.endTime,
                 allDay = source.allDay,
                 recurrenceFrequency = null,
                 reminderMinutesBefore = source.reminderMinutesBefore,
@@ -298,33 +288,17 @@ class EventEditViewModel(
             _form.value =
                 if (existing != null) {
                     val zone = ZoneId.systemDefault()
-                    // recurring opened from an instance: prefill the instance's
-                    // clock time (preserving duration), not parent DTSTART, so
+                    // recurring opened from an instance prefills that instance's
+                    // slot (preserving duration), not the parent DTSTART, so
                     // instance/following edits land on the right occurrence.
-                    val effectiveStart =
-                        if (existing.rrule != null && editingInstanceMillis != null) {
-                            editingInstanceMillis
-                        } else {
-                            existing.startMillis
-                        }
-                    val effectiveEnd = effectiveStart + (existing.endMillis - existing.startMillis)
-                    // all-day stored at 00:00 UTC; extract in UTC or the form
-                    // lands a day early in negative-offset zones. -1 day undoes
-                    // EventSave's exclusive end.
-                    val extractionZone =
-                        if (existing.allDay) java.time.ZoneOffset.UTC else zone
-                    val sLocal =
-                        java.time.Instant
-                            .ofEpochMilli(effectiveStart)
-                            .atZone(extractionZone)
-                            .toLocalDateTime()
-                    val eLocal =
-                        java.time.Instant
-                            .ofEpochMilli(effectiveEnd)
-                            .atZone(extractionZone)
-                            .toLocalDateTime()
-                    val displayEndDate =
-                        if (existing.allDay) eLocal.toLocalDate().minusDays(1) else eLocal.toLocalDate()
+                    val range = extractLocalRange(
+                        startMillis = existing.startMillis,
+                        endMillis = existing.endMillis,
+                        allDay = existing.allDay,
+                        rrule = existing.rrule,
+                        instanceStartMillis = editingInstanceMillis,
+                        zone = zone,
+                    )
                     // an imported rrule may carry both UNTIL and COUNT (RFC 5545
                     // forbids it, but CalDAV rows can); prefer UNTIL so the form
                     // invariant holds and the end-mode radios don't both select.
@@ -335,10 +309,10 @@ class EventEditViewModel(
                         title = existing.title,
                         description = existing.description.orEmpty(),
                         location = existing.location.orEmpty(),
-                        startDate = sLocal.toLocalDate(),
-                        startTime = sLocal.toLocalTime(),
-                        endDate = displayEndDate,
-                        endTime = eLocal.toLocalTime(),
+                        startDate = range.startDate,
+                        startTime = range.startTime,
+                        endDate = range.endDate,
+                        endTime = range.endTime,
                         allDay = existing.allDay,
                         recurrenceFrequency = RecurrenceRule.frequencyOf(existing.rrule),
                         recurrenceInterval = RecurrenceRule.intervalOf(existing.rrule),
