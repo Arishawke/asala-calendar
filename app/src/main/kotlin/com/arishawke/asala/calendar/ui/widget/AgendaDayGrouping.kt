@@ -11,6 +11,27 @@ package com.arishawke.asala.calendar.ui.widget
 import java.time.LocalDate
 
 object AgendaDayGrouping {
+    // bounds the widget's view tree against a pathologically busy window. an
+    // adapter-backed Glance LazyColumn raises the ceiling but does not remove it.
+    const val MAX_EVENTS = 100
+
+    // caps total event rows across sections, keeping the soonest events and
+    // collapsing the trailing ones into the returned overflow count (drives a
+    // "+N more" affordance). empty sections are not retained.
+    fun cap(sections: List<AgendaDaySection>, maxEvents: Int = MAX_EVENTS): Pair<List<AgendaDaySection>, Int> {
+        val total = sections.sumOf { it.events.size }
+        if (total <= maxEvents) return sections to 0
+        val capped = mutableListOf<AgendaDaySection>()
+        var remaining = maxEvents
+        for (section in sections) {
+            if (remaining <= 0) break
+            val taken = section.events.take(remaining)
+            capped += section.copy(events = taken)
+            remaining -= taken.size
+        }
+        return capped to (total - maxEvents)
+    }
+
     // rows -> ordered day sections from today forward. an event still running
     // today (lastDate >= today) shows under today even if it began earlier;
     // only fully-past events (lastDate < today) drop. within a day, all-day

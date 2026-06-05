@@ -34,6 +34,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   and bring back an occurrence that a "this and following" change had split off.
 - Choosing "this and following" on the first occurrence of a repeating event
   now edits the whole series instead of leaving an empty leftover event behind.
+- The agenda widget now caps how many events it lists and adds a "+N more" row
+  that opens the app, so a very busy two weeks can no longer make the widget
+  fail to load. Event colors are also forced opaque so a bar cannot render
+  invisible.
 - Tapping a day in the month view now opens that exact day. Previously a day more
   than about two months from today opened a nearer day instead, because the day
   view only covered a short range around today.

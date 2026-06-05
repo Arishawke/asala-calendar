@@ -38,7 +38,10 @@ object AgendaWidgetData {
         return when {
             sections == null -> AgendaSnapshot(AgendaState.NoCalendars, emptyList())
             sections.isEmpty() -> AgendaSnapshot(AgendaState.Empty, emptyList())
-            else -> AgendaSnapshot(AgendaState.Loaded, sections)
+            else -> {
+                val (capped, overflow) = AgendaDayGrouping.cap(sections)
+                AgendaSnapshot(AgendaState.Loaded, capped, overflow)
+            }
         }
     }
 

@@ -93,7 +93,22 @@ private fun AgendaList(context: Context, snapshot: AgendaSnapshot, colors: Agend
             item { DayHeader(dayLabel(context, section), colors) }
             items(section.events) { event -> EventRow(context, event, colors) }
         }
+        if (snapshot.overflowCount > 0) {
+            item { MoreRow(context, snapshot.overflowCount, colors) }
+        }
     }
+}
+
+@Composable
+private fun MoreRow(context: Context, overflowCount: Int, colors: AgendaWidgetColors) {
+    Text(
+        text = context.resources.getQuantityString(R.plurals.widget_more, overflowCount, overflowCount),
+        style = TextStyle(color = colors.secondary),
+        modifier = GlanceModifier
+            .fillMaxWidth()
+            .padding(vertical = WidgetDimens.rowPad)
+            .clickable(openApp(context)),
+    )
 }
 
 @Composable
@@ -104,6 +119,9 @@ private fun DayHeader(label: String, colors: AgendaWidgetColors) {
         modifier = GlanceModifier.padding(top = WidgetDimens.dayHeaderTop, bottom = WidgetDimens.dayHeaderBottom),
     )
 }
+
+// forces opaque so a zero-alpha provider color can't render the bar invisible.
+private const val OpaqueAlpha = 0xFF000000.toInt()
 
 @Composable
 private fun EventRow(context: Context, event: AgendaEventRow, colors: AgendaWidgetColors) {
@@ -119,7 +137,7 @@ private fun EventRow(context: Context, event: AgendaEventRow, colors: AgendaWidg
                 .width(WidgetDimens.barWidth)
                 .height(WidgetDimens.barHeight)
                 .cornerRadius(WidgetDimens.barCorner)
-                .background(ColorProvider(Color(event.colorArgb))),
+                .background(ColorProvider(Color(event.colorArgb or OpaqueAlpha))),
         ) {}
         Spacer(GlanceModifier.width(WidgetDimens.gap))
         Text(

@@ -343,4 +343,8 @@
     <string name="widget_empty">Nothing coming up</string>
     <string name="widget_no_calendars">No calendars shown</string>
     <string name="widget_grant_access">Tap to grant calendar access</string>
+    <plurals name="widget_more">
+        <item quantity="one">+%1$d more</item>
+        <item quantity="other">+%1$d more</item>
+    </plurals>
 </resources>

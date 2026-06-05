@@ -32,4 +32,6 @@ data class AgendaDaySection(val date: LocalDate, val relativeDay: RelativeDay, v
 
 enum class AgendaState { Loaded, NoPermission, NoCalendars, Empty }
 
-data class AgendaSnapshot(val state: AgendaState, val sections: List<AgendaDaySection>)
+// overflowCount is the number of events trimmed by the row cap, surfaced as a
+// "+N more" affordance; 0 when nothing was dropped.
+data class AgendaSnapshot(val state: AgendaState, val sections: List<AgendaDaySection>, val overflowCount: Int = 0)

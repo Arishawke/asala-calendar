@@ -71,6 +71,46 @@ class AgendaDayGroupingTest {
     }
 
     @Test
+    fun `cap keeps everything and reports zero overflow when under the limit`() {
+        val sections = AgendaDayGrouping.group(
+            listOf(row(today, 100), row(today.plusDays(1), 200)),
+            today,
+        )
+        val (capped, overflow) = AgendaDayGrouping.cap(sections, maxEvents = 5)
+        assertEquals(sections, capped)
+        assertEquals(0, overflow)
+    }
+
+    @Test
+    fun `cap keeps the soonest events and reports the dropped count`() {
+        // four events across two days; cap at 3 keeps day one (2) plus the
+        // first of day two, dropping one and reporting overflow 1.
+        val sections = AgendaDayGrouping.group(
+            listOf(
+                row(today, 100, id = 1),
+                row(today, 200, id = 2),
+                row(today.plusDays(1), 300, id = 3),
+                row(today.plusDays(1), 400, id = 4),
+            ),
+            today,
+        )
+        val (capped, overflow) = AgendaDayGrouping.cap(sections, maxEvents = 3)
+        assertEquals(listOf(1L, 2L, 3L), capped.flatMap { s -> s.events.map { it.eventId } })
+        assertEquals(1, overflow)
+    }
+
+    @Test
+    fun `cap drops fully-emptied trailing sections`() {
+        val sections = AgendaDayGrouping.group(
+            listOf(row(today, 100, id = 1), row(today.plusDays(1), 200, id = 2)),
+            today,
+        )
+        val (capped, overflow) = AgendaDayGrouping.cap(sections, maxEvents = 1)
+        assertEquals(listOf(today), capped.map { it.date })
+        assertEquals(1, overflow)
+    }
+
+    @Test
     fun `an event that started before today but is still running shows under today`() {
         // multi-day event begun two days ago, still covering today: it must not
         // vanish the way grouping by start day alone would drop it.
