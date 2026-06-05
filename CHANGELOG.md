@@ -14,6 +14,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   that lets the wallpaper show through. Existing widgets keep following the app
   theme until changed.
 
+### Changed
+- The Settings screen is now organized into collapsible sections. It opens with
+  all sections collapsed, so it is shorter and easier to scan; tap a section
+  header to expand or collapse it.
+
 ### Fixed
 - Deleting a single occurrence of a repeating event ("this event only") no
   longer removes the whole series. The other occurrences now stay.
