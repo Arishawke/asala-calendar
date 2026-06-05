@@ -130,4 +130,12 @@ class RecurringExceptionMathTest {
         assertEquals("A", RecurrenceExceptionMath.mergeExdate("", "A"))
         assertEquals("X,A", RecurrenceExceptionMath.mergeExdate("X", "A"))
     }
+
+    // re-excluding an already-excluded slot is idempotent: the value isn't
+    // appended twice, so EXDATE can't grow without bound across repeats.
+    @Test fun mergeExdate_skips_a_value_already_present() {
+        assertEquals("A", RecurrenceExceptionMath.mergeExdate("A", "A"))
+        assertEquals("X,A", RecurrenceExceptionMath.mergeExdate("X,A", "A"))
+        assertEquals("X,A,B", RecurrenceExceptionMath.mergeExdate("X,A", "B"))
+    }
 }

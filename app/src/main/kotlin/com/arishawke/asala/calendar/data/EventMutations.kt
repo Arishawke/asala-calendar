@@ -155,13 +155,19 @@ internal suspend fun ContentResolver.updateEventScoped(
             require(instanceMillis != null)
             // a provider exception row (the documented CONTENT_EXCEPTION_URI path
             // included) drops the whole series from the Instances expansion on
-            // device. So model a single-occurrence edit as: exclude the original
-            // date on the parent, then insert the edited occurrence as a
-            // standalone one-off. the new row is returned so reminders target it.
-            if (!excludeInstanceFromParent(eventId, instanceMillis, parentAllDay)) return@withContext null
+            // device. So model a single-occurrence edit as: insert the edited
+            // occurrence as a standalone one-off, then exclude the original date
+            // on the parent. insert first so a failed EXDATE write can roll the
+            // one-off back to a clean failure instead of silently losing the
+            // occurrence. the new row is returned so reminders target it.
             val oneOff = draft.copy(rrule = null)
             val uri = insert(CalendarContract.Events.CONTENT_URI, oneOff.toContentValues()) ?: return@withContext null
-            ContentUris.parseId(uri).takeIf { it > 0L }
+            val newId = ContentUris.parseId(uri).takeIf { it > 0L } ?: return@withContext null
+            if (!excludeInstanceFromParent(eventId, instanceMillis, parentAllDay)) {
+                delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, newId), null, null)
+                return@withContext null
+            }
+            newId
         }
         RecurringEditScope.ThisAndFollowing -> {
             require(instanceMillis != null && parentRrule != null)

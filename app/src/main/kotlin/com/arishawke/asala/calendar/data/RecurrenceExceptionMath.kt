@@ -69,9 +69,13 @@ object RecurrenceExceptionMath {
     }
 
     // EXDATE accumulates across deletions: seed when empty, else comma-append so
-    // a second exclusion does not drop the first.
-    fun mergeExdate(existing: String?, value: String): String =
-        if (existing.isNullOrBlank()) value else "$existing,$value"
+    // a second exclusion does not drop the first. skip a value already present so
+    // re-excluding the same slot stays idempotent and the field can't grow without
+    // bound.
+    fun mergeExdate(existing: String?, value: String): String {
+        if (existing.isNullOrBlank()) return value
+        return if (value in existing.split(",")) existing else "$existing,$value"
+    }
 
     private val UTC_ICAL_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'", Locale.ROOT)
     private val UTC_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT)

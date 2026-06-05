@@ -26,6 +26,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 // Exercises the scoped delete/edit against the real CalendarProvider on-device.
 // These paths fail only at the provider's instance-expansion layer, which JVM
@@ -183,9 +185,83 @@ class RecurringSingleOccurrenceTest {
         )
     }
 
+    @Test
+    fun deleteThisInstance_onNonUtcSeries_excludesOnlyThatOccurrence() = runBlocking {
+        // a daily series in a non-UTC zone spanning a DST transition: the UTC
+        // offset shifts mid-series, so occurrences are not a uniform 24h apart in
+        // UTC. the EXDATE we write is a UTC datetime; this proves it still matches
+        // an occurrence the provider expanded in local (New York) time.
+        val zone = ZoneId.of("America/New_York")
+        val dtStart = ZonedDateTime.of(2035, 3, 10, 12, 0, 0, 0, zone).toInstant().toEpochMilli()
+        val winStart = dtStart - dayMs
+        val winEnd = dtStart + 5 * dayMs
+        val parentId = insertDailySeriesTz(count = 4, dtStartMillis = dtStart, timezone = zone.id)
+
+        val baseline = visibleBegins(winStart, winEnd).sorted()
+        assertEquals("baseline: non-UTC series expands to 4 occurrences", 4, baseline.size)
+
+        val target = baseline[1] // occurrence #2, on the far side of the DST shift
+        val ok =
+            cr.deleteEventScoped(
+                eventId = parentId,
+                scope = RecurringEditScope.ThisInstance,
+                instanceMillis = target,
+                parentAllDay = false,
+            )
+        assertTrue("provider write reported success", ok)
+        assertEquals(
+            "only the targeted non-UTC occurrence is excluded; the rest survive",
+            baseline.filterNot { it == target },
+            visibleBegins(winStart, winEnd).sorted(),
+        )
+    }
+
+    @Test
+    fun deleteThisInstance_onMissingParent_failsCleanly() = runBlocking {
+        val ok =
+            cr.deleteEventScoped(
+                eventId = nonexistentEventId(),
+                scope = RecurringEditScope.ThisInstance,
+                instanceMillis = anchor + dayMs,
+                parentAllDay = false,
+            )
+        assertFalse("a single-occurrence delete on a missing parent reports failure, not success", ok)
+    }
+
+    @Test
+    fun editThisInstance_onMissingParent_rollsBackTheOneOff() = runBlocking {
+        // insert-first ordering means a missing parent inserts the one-off then
+        // fails the EXDATE write; the rollback must remove the one-off so a failed
+        // edit leaves no orphan event behind.
+        val movedStart = anchor + dayMs
+        val draft =
+            EventDraft(
+                calendarId = calendarId,
+                title = "Orphan",
+                description = null,
+                location = null,
+                startMillis = movedStart,
+                endMillis = movedStart + 3_600_000L,
+                allDay = false,
+                eventTimezone = "UTC",
+                rrule = null,
+            )
+        val rowId =
+            cr.updateEventScoped(
+                eventId = nonexistentEventId(),
+                draft = draft,
+                scope = RecurringEditScope.ThisInstance,
+                instanceMillis = movedStart,
+                parentAllDay = false,
+            )
+        assertTrue("a single-occurrence edit on a missing parent reports failure", rowId == null)
+        assertTrue("the inserted one-off is rolled back, leaving no orphan", visibleBegins().isEmpty())
+    }
+
     // visible occurrences in the window for the test calendar, excluding any the
     // provider marks STATUS_CANCELED (those must not reach the calendar views).
-    private fun visibleBegins(): List<Long> = readInstances().filter { it.status.isVisible() }.map { it.begin }
+    private fun visibleBegins(start: Long = windowStart, end: Long = windowEnd): List<Long> =
+        readInstances(start, end).filter { it.status.isVisible() }.map { it.begin }
 
     private fun titlesAt(begin: Long): List<String> =
         readInstances().filter { it.begin == begin && it.status.isVisible() }.map { it.title }
@@ -194,10 +270,10 @@ class RecurringSingleOccurrenceTest {
 
     private data class Row(val begin: Long, val title: String, val status: Int?)
 
-    private fun readInstances(): List<Row> {
+    private fun readInstances(start: Long = windowStart, end: Long = windowEnd): List<Row> {
         val rows = mutableListOf<Row>()
         cr.query(
-            instancesUriFor(windowStart, windowEnd),
+            instancesUriFor(start, end),
             arrayOf(
                 CalendarContract.Instances.BEGIN,
                 CalendarContract.Instances.TITLE,
@@ -250,6 +326,37 @@ class RecurringSingleOccurrenceTest {
             }
         val uri = cr.insert(CalendarContract.Events.CONTENT_URI, values) ?: error("all-day event insert failed")
         return ContentUris.parseId(uri)
+    }
+
+    private fun insertDailySeriesTz(count: Int, dtStartMillis: Long, timezone: String): Long {
+        val values =
+            ContentValues().apply {
+                put(CalendarContract.Events.CALENDAR_ID, calendarId)
+                put(CalendarContract.Events.TITLE, "TzSeries")
+                put(CalendarContract.Events.DTSTART, dtStartMillis)
+                put(CalendarContract.Events.DURATION, "PT1H")
+                put(CalendarContract.Events.EVENT_TIMEZONE, timezone)
+                put(CalendarContract.Events.RRULE, "FREQ=DAILY;COUNT=$count")
+            }
+        val uri = cr.insert(CalendarContract.Events.CONTENT_URI, values) ?: error("tz event insert failed")
+        return ContentUris.parseId(uri)
+    }
+
+    // one past the largest event id the provider holds: guaranteed absent, so a
+    // scoped op against it exercises the "parent row is gone" failure path.
+    private fun nonexistentEventId(): Long {
+        var maxId = 0L
+        cr.query(
+            CalendarContract.Events.CONTENT_URI,
+            arrayOf(CalendarContract.Events._ID),
+            null,
+            null,
+            "${CalendarContract.Events._ID} DESC",
+        )?.use { c ->
+            val idx = c.getColumnIndexOrThrow(CalendarContract.Events._ID)
+            if (c.moveToFirst()) maxId = c.getLong(idx)
+        }
+        return maxId + 1
     }
 
     private fun createLocalCalendar(): Long {

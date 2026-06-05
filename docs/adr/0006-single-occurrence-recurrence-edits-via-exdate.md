@@ -42,9 +42,12 @@ Model single-occurrence operations on the parent's recurrence rather than with
 exception rows:
 
 - **Delete one occurrence:** append the occurrence to the parent's `EXDATE`.
-- **Edit one occurrence:** append the original occurrence to the parent's
-  `EXDATE`, then insert the edited occurrence as a standalone, non-recurring
-  event.
+- **Edit one occurrence:** insert the edited occurrence as a standalone,
+  non-recurring event, then append the original occurrence to the parent's
+  `EXDATE`. The insert runs first so a failed `EXDATE` write rolls the one-off
+  back (deletes it) and reports a clean failure, rather than leaving the
+  original occurrence excluded with no replacement. This mirrors the
+  insert-before-truncate ordering the "this and following" split uses.
 
 Both update the parent with **DTSTART and RRULE re-sent in the same delta**. The
 provider only rebuilds the `Instances` table when DTSTART is present, and only
@@ -70,10 +73,11 @@ timed occurrences exclude by UTC datetime (`yyyyMMddTHHmmssZ`), all-day by date
     series. This is acceptable for an offline-first local-calendar app and avoids
     the data-loss-shaped series-vanish bug entirely.
   - Editing the same slot "this occurrence only" twice via the parent series
-    would append a duplicate EXDATE (harmless) and insert a second one-off. This
-    is largely unreachable from the UI: once excluded, the slot no longer renders
-    as part of the series, so the user edits the detached one-off directly (a
-    normal whole-event edit) rather than the series occurrence.
+    would insert a second one-off; the EXDATE is deduped (`mergeExdate` skips a
+    value already present), so it is not appended twice. This is largely
+    unreachable from the UI: once excluded, the slot no longer renders as part of
+    the series, so the user edits the detached one-off directly (a normal
+    whole-event edit) rather than the series occurrence.
 - `STATUS_CANCELED` exception rows are no longer written, so the read path does
   not need to filter them for our own deletions. (Foreign/synced cancellations
   can still arrive; filtering those is tracked separately.)
