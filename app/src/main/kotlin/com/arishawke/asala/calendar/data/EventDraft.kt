@@ -44,7 +44,7 @@ data class EventDraft(
             // recurring rows need DURATION, not DTEND. some account types reject
             // the PT{n}S seconds-only form, so emit full P{d}DT{h}H{m}M0S.
             put(CalendarContract.Events.RRULE, rrule)
-            put(CalendarContract.Events.DURATION, iso8601Duration(endMillis - startMillis))
+            put(CalendarContract.Events.DURATION, iso8601Duration(endMillis - startMillis, allDay))
         } else {
             put(CalendarContract.Events.DTEND, endMillis)
         }
@@ -64,7 +64,14 @@ data class EventDraft(
         return cv
     }
 
-    private fun iso8601Duration(durationMillis: Long): String {
+    private fun iso8601Duration(durationMillis: Long, allDay: Boolean): String {
+        // all-day rows store day-form durations. the provider's fixAllDayTime
+        // parses any all-day duration ending in 'S' as pure seconds and
+        // Integer.parseInt-crashes on a time-component form (P1DT0H0M0S).
+        if (allDay) {
+            val days = (durationMillis / MillisPerDay).coerceAtLeast(1)
+            return "P${days}D"
+        }
         val totalSeconds = (durationMillis / 1000).coerceAtLeast(60)
         val days = totalSeconds / 86_400
         val hours = (totalSeconds % 86_400) / 3600
@@ -73,6 +80,8 @@ data class EventDraft(
     }
 
     companion object {
+        private const val MillisPerDay = 86_400_000L
+
         // inverse of iso8601Duration. tolerant of our writes, shorter RFC 5545
         // forms (P1D, PT1H, P1W), and the non-strict P3600S form (no T) that
         // some sync adapters write back. T separator optional regardless of units.

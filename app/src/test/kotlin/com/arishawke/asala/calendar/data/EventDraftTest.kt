@@ -59,6 +59,49 @@ class EventDraftTest {
         assertNull(m[CalendarContract.Events.DTEND])
     }
 
+    @Test fun all_day_recurring_event_writes_day_form_duration() {
+        // The provider's fixAllDayTime treats an all-day duration ending in 'S'
+        // as the pure-seconds form and does Integer.parseInt on the P..S body;
+        // a time-component form like P1DT0H0M0S NumberFormat-crashes the insert.
+        // Day form sidesteps it (and is the RFC 5545 form for DATE values).
+        val draft =
+            EventDraft(
+                calendarId = 1L,
+                title = "Vacation",
+                description = null,
+                location = null,
+                startMillis = 1_700_000_000_000L,
+                endMillis = 1_700_086_400_000L, // +1 day
+                allDay = true,
+                eventTimezone = "UTC",
+                rrule = "FREQ=DAILY",
+            )
+
+        val m = draft.toMap()
+
+        assertEquals("FREQ=DAILY", m[CalendarContract.Events.RRULE])
+        assertEquals("P1D", m[CalendarContract.Events.DURATION])
+        assertNull(m[CalendarContract.Events.DTEND])
+    }
+
+    @Test fun all_day_multi_day_recurring_uses_day_count_duration() {
+        // a 3-day span must carry P3D, not collapse to a single day.
+        val draft =
+            EventDraft(
+                calendarId = 1L,
+                title = "Conference",
+                description = null,
+                location = null,
+                startMillis = 1_700_000_000_000L,
+                endMillis = 1_700_000_000_000L + 3L * 86_400_000L,
+                allDay = true,
+                eventTimezone = "UTC",
+                rrule = "FREQ=WEEKLY",
+            )
+
+        assertEquals("P3D", draft.toMap()[CalendarContract.Events.DURATION])
+    }
+
     @Test fun parses_own_duration_round_trip() {
         // 30 min, the form we emit
         assertEquals(30 * 60 * 1000L, EventDraft.parseIso8601DurationMs("P0DT0H30M0S"))
