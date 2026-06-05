@@ -127,43 +127,45 @@ compute it from your numeric user ID (visible in the URL when you
 view your profile API at `api.github.com/users/<username>`).
 Setting it globally is fine; setting per-repo also works.
 
-## Branch ruleset workflow
+## Branch workflow
 
-The `Signed Commits` ruleset on `main` (id 16726866) requires
-signed commits + linear history + the `build` and `secret-scan`
-CI checks to pass + no merge commits. There are no bypass
-actors, so direct push to `main` and `gh pr merge --rebase` both
-fail. The supported workflow is:
+The `main` ruleset requires **signed commits** and blocks
+force-pushes and branch deletion. It does not require pull
+requests, linear history, or passing CI, so you can land work
+either way:
 
-1. Branch from `main` with a descriptive name
-   (`feat/...`, `fix/...`, `docs/...`, `release/v0.X.Y`).
-2. Commit normally; signing happens automatically.
-3. Push the branch and open a PR via `gh pr create`.
-4. Wait for the `build` and `secret-scan` checks to go green on
-   the PR head.
-5. Locally fast-forward `main` to the PR head SHA, then push:
+- **Direct push** for small, low-risk changes: commit (signing is
+  automatic) and `git push origin main`.
+- **Pull request** when you want a review checkpoint or to let CI
+  finish first: branch (`feat/...`, `fix/...`, `docs/...`,
+  `release/vX.Y.Z`), push, open it with `gh pr create`, then land
+  it with GitHub's **Merge** or **Squash** button once you are
+  happy.
 
-   ```
-   git checkout main
-   git merge --ff-only <branch-sha>
-   git push origin main
-   ```
+CI (`build`, `secret-scan`, and the Gradle checks) runs on every
+push to `main` and every PR, but it does not block. Run the gate
+locally first and do not land red:
 
-   This succeeds because the CI checks have already run on the
-   pushed SHA. The PR auto-closes as merged.
+```
+./gradlew spotlessApply
+./gradlew spotlessCheck detekt lintDebug testDebugUnitTest
+```
 
-6. Delete the branch on both sides:
+Two caveats from the signing rule:
 
-   ```
-   git branch -d <branch>
-   git push origin --delete <branch>
-   ```
+- The GitHub web editor creates unsigned commits and is rejected.
+- GitHub's **Rebase** button is rejected too, because GitHub cannot
+  sign the rebased commits. If you want a linear history with no
+  merge commit, fast-forward `main` locally instead:
 
-Do not use GitHub's "Merge", "Squash", or "Rebase" buttons.
-Merge commits are blocked by linear history; squash and rebase
-both re-sign commits with GitHub's web-flow key, which strips
-your local SSH signature and either trips the `required_signatures`
-rule or loses the audit trail.
+  ```
+  git checkout main
+  git merge --ff-only <branch>
+  git push origin main
+  ```
+
+  The PR auto-closes as merged. Delete the branch with
+  `git push origin --delete <branch>` and `git branch -d <branch>`.
 
 ## Local checks (optional but recommended)
 
@@ -205,10 +207,9 @@ Releases are published as signed APKs attached to a GitHub Release.
 
 ### Per release
 
-The release commit must land on `main` through the standard
-PR + FF-push workflow because the `Signed Commits` ruleset
-blocks direct pushes (see "Branch ruleset workflow" above).
-The tag is created separately, after `main` is updated.
+Land the release commit on `main` the usual way (a release branch
+plus PR is recommended so CI runs first; see "Branch workflow"
+above). The tag is created separately, after `main` is updated.
 
 1. On a release branch:
    ```bash
@@ -229,7 +230,8 @@ The tag is created separately, after `main` is updated.
      --body "Release notes in the [X.Y.Z] CHANGELOG block."
    ```
 5. Wait for the `build` and `secret-scan` checks. Once both
-   pass, fast-forward `main`:
+   pass, land it on `main`: click **Merge** or **Squash** on the
+   PR, or fast-forward locally to keep the commit verbatim:
    ```bash
    git checkout main
    git merge --ff-only <release-branch-sha>
