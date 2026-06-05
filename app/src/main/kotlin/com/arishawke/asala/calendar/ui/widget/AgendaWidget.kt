@@ -51,9 +51,13 @@ class AgendaWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val snapshot = AgendaWidgetData.load(context)
-        val themeMode = UserPreferences(context.settingsDataStore).prefs.first().themeMode
-        val resolved = AgendaWidgetTheme.resolve(themeMode, context.resources.configuration.isNight())
-        val colors = AgendaWidgetTheme.colors(resolved)
+        val prefs = UserPreferences(context.settingsDataStore).prefs.first()
+        val resolved = AgendaWidgetTheme.resolveWidget(
+            prefs.widgetThemeMode,
+            prefs.themeMode,
+            context.resources.configuration.isNight(),
+        )
+        val colors = AgendaWidgetTheme.colors(resolved, prefs.widgetTranslucent)
         provideContent { AgendaContent(context, snapshot, colors) }
     }
 }

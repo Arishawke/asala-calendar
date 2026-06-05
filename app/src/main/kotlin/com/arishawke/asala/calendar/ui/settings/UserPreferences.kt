@@ -105,6 +105,10 @@ data class UserPrefs(
     val showWeekNumber: Boolean,
     // see [[MonthScrollStyle]].
     val monthScrollStyle: MonthScrollStyle,
+    // home-screen widget appearance, independent of the app theme. FollowApp
+    // reproduces the prior behavior (widgets track themeMode).
+    val widgetThemeMode: WidgetThemeMode,
+    val widgetTranslucent: Boolean,
 ) {
     companion object {
         // the values an empty DataStore yields. UserPreferences.prefs and the
@@ -136,6 +140,8 @@ data class UserPrefs(
             workingDays = WorkingDaysDefault,
             showWeekNumber = false,
             monthScrollStyle = MonthScrollStyle.Paged,
+            widgetThemeMode = WidgetThemeMode.FollowApp,
+            widgetTranslucent = false,
         )
     }
 }
@@ -178,6 +184,10 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                 monthScrollStyle = parseEnum(p[KEY_MONTH_SCROLL_STYLE], d.monthScrollStyle) {
                     MonthScrollStyle.valueOf(it)
                 },
+                widgetThemeMode = parseEnum(p[KEY_WIDGET_THEME_MODE], d.widgetThemeMode) {
+                    WidgetThemeMode.valueOf(it)
+                },
+                widgetTranslucent = p[KEY_WIDGET_TRANSLUCENT] ?: d.widgetTranslucent,
             )
         }
 
@@ -355,6 +365,14 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[KEY_MONTH_SCROLL_STYLE] = style.name }
     }
 
+    suspend fun setWidgetThemeMode(mode: WidgetThemeMode) {
+        dataStore.edit { it[KEY_WIDGET_THEME_MODE] = mode.name }
+    }
+
+    suspend fun setWidgetTranslucent(enabled: Boolean) {
+        dataStore.edit { it[KEY_WIDGET_TRANSLUCENT] = enabled }
+    }
+
     private inline fun <T> parseEnum(raw: String?, default: T, of: (String) -> T): T = raw?.let {
         runCatching { of(it) }.getOrElse { e ->
             Timber.w(e, "discarding unparseable stored enum value %s", it)
@@ -389,6 +407,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val KEY_WORKING_DAYS = stringSetPreferencesKey("working_days")
         val KEY_SHOW_WEEK_NUMBER = booleanPreferencesKey("show_week_number")
         val KEY_MONTH_SCROLL_STYLE = stringPreferencesKey("month_scroll_style")
+        val KEY_WIDGET_THEME_MODE = stringPreferencesKey("widget_theme_mode")
+        val KEY_WIDGET_TRANSLUCENT = booleanPreferencesKey("widget_translucent")
 
         fun decodeWorkingDays(raw: Set<String>?): Set<DayOfWeek> {
             if (raw.isNullOrEmpty()) return WorkingDaysDefault

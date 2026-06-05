@@ -172,6 +172,19 @@ fun SettingsScreen(
                 )
             }
 
+            item("section-widgets") {
+                SectionHeader(stringResource(R.string.settings_section_widgets))
+            }
+            item("widgets-theme") { WidgetThemeRow(s.widgetThemeMode, vm::setWidgetThemeMode) }
+            item("widgets-translucent") {
+                SwitchRow(
+                    label = stringResource(R.string.settings_widget_translucent),
+                    checked = s.widgetTranslucent,
+                    onChange = vm::setWidgetTranslucent,
+                    supporting = stringResource(R.string.settings_widget_translucent_summary),
+                )
+            }
+
             item("section-notifications") {
                 SectionHeader(stringResource(R.string.settings_notifications_header))
             }

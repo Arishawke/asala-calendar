@@ -33,6 +33,16 @@ private const val CONTENT_TRIGGER_JOB_ID = 4201
 private const val MIDNIGHT_REQUEST_CODE = 4202
 private const val TRIGGER_MAX_DELAY_MS = 1000L
 
+// redraw both widgets, each isolated so one failing does not skip the other.
+// shared by the content-trigger job, the midnight receiver, and the
+// settings-driven redraw when widget appearance changes.
+internal suspend fun updateAllWidgets(context: Context) {
+    runCatching { AgendaWidget().updateAll(context) }
+        .onFailure { Timber.e(it, "agenda widget update failed") }
+    runCatching { MonthWidget().updateAll(context) }
+        .onFailure { Timber.e(it, "month widget update failed") }
+}
+
 object WidgetRefreshScheduler {
     fun scheduleAll(context: Context) {
         scheduleContentTrigger(context)
@@ -101,11 +111,7 @@ class WidgetRefreshJobService : JobService() {
 
     override fun onStartJob(params: JobParameters?): Boolean {
         scope.launch {
-            // isolate each widget: one type failing must not skip the other's refresh.
-            runCatching { AgendaWidget().updateAll(applicationContext) }
-                .onFailure { Timber.e(it, "agenda widget content-trigger update failed") }
-            runCatching { MonthWidget().updateAll(applicationContext) }
-                .onFailure { Timber.e(it, "month widget content-trigger update failed") }
+            updateAllWidgets(applicationContext)
             // re-arm the one-shot trigger for the next change.
             WidgetRefreshScheduler.scheduleContentTrigger(applicationContext)
             jobFinished(params, false)
@@ -120,10 +126,7 @@ class MidnightWidgetRefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
-            runCatching { AgendaWidget().updateAll(context.applicationContext) }
-                .onFailure { Timber.e(it, "agenda widget midnight update failed") }
-            runCatching { MonthWidget().updateAll(context.applicationContext) }
-                .onFailure { Timber.e(it, "month widget midnight update failed") }
+            updateAllWidgets(context.applicationContext)
             WidgetRefreshScheduler.scheduleNextMidnight(context.applicationContext)
             pending.finish()
         }

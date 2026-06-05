@@ -17,6 +17,7 @@ import com.arishawke.asala.calendar.data.CalendarRepository
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.data.StorageModeSetup
 import com.arishawke.asala.calendar.ui.theme.PaletteId
+import com.arishawke.asala.calendar.ui.widget.updateAllWidgets
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -24,8 +25,13 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.DayOfWeek
 
-class SettingsViewModel(private val prefs: UserPreferences, private val calendarRepo: CalendarRepository) :
-    ViewModel() {
+class SettingsViewModel(
+    private val prefs: UserPreferences,
+    private val calendarRepo: CalendarRepository,
+    // application context, retained to push a widget redraw when widget
+    // appearance settings change. process-scoped, so no leak.
+    private val appContext: Context,
+) : ViewModel() {
     val state: StateFlow<UserPrefs> =
         prefs.prefs.stateIn(
             scope = viewModelScope,
@@ -43,6 +49,20 @@ class SettingsViewModel(private val prefs: UserPreferences, private val calendar
 
     fun setMonthScrollStyle(style: MonthScrollStyle) {
         viewModelScope.launch { prefs.setMonthScrollStyle(style) }
+    }
+
+    fun setWidgetThemeMode(mode: WidgetThemeMode) {
+        viewModelScope.launch {
+            prefs.setWidgetThemeMode(mode)
+            updateAllWidgets(appContext)
+        }
+    }
+
+    fun setWidgetTranslucent(enabled: Boolean) {
+        viewModelScope.launch {
+            prefs.setWidgetTranslucent(enabled)
+            updateAllWidgets(appContext)
+        }
     }
 
     fun setDefaultView(v: CalendarView) {
@@ -122,6 +142,7 @@ class SettingsViewModel(private val prefs: UserPreferences, private val calendar
             return SettingsViewModel(
                 prefs = UserPreferences(appContext.settingsDataStore),
                 calendarRepo = CalendarRepository(appContext.contentResolver),
+                appContext = appContext,
             ) as T
         }
     }

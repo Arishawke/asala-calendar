@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- Widget appearance settings (Settings > Widgets): the home-screen agenda and
+  month widgets can now use their own theme (Follow app, System, Light, Dark, or
+  AMOLED) independent of the app theme, and an optional translucent background
+  that lets the wallpaper show through. Existing widgets keep following the app
+  theme until changed.
+
 ### Fixed
 - Deleting a single occurrence of a repeating event ("this event only") no
   longer removes the whole series. The other occurrences now stay.
