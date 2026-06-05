@@ -8,6 +8,7 @@
  */
 package com.arishawke.asala.calendar.data
 
+import android.provider.CalendarContract
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -73,5 +74,26 @@ class VisibilityAndOverridesTest {
             eventOverrides = emptyMap(),
         )
         assertTrue(result.size == 1 && result[0].eventId == 10L)
+    }
+
+    // F2: a cancelled occurrence (e.g. a synced CalDAV/Google cancellation) must
+    // not reach the views; confirmed and tentative both stay.
+    @Test
+    fun `cancelled occurrences are dropped from the pipeline`() {
+        val events = listOf(
+            event(10L, 1L, 0xFF111111.toInt()),
+            event(20L, 1L, 0xFF222222.toInt()).copy(status = CalendarContract.Events.STATUS_CANCELED),
+            event(30L, 1L, 0xFF333333.toInt()).copy(status = CalendarContract.Events.STATUS_TENTATIVE),
+        )
+        val result = events.filteredAndRecolored(
+            hidden = emptySet(),
+            calendarOverrides = emptyMap(),
+            eventOverrides = emptyMap(),
+        )
+        assertEquals(
+            "cancelled is hidden; confirmed and tentative remain",
+            listOf(10L, 30L),
+            result.map { it.eventId },
+        )
     }
 }

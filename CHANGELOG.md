@@ -26,6 +26,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - A delete or drag-to-reschedule that the calendar storage rejects no longer
   looks like it worked: the event stays visible (delete) or snaps back to its
   original time (drag) instead of silently appearing to change.
+- A cancelled occurrence synced from another calendar (for example an event
+  cancelled in Google Calendar) is now hidden from the calendar views, search,
+  and widgets instead of lingering struck-through.
 
 ## [0.19.0] - 2026-06-05
 

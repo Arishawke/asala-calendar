@@ -77,10 +77,13 @@ fun List<EventItem>.applyColorOverrides(
     }
 }
 
-// drop hidden calendars, then apply color overrides.
+// drop cancelled occurrences and hidden calendars, then apply color overrides.
+// cancelled instances (e.g. a synced CalDAV/Google cancellation; our own deletes
+// no longer write them, they EXDATE the parent) must not linger struck-through.
 fun List<EventItem>.filteredAndRecolored(
     hidden: Set<Long>,
     calendarOverrides: Map<Long, Int>,
     eventOverrides: Map<Long, Int>,
-): List<EventItem> = filter { it.calendarId !in hidden }
-    .applyColorOverrides(calendarOverrides, eventOverrides)
+): List<EventItem> = filter {
+    it.calendarId !in hidden && it.status != CalendarContract.Events.STATUS_CANCELED
+}.applyColorOverrides(calendarOverrides, eventOverrides)
