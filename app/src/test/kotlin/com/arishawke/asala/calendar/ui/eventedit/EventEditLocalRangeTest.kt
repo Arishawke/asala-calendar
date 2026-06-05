@@ -47,6 +47,23 @@ class EventEditLocalRangeTest {
         assertEquals(LocalTime.MIDNIGHT, range.startTime)
     }
 
+    // a malformed all-day row (exclusive end == start, e.g. a foreign null or
+    // garbage DURATION reconstructed to zero length) must not open the editor
+    // with the end a day before the start; clamp it to a single day.
+    @Test
+    fun `zero-length all-day row clamps the end date to the start`() {
+        val range = extractLocalRange(
+            startMillis = 0L,
+            endMillis = 0L,
+            allDay = true,
+            rrule = null,
+            instanceStartMillis = null,
+            zone = ZoneOffset.UTC,
+        )
+        assertEquals(LocalDate.of(1970, 1, 1), range.startDate)
+        assertEquals(LocalDate.of(1970, 1, 1), range.endDate)
+    }
+
     // a recurring event opened from an instance prefills that instance's day,
     // preserving the parent's duration, not the parent DTSTART.
     @Test

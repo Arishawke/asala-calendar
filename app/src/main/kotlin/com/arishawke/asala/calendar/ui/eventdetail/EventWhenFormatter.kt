@@ -63,6 +63,9 @@ private fun formatAllDayRange(startMillis: Long, endMillisExclusive: Long, local
         timeInMillis = endMillisExclusive
         add(IcuCalendar.DATE, -1)
     }
+    // a malformed zero-length all-day row (exclusive end == start) rolls the end
+    // before the start; clamp so it renders as a single day, not a reversed range.
+    if (endCal.before(startCal)) endCal.timeInMillis = startCal.timeInMillis
     return if (sameDay(startCal, endCal)) {
         IcuDateFormat.getPatternInstance(DateSkeleton, locale).format(startCal)
     } else {

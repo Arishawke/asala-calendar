@@ -41,6 +41,9 @@ internal fun extractLocalRange(
     val extractionZone = if (allDay) ZoneOffset.UTC else zone
     val sLocal = Instant.ofEpochMilli(effectiveStart).atZone(extractionZone).toLocalDateTime()
     val eLocal = Instant.ofEpochMilli(effectiveEnd).atZone(extractionZone).toLocalDateTime()
-    val displayEndDate = if (allDay) eLocal.toLocalDate().minusDays(1) else eLocal.toLocalDate()
+    // a malformed zero-length all-day row (exclusive end == start) would roll the
+    // display end a day before the start; clamp it to a single day.
+    val displayEndDate =
+        if (allDay) maxOf(eLocal.toLocalDate().minusDays(1), sLocal.toLocalDate()) else eLocal.toLocalDate()
     return LocalRange(sLocal.toLocalDate(), sLocal.toLocalTime(), displayEndDate, eLocal.toLocalTime())
 }

@@ -38,6 +38,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   that opens the app, so a very busy two weeks can no longer make the widget
   fail to load. Event colors are also forced opaque so a bar cannot render
   invisible.
+- An all-day event with a malformed zero length (from another app's data) no
+  longer shows a backwards date range or opens the editor with the end before
+  the start; it now reads as a single day.
 - Tapping a day in the month view now opens that exact day. Previously a day more
   than about two months from today opened a nearer day instead, because the day
   view only covered a short range around today.
