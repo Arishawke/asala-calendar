@@ -41,25 +41,26 @@ class EventRepository(private val contentResolver: ContentResolver) {
         .map { queryInstances(startDate, endExclusive, zone) }
         .flowOn(Dispatchers.IO)
 
-    private fun queryInstances(startDate: LocalDate, endExclusive: LocalDate, zone: ZoneId): List<EventItem> {
-        val (startMillis, endMillis) = dayRangeMillis(startDate, endExclusive, zone)
+    private fun queryInstances(startDate: LocalDate, endExclusive: LocalDate, zone: ZoneId): List<EventItem> =
+        providerCall("queryInstances", onError = emptyList()) {
+            val (startMillis, endMillis) = dayRangeMillis(startDate, endExclusive, zone)
 
-        val uri = instancesUriFor(startMillis, endMillis)
+            val uri = instancesUriFor(startMillis, endMillis)
 
-        val cursor =
-            contentResolver.query(
-                uri,
-                Projection,
-                null,
-                null,
-                "${CalendarContract.Instances.BEGIN} ASC",
-            ) ?: run {
-                Timber.w("queryInstances: null cursor for %s..%s", startDate, endExclusive)
-                return emptyList()
-            }
+            val cursor =
+                contentResolver.query(
+                    uri,
+                    Projection,
+                    null,
+                    null,
+                    "${CalendarContract.Instances.BEGIN} ASC",
+                ) ?: run {
+                    Timber.w("queryInstances: null cursor for %s..%s", startDate, endExclusive)
+                    return@providerCall emptyList()
+                }
 
-        return cursor.use { it.readEventItems() }
-    }
+            cursor.use { it.readEventItems() }
+        }
 
     suspend fun searchEvents(
         query: String,
@@ -68,23 +69,25 @@ class EventRepository(private val contentResolver: ContentResolver) {
         zone: ZoneId = ZoneId.systemDefault(),
     ): List<EventItem> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyList()
-        val (startMillis, endMillis) = dayRangeMillis(startDate, endExclusive, zone)
-        val uri = instancesUriFor(startMillis, endMillis)
-        val escaped = escapeLikePattern(query.trim())
-        val selection =
-            "(${CalendarContract.Instances.TITLE} LIKE ? ESCAPE '\\') OR " +
-                "(${CalendarContract.Instances.EVENT_LOCATION} LIKE ? ESCAPE '\\') OR " +
-                "(${CalendarContract.Instances.DESCRIPTION} LIKE ? ESCAPE '\\')"
-        val arg = "%$escaped%"
-        val cursor =
-            contentResolver.query(
-                uri,
-                Projection,
-                selection,
-                arrayOf(arg, arg, arg),
-                "${CalendarContract.Instances.BEGIN} ASC",
-            ) ?: return@withContext emptyList()
-        cursor.use { it.readEventItems() }
+        providerCall("searchEvents", onError = emptyList()) {
+            val (startMillis, endMillis) = dayRangeMillis(startDate, endExclusive, zone)
+            val uri = instancesUriFor(startMillis, endMillis)
+            val escaped = escapeLikePattern(query.trim())
+            val selection =
+                "(${CalendarContract.Instances.TITLE} LIKE ? ESCAPE '\\') OR " +
+                    "(${CalendarContract.Instances.EVENT_LOCATION} LIKE ? ESCAPE '\\') OR " +
+                    "(${CalendarContract.Instances.DESCRIPTION} LIKE ? ESCAPE '\\')"
+            val arg = "%$escaped%"
+            val cursor =
+                contentResolver.query(
+                    uri,
+                    Projection,
+                    selection,
+                    arrayOf(arg, arg, arg),
+                    "${CalendarContract.Instances.BEGIN} ASC",
+                ) ?: return@providerCall emptyList()
+            cursor.use { it.readEventItems() }
+        }
     }
 
     // shared reader for the Projection above; queryInstances and searchEvents
@@ -126,15 +129,15 @@ class EventRepository(private val contentResolver: ContentResolver) {
         return items
     }
 
-    suspend fun fetchEventDetail(eventId: Long): EventDetail? = contentResolver.readEventDetail(eventId)
+    suspend fun fetchEventDetail(eventId: Long): EventDetail? =
+        providerCall("fetchEventDetail", onError = null) { contentResolver.readEventDetail(eventId) }
 
     suspend fun insertEvent(draft: EventDraft): Long? = withContext(Dispatchers.IO) {
-        val uri =
-            contentResolver.insert(
-                CalendarContract.Events.CONTENT_URI,
-                draft.toContentValues(),
-            ) ?: return@withContext null
-        ContentUris.parseId(uri)
+        providerCall("insertEvent", onError = null) {
+            contentResolver
+                .insert(CalendarContract.Events.CONTENT_URI, draft.toContentValues())
+                ?.let(ContentUris::parseId)
+        }
     }
 
     suspend fun updateEvent(
@@ -144,14 +147,16 @@ class EventRepository(private val contentResolver: ContentResolver) {
         instanceMillis: Long? = null,
         parentRrule: String? = null,
         parentAllDay: Boolean = false,
-    ): Long? = contentResolver.updateEventScoped(
-        eventId,
-        draft,
-        scope,
-        instanceMillis,
-        parentRrule,
-        parentAllDay,
-    )
+    ): Long? = providerCall("updateEvent", onError = null) {
+        contentResolver.updateEventScoped(
+            eventId,
+            draft,
+            scope,
+            instanceMillis,
+            parentRrule,
+            parentAllDay,
+        )
+    }
 
     suspend fun deleteEvent(
         eventId: Long,
@@ -160,14 +165,16 @@ class EventRepository(private val contentResolver: ContentResolver) {
         parentRrule: String? = null,
         parentCalendarId: Long? = null,
         parentAllDay: Boolean = false,
-    ): Boolean = contentResolver.deleteEventScoped(
-        eventId,
-        scope,
-        instanceMillis,
-        parentRrule,
-        parentCalendarId,
-        parentAllDay,
-    )
+    ): Boolean = providerCall("deleteEvent", onError = false) {
+        contentResolver.deleteEventScoped(
+            eventId,
+            scope,
+            instanceMillis,
+            parentRrule,
+            parentCalendarId,
+            parentAllDay,
+        )
+    }
 
     private companion object {
         val Projection =

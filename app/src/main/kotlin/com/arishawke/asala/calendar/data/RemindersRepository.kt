@@ -22,21 +22,23 @@ class RemindersRepository(private val contentResolver: ContentResolver) {
      * mid-save); the caller should surface that, not assume the reminder is set.
      */
     suspend fun setReminder(eventId: Long, minutesBefore: Int?): Boolean = withContext(Dispatchers.IO) {
-        contentResolver.delete(
-            CalendarContract.Reminders.CONTENT_URI,
-            "${CalendarContract.Reminders.EVENT_ID} = ?",
-            arrayOf(eventId.toString()),
-        )
-        if (minutesBefore == null) return@withContext true
+        providerCall("setReminder", onError = false) {
+            contentResolver.delete(
+                CalendarContract.Reminders.CONTENT_URI,
+                "${CalendarContract.Reminders.EVENT_ID} = ?",
+                arrayOf(eventId.toString()),
+            )
+            if (minutesBefore == null) return@providerCall true
 
-        val cv =
-            ContentValues().apply {
-                put(CalendarContract.Reminders.EVENT_ID, eventId)
-                put(CalendarContract.Reminders.MINUTES, minutesBefore)
-                put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
-            }
-        val inserted = contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, cv) != null
-        if (!inserted) Timber.w("setReminder: provider rejected reminder insert for event %d", eventId)
-        inserted
+            val cv =
+                ContentValues().apply {
+                    put(CalendarContract.Reminders.EVENT_ID, eventId)
+                    put(CalendarContract.Reminders.MINUTES, minutesBefore)
+                    put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                }
+            val inserted = contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, cv) != null
+            if (!inserted) Timber.w("setReminder: provider rejected reminder insert for event %d", eventId)
+            inserted
+        }
     }
 }

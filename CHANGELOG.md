@@ -24,6 +24,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Creating or saving a repeating all-day event no longer crashes. The repeat
   length was written in a time-based form the calendar storage rejects for
   all-day events; it is now written in whole days.
+- The app no longer crashes when the calendar storage rejects a change or
+  access is revoked mid-session (for example a removed account or a changed
+  permission). Such failures now surface the save-failed message or show an
+  empty view instead of closing the app.
 - Tapping a day in the month view now opens that exact day. Previously a day more
   than about two months from today opened a nearer day instead, because the day
   view only covered a short range around today.

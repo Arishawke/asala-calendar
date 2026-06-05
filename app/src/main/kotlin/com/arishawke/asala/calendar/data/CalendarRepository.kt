@@ -47,7 +47,9 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, account)
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                 .build()
-        contentResolver.insert(uri, values)?.lastPathSegment?.toLongOrNull()
+        providerCall("createLocalCalendar", onError = null) {
+            contentResolver.insert(uri, values)?.lastPathSegment?.toLongOrNull()
+        }
     }
 
     suspend fun deleteLocalCalendar(calendarId: Long): Boolean = withContext(Dispatchers.IO) {
@@ -61,7 +63,9 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, LocalCalendar.AccountName)
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                 .build()
-        contentResolver.delete(uri, null, null) > 0
+        providerCall("deleteLocalCalendar", onError = false) {
+            contentResolver.delete(uri, null, null) > 0
+        }
     }
 
     // CALENDAR_COLOR is sync-adapter-scoped per AOSP (app-writable set is
@@ -77,7 +81,9 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                 .build()
         val values = ContentValues().apply { put(CalendarContract.Calendars.CALENDAR_COLOR, color) }
-        contentResolver.update(uri, values, null, null) > 0
+        providerCall("updateLocalCalendarColor", onError = false) {
+            contentResolver.update(uri, values, null, null) > 0
+        }
     }
 
     // CALENDAR_DISPLAY_NAME is app-writable per AOSP, so no sync-adapter URI;
@@ -95,10 +101,12 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
                 put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, trimmed)
                 put(CalendarContract.Calendars.NAME, trimmed)
             }
-        contentResolver.update(uri, values, null, null) > 0
+        providerCall("renameLocalCalendar", onError = false) {
+            contentResolver.update(uri, values, null, null) > 0
+        }
     }
 
-    private fun queryCalendars(): List<CalendarItem> {
+    private fun queryCalendars(): List<CalendarItem> = providerCall("queryCalendars", onError = emptyList()) {
         val cursor =
             contentResolver.query(
                 CalendarContract.Calendars.CONTENT_URI,
@@ -107,9 +115,9 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
                 null,
                 "${CalendarContract.Calendars.IS_PRIMARY} DESC, " +
                     "${CalendarContract.Calendars.CALENDAR_DISPLAY_NAME} ASC",
-            ) ?: return emptyList()
+            ) ?: return@providerCall emptyList()
 
-        return cursor.use {
+        cursor.use {
             val items = mutableListOf<CalendarItem>()
             val idIdx = it.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
             val displayIdx = it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)
