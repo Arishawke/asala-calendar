@@ -18,6 +18,11 @@ repos:
         exclude: \.md$
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: check-json
+      - id: check-toml
       - id: check-merge-conflict
       - id: check-case-conflict
+      - id: check-added-large-files
       - id: detect-private-key
+      # auto, not lf: gradlew.bat is intentionally crlf (.gitattributes)
+      - id: mixed-line-ending
