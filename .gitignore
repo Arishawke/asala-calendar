@@ -43,3 +43,9 @@ gradle/verification-metadata.xml
 gradle/verification-keyring.gpg
 gradle/verification-keyring.keys
 gradle/verification-*.deferred-bootstrap
+
+# Private working docs (handoffs, session notes, agent continuity). Never
+# committed or published; point contributors at CONTRIBUTING / SECURITY instead.
+docs/private/
+HANDOFF.md
+*.handoff.md
