@@ -16,6 +16,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.TimeZone
 
 class EventSaveTest {
     private fun form(selectedCalendarId: Long? = 1L): EventEditFormState = EventEditFormState(
@@ -234,6 +235,7 @@ class EventSaveTest {
             scope = RecurringEditScope.AllEvents,
             instanceMillis = null,
             parentRrule = original,
+            loadedTimezone = "UTC",
             insertEvent = { error("must not be called on edit path") },
             updateEvent = { _, draft, _, _, _, _ ->
                 savedRrule = draft.rrule
@@ -261,6 +263,7 @@ class EventSaveTest {
             scope = RecurringEditScope.AllEvents,
             instanceMillis = null,
             parentRrule = "FREQ=WEEKLY;UNTIL=20260301T080000Z",
+            loadedTimezone = "UTC",
             insertEvent = { error("must not be called on edit path") },
             updateEvent = { _, draft, _, _, _, _ ->
                 savedRrule = draft.rrule
@@ -269,6 +272,158 @@ class EventSaveTest {
             setReminder = { _, _ -> true },
         )
         assertEquals("FREQ=WEEKLY;UNTIL=20260308T235959Z", savedRrule)
+    }
+
+    // F7: editing a series authored in another zone must keep its
+    // EVENT_TIMEZONE, not rewrite it to the device zone (which would shift the
+    // intended-zone occurrences). Tz is threaded like loadedStatus/availability.
+    @Test
+    fun `edit preserves the loaded event timezone instead of the device zone`() = runBlocking {
+        var savedTz: String? = null
+        EventSave.attempt(
+            form = form(),
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = null,
+            parentRrule = null,
+            loadedTimezone = "America/New_York",
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedTz = draft.eventTimezone
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals("America/New_York", savedTz)
+    }
+
+    // New events have no loaded zone, so they default to the device zone.
+    @Test
+    fun `new event uses the device timezone`() = runBlocking {
+        var savedTz: String? = null
+        EventSave.attempt(
+            form = form(),
+            editingEventId = null,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = null,
+            parentRrule = null,
+            insertEvent = { draft ->
+                savedTz = draft.eventTimezone
+                5L
+            },
+            updateEvent = { _, _, _, _, _, _ -> error("must not be called on create path") },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals(TimeZone.getDefault().id, savedTz)
+    }
+
+    // F6 wiring: a rebuilt rule on a non-UTC series closes the day at the event
+    // zone's end-of-day, expressed in UTC (not a blanket T235959Z).
+    @Test
+    fun `edit rebuilds non-utc series UNTIL at the event zone end of day`() = runBlocking {
+        var savedRrule: String? = null
+        val recurringForm = form().copy(
+            recurrenceFrequency = RecurrenceFrequency.Daily,
+            recurrenceInterval = 1,
+            recurrenceUntilDate = LocalDate.of(2026, 12, 31),
+            recurrenceCount = null,
+        )
+        EventSave.attempt(
+            form = recurringForm,
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = null,
+            // a different UNTIL than the form's date forces a rebuild.
+            parentRrule = "FREQ=DAILY;UNTIL=20260101T045959Z",
+            loadedTimezone = "America/New_York",
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedRrule = draft.rrule
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        // 2026-12-31 23:59:59 EST = 2027-01-01 04:59:59 UTC.
+        assertEquals("FREQ=DAILY;UNTIL=20270101T045959Z", savedRrule)
+    }
+
+    // F8: a timed end-before-start draft is rejected at save rather than written
+    // as an inverted range (the duration floor would silently widen it to 60s).
+    @Test
+    fun `timed end before start returns Failure without writing`() = runBlocking {
+        var inserted = false
+        val inverted = form().copy(
+            startDate = LocalDate.of(2026, 6, 1),
+            startTime = LocalTime.of(13, 0),
+            endDate = LocalDate.of(2026, 6, 1),
+            endTime = LocalTime.of(12, 0),
+        )
+        val result =
+            EventSave.attempt(
+                form = inverted,
+                editingEventId = null,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                insertEvent = {
+                    inserted = true
+                    5L
+                },
+                updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
+                setReminder = { _, _ -> true },
+            )
+        assertEquals(SaveResult.Failure, result)
+        assertTrue("insert must not run for an inverted range", !inserted)
+    }
+
+    // All-day end date before start date is also rejected.
+    @Test
+    fun `all-day end date before start date returns Failure`() = runBlocking {
+        var inserted = false
+        val inverted = form().copy(
+            allDay = true,
+            startDate = LocalDate.of(2026, 6, 2),
+            endDate = LocalDate.of(2026, 6, 1),
+        )
+        val result =
+            EventSave.attempt(
+                form = inverted,
+                editingEventId = null,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                insertEvent = {
+                    inserted = true
+                    5L
+                },
+                updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
+                setReminder = { _, _ -> true },
+            )
+        assertEquals(SaveResult.Failure, result)
+        assertTrue("insert must not run for an inverted all-day range", !inserted)
+    }
+
+    // Boundary guard: a single-day all-day event (end date == start date) is a
+    // valid one-day span and must still save.
+    @Test
+    fun `single-day all-day event saves`() = runBlocking {
+        val sameDay = form().copy(
+            allDay = true,
+            startDate = LocalDate.of(2026, 6, 1),
+            endDate = LocalDate.of(2026, 6, 1),
+        )
+        val result =
+            EventSave.attempt(
+                form = sameDay,
+                editingEventId = null,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                insertEvent = { 5L },
+                updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
+                setReminder = { _, _ -> true },
+            )
+        assertEquals(SaveResult.Success(5L), result)
     }
 
     // Edit path reminder rejection: same partial-failure contract as the
