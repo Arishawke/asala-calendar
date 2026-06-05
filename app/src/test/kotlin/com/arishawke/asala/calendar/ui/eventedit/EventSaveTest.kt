@@ -426,6 +426,65 @@ class EventSaveTest {
         assertEquals(SaveResult.Success(5L), result)
     }
 
+    // F5: editing "this and following" without touching recurrence must keep the
+    // parent's rule tokens on the future split. build() can't model BYDAY, so a
+    // FREQ=WEEKLY;BYDAY=MO,WE series would otherwise recur daily-by-DTSTART on the
+    // split half. The split derives from the parent rule, preserving BYDAY.
+    @Test
+    fun `ThisAndFollowing keeps BYDAY on the split when recurrence is untouched`() = runBlocking {
+        var savedRrule: String? = null
+        val recurringForm = form().copy(
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 1,
+            recurrenceUntilDate = null,
+            recurrenceCount = null,
+        )
+        EventSave.attempt(
+            form = recurringForm,
+            editingEventId = 7L,
+            scope = RecurringEditScope.ThisAndFollowing,
+            instanceMillis = 1_700_000_000_000L,
+            parentRrule = "FREQ=WEEKLY;BYDAY=MO,WE",
+            loadedTimezone = "UTC",
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedRrule = draft.rrule
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals("FREQ=WEEKLY;BYDAY=MO,WE", savedRrule)
+    }
+
+    // Guard: actually changing recurrence on "this and following" rebuilds the
+    // rule from the editor fields (the user redefined it), so BYDAY does not
+    // carry. Documents the boundary of the keep-verbatim path.
+    @Test
+    fun `ThisAndFollowing rebuilds the rule when recurrence is changed`() = runBlocking {
+        var savedRrule: String? = null
+        val recurringForm = form().copy(
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 2,
+            recurrenceUntilDate = null,
+            recurrenceCount = null,
+        )
+        EventSave.attempt(
+            form = recurringForm,
+            editingEventId = 7L,
+            scope = RecurringEditScope.ThisAndFollowing,
+            instanceMillis = 1_700_000_000_000L,
+            parentRrule = "FREQ=WEEKLY;BYDAY=MO,WE",
+            loadedTimezone = "UTC",
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedRrule = draft.rrule
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals("FREQ=WEEKLY;INTERVAL=2", savedRrule)
+    }
+
     // Edit path reminder rejection: same partial-failure contract as the
     // create path. Event row was updated; reminder write rejected; user
     // sees Failure.

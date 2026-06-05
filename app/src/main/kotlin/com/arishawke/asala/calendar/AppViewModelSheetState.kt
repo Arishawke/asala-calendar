@@ -76,13 +76,18 @@ fun AppViewModel.deleteEvent(
     parentAllDay: Boolean = false,
 ) {
     viewModelScope.launch {
-        eventRepository.deleteEvent(
+        // only finalize when the provider actually deleted. on failure keep the
+        // sheet open so the still-present event signals the delete did not take,
+        // rather than closing on a false success and (AllEvents) dropping a color
+        // override that could re-attach to a recycled id.
+        val deleted = eventRepository.deleteEvent(
             eventId = eventId,
             scope = scope,
             instanceMillis = instanceMillis,
             parentRrule = parentRrule,
             parentAllDay = parentAllDay,
         )
+        if (!deleted) return@launch
         // AllEvents drops the row, orphaning the per-event override (would
         // re-attach on a recycled id); other scopes keep the eventId.
         if (shouldClearEventOverrideOnDelete(scope)) {
@@ -96,8 +101,16 @@ fun AppViewModel.deleteEvent(
 // (non-recurring) or the scope picker (recurring). all-day ignored for now.
 fun AppViewModel.rescheduleEvent(eventId: Long, instanceMillis: Long, newStartMillis: Long) {
     viewModelScope.launch {
-        val detail = eventRepository.fetchEventDetail(eventId) ?: return@launch
-        if (detail.allDay) return@launch
+        // every abandon path must snap the optimistic chip back, else it is
+        // stranded at the dragged time with no write behind it.
+        val detail = eventRepository.fetchEventDetail(eventId) ?: run {
+            dragRevertSignalBacker.tryEmit(eventId)
+            return@launch
+        }
+        if (detail.allDay) {
+            dragRevertSignalBacker.tryEmit(eventId)
+            return@launch
+        }
         val duration = detail.endMillis - detail.startMillis
         val newEnd = newStartMillis + duration
         if (newStartMillis == detail.startMillis) return@launch
@@ -166,7 +179,7 @@ private suspend fun AppViewModel.saveRescheduleNow(
         status = detail.status,
         availability = detail.availability,
     )
-    eventRepository.updateEvent(
+    val updated = eventRepository.updateEvent(
         eventId = detail.eventId,
         draft = draft,
         scope = scope,
@@ -174,4 +187,7 @@ private suspend fun AppViewModel.saveRescheduleNow(
         parentRrule = detail.rrule,
         parentAllDay = detail.allDay,
     )
+    // provider rejected the move: snap the optimistic chip back instead of
+    // leaving it stranded at a time nothing was written to.
+    if (updated == null) dragRevertSignalBacker.tryEmit(detail.eventId)
 }

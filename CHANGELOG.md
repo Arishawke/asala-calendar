@@ -15,11 +15,17 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   stay. The edited occurrence becomes its own one-off event.
 - A repeating event with an end date now stops on the correct day in time zones
   other than UTC. The final occurrence on the end date is no longer dropped.
-- Editing a repeating event no longer rewrites its time zone to the device's.
-  Editing an event created in another zone (while traveling, or imported) kept
-  the right occurrences only by chance; the original time zone is now preserved.
+- Editing a repeating event no longer changes its stored time zone to the
+  device's. An event created in (or imported from) another time zone keeps its
+  original zone, so its later occurrences stay put instead of shifting.
 - Saving an event whose end is before its start is now rejected instead of
   silently storing an inverted or zero-length time range.
+- Editing "this and all following" on a repeating event that recurs on specific
+  weekdays (for example an imported every-Monday-and-Wednesday series) now keeps
+  those weekdays on the later occurrences instead of repeating every day.
+- A delete or drag-to-reschedule that the calendar storage rejects no longer
+  looks like it worked: the event stays visible (delete) or snaps back to its
+  original time (drag) instead of silently appearing to change.
 
 ## [0.19.0] - 2026-06-05
 

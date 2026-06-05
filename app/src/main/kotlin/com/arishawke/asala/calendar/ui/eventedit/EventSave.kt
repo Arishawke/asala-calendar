@@ -45,7 +45,13 @@ internal object EventSave {
         val zone = ZoneId.systemDefault()
         val tz = if (form.allDay) "UTC" else (loadedTimezone ?: TimeZone.getDefault().id)
         // the event zone drives the recurrence UNTIL cutoff; fall back to the
-        // device zone if a stored EVENT_TIMEZONE can't be parsed.
+        // device zone if a stored EVENT_TIMEZONE can't be parsed. note the
+        // start/end instants below are interpreted in the device `zone` (the same
+        // zone the editor displays the clock in), while EVENT_TIMEZONE keeps the
+        // authored value: a clock edited on a device in a different zone than the
+        // event's is interpreted as device-local. preserving the authored zone is
+        // still correct for the common edit (clock untouched) and avoids the prior
+        // clobber-to-device-zone bug.
         val eventZone = runCatching { ZoneId.of(tz) }.getOrDefault(zone)
 
         val startMillis: Long
@@ -84,13 +90,15 @@ internal object EventSave {
 
         val rrule =
             form.recurrenceFrequency?.let { freq ->
-                // editing the whole series in place: if the user left recurrence
-                // untouched, keep the loaded rule verbatim rather than rebuilding.
-                // build() only models FREQ/INTERVAL/UNTIL/COUNT, so a rebuild would
-                // drop a sub-day UNTIL time (widening it to ...235959Z) or BYDAY/
-                // WKST tokens, which can resurrect a split-off occurrence.
+                // if the user left recurrence untouched, keep the loaded rule
+                // verbatim rather than rebuilding. build() only models
+                // FREQ/INTERVAL/UNTIL/COUNT, so a rebuild would drop a sub-day
+                // UNTIL time (widening it to ...235959Z) or BYDAY/WKST tokens.
+                // Applies to the whole-series edit and to the this-and-following
+                // split's future series (whose COUNT is still reduced downstream),
+                // so an imported BYDAY series keeps its days on the split half.
                 val keepOriginal =
-                    scope == RecurringEditScope.AllEvents &&
+                    scope != RecurringEditScope.ThisInstance &&
                         parentRrule != null &&
                         RecurrenceRule.matchesEditorFields(
                             parentRrule,

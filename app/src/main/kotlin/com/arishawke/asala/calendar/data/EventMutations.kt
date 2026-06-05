@@ -212,12 +212,18 @@ private fun ContentResolver.updateThisAndFollowing(
             parentRrule,
             RecurrenceExceptionMath.untilUtcForTruncation(instanceMillis, parentAllDay),
         )
-    // insert the split first: if truncation fails the user sees a recoverable
-    // duplicate rather than losing following occurrences.
+    // insert the split first so neither failure drops occurrences: if the insert
+    // fails the parent is untouched; if the truncation then fails we roll the
+    // split back below to a clean failure.
     val uri = insert(CalendarContract.Events.CONTENT_URI, splitDraft.toContentValues()) ?: return null
     val newId = ContentUris.parseId(uri).takeIf { it > 0L } ?: return null
     if (truncateParentRecurrence(eventId, parentDtStart, newRrule) <= 0) {
-        Timber.e("ThisAndFollowing: split %d inserted but parent %d truncation failed", newId, eventId)
+        // truncation failed: roll the split back so this reports a clean failure
+        // (the parent series stays intact) instead of a silent duplicate, matching
+        // the single-occurrence edit path.
+        delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, newId), null, null)
+        Timber.e("ThisAndFollowing: parent %d truncation failed; rolled back split %d", eventId, newId)
+        return null
     }
     return newId
 }
