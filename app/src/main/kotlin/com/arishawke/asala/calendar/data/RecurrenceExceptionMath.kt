@@ -60,6 +60,19 @@ object RecurrenceExceptionMath {
         }
     }
 
+    // EXDATE value that excludes a single occurrence from the parent series:
+    // timed -> UTC datetime, all-day -> date. Matches the value types
+    // untilUtcForTruncation emits, so the provider recognizes the exclusion.
+    fun exdateValue(instanceUtcMillis: Long, allDay: Boolean): String {
+        val at = Instant.ofEpochMilli(instanceUtcMillis).atOffset(ZoneOffset.UTC)
+        return at.format(if (allDay) UTC_DATE_FORMAT else UTC_ICAL_FORMAT)
+    }
+
+    // EXDATE accumulates across deletions: seed when empty, else comma-append so
+    // a second exclusion does not drop the first.
+    fun mergeExdate(existing: String?, value: String): String =
+        if (existing.isNullOrBlank()) value else "$existing,$value"
+
     private val UTC_ICAL_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'", Locale.ROOT)
     private val UTC_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT)
 }

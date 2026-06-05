@@ -73,7 +73,6 @@ fun AppViewModel.deleteEvent(
     scope: RecurringEditScope = RecurringEditScope.AllEvents,
     instanceMillis: Long? = null,
     parentRrule: String? = null,
-    parentCalendarId: Long? = null,
     parentAllDay: Boolean = false,
 ) {
     viewModelScope.launch {
@@ -82,7 +81,6 @@ fun AppViewModel.deleteEvent(
             scope = scope,
             instanceMillis = instanceMillis,
             parentRrule = parentRrule,
-            parentCalendarId = parentCalendarId,
             parentAllDay = parentAllDay,
         )
         // AllEvents drops the row, orphaning the per-event override (would

@@ -109,4 +109,25 @@ class RecurringExceptionMathTest {
             RecurrenceExceptionMath.reduceSplitCount("FREQ=DAILY;COUNT=3", keptInstances = 5),
         )
     }
+
+    // "delete/edit this occurrence" excludes the slot on the parent via EXDATE
+    // (a provider exception row drops the whole series from instance expansion).
+    // Timed occurrences exclude by UTC datetime; the format and zone must be
+    // exact. 1_700_000_000_000 ms is 2023-11-14T22:13:20Z.
+    @Test fun exdateValue_formats_a_timed_occurrence_as_utc_datetime() {
+        assertEquals("20231114T221320Z", RecurrenceExceptionMath.exdateValue(1_700_000_000_000L, allDay = false))
+    }
+
+    // all-day occurrences exclude by bare date (the slot is UTC midnight).
+    @Test fun exdateValue_formats_an_all_day_occurrence_as_a_bare_date() {
+        assertEquals("20231114", RecurrenceExceptionMath.exdateValue(1_700_000_000_000L, allDay = true))
+    }
+
+    // EXDATE accumulates: the first exclusion seeds the field, later ones append
+    // comma-separated, so deleting a second occurrence keeps the first excluded.
+    @Test fun mergeExdate_seeds_then_comma_appends() {
+        assertEquals("A", RecurrenceExceptionMath.mergeExdate(null, "A"))
+        assertEquals("A", RecurrenceExceptionMath.mergeExdate("", "A"))
+        assertEquals("X,A", RecurrenceExceptionMath.mergeExdate("X", "A"))
+    }
 }

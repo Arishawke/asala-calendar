@@ -34,6 +34,7 @@ android {
         targetSdk = 36
         versionCode = 22
         versionName = "0.19.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -145,4 +146,11 @@ dependencies {
     lintChecks(libs.compose.lint.checks)
 
     testImplementation(libs.junit)
+
+    // instrumented tests: the recurrence/exception write paths only fail
+    // against the real CalendarProvider, which JVM/Robolectric cannot model.
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
 }

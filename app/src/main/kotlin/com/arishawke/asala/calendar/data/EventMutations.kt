@@ -10,28 +10,11 @@ package com.arishawke.asala.calendar.data
 
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.content.ContentValues
 import android.provider.CalendarContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.TimeZone
-
-// "this occurrence only" edit: bind the draft to the parent's slot and strip
-// recurrence so the exception is a one-off.
-internal fun thisInstanceExceptionMap(
-    draft: EventDraft,
-    parentEventId: Long,
-    instanceMillis: Long,
-    parentAllDay: Boolean,
-): Map<String, Any?> = buildMap {
-    putAll(draft.toMap())
-    put(CalendarContract.Events.ORIGINAL_ID, parentEventId)
-    put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, instanceMillis)
-    put(CalendarContract.Events.ORIGINAL_ALL_DAY, if (parentAllDay) 1 else 0)
-    remove(CalendarContract.Events.RRULE)
-    remove(CalendarContract.Events.DURATION)
-    put(CalendarContract.Events.DTEND, draft.endMillis)
-}
 
 // truncation must re-send DTSTART, not just RRULE: the provider only rebuilds
 // the Instances table when the delta carries DTSTART (else "Missing DTSTART.
@@ -52,6 +35,54 @@ private fun ContentResolver.queryEventDtStart(eventId: Long): Long? {
                 null
             }
         }
+}
+
+private data class ParentRecurrence(val dtStart: Long?, val rrule: String?, val exdate: String?)
+
+// "delete this occurrence only" without an exception row: append the occurrence
+// to the parent's EXDATE. an exception row (STATUS_CANCELED or otherwise) makes
+// the provider drop the whole series from the Instances expansion on-device, so
+// excluding the date on the parent is the reliable path. DTSTART is re-sent in
+// the same delta because the provider only rebuilds the Instances table when the
+// update carries DTSTART. caller is on Dispatchers.IO.
+@Suppress("ReturnCount") // linear early-return chain on each provider step
+private fun ContentResolver.excludeInstanceFromParent(
+    eventId: Long,
+    instanceMillis: Long,
+    parentAllDay: Boolean,
+): Boolean {
+    val parentUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+    val projection =
+        arrayOf(CalendarContract.Events.DTSTART, CalendarContract.Events.RRULE, CalendarContract.Events.EXDATE)
+    val parent =
+        query(parentUri, projection, null, null, null)?.use { c ->
+            if (!c.moveToFirst()) return false
+            val dtStartIdx = c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART)
+            val rruleIdx = c.getColumnIndexOrThrow(CalendarContract.Events.RRULE)
+            val exdateIdx = c.getColumnIndexOrThrow(CalendarContract.Events.EXDATE)
+            ParentRecurrence(
+                dtStart = if (c.isNull(dtStartIdx)) null else c.getLong(dtStartIdx),
+                rrule = c.getString(rruleIdx),
+                exdate = c.getString(exdateIdx),
+            )
+        } ?: return false
+    // re-send DTSTART + RRULE in the same delta: the provider only rebuilds the
+    // Instances table when DTSTART is present, and recomputes the series end
+    // (lastDate) correctly only when RRULE is too. Without RRULE, an EXDATE-only
+    // update truncates the series at the excluded date.
+    val cv =
+        ContentValues().apply {
+            if (parent.dtStart != null) put(CalendarContract.Events.DTSTART, parent.dtStart)
+            if (parent.rrule != null) put(CalendarContract.Events.RRULE, parent.rrule)
+            put(
+                CalendarContract.Events.EXDATE,
+                RecurrenceExceptionMath.mergeExdate(
+                    parent.exdate,
+                    RecurrenceExceptionMath.exdateValue(instanceMillis, parentAllDay),
+                ),
+            )
+        }
+    return update(parentUri, cv, null, null) > 0
 }
 
 // pure core of countParentInstancesBefore: counts provider-expanded instance
@@ -122,9 +153,14 @@ internal suspend fun ContentResolver.updateEventScoped(
         }
         RecurringEditScope.ThisInstance -> {
             require(instanceMillis != null)
-            val cv = thisInstanceExceptionMap(draft, eventId, instanceMillis, parentAllDay)
-                .toCalendarEventContentValues()
-            val uri = insert(CalendarContract.Events.CONTENT_URI, cv) ?: return@withContext null
+            // a provider exception row (the documented CONTENT_EXCEPTION_URI path
+            // included) drops the whole series from the Instances expansion on
+            // device. So model a single-occurrence edit as: exclude the original
+            // date on the parent, then insert the edited occurrence as a
+            // standalone one-off. the new row is returned so reminders target it.
+            if (!excludeInstanceFromParent(eventId, instanceMillis, parentAllDay)) return@withContext null
+            val oneOff = draft.copy(rrule = null)
+            val uri = insert(CalendarContract.Events.CONTENT_URI, oneOff.toContentValues()) ?: return@withContext null
             ContentUris.parseId(uri).takeIf { it > 0L }
         }
         RecurringEditScope.ThisAndFollowing -> {
@@ -185,7 +221,6 @@ internal suspend fun ContentResolver.deleteEventScoped(
     scope: RecurringEditScope = RecurringEditScope.AllEvents,
     instanceMillis: Long? = null,
     parentRrule: String? = null,
-    parentCalendarId: Long? = null,
     parentAllDay: Boolean = false,
 ): Boolean = withContext(Dispatchers.IO) {
     when (scope) {
@@ -194,17 +229,8 @@ internal suspend fun ContentResolver.deleteEventScoped(
             delete(uri, null, null) > 0
         }
         RecurringEditScope.ThisInstance -> {
-            require(instanceMillis != null && parentCalendarId != null)
-            val cv =
-                EventCancellation
-                    .buildMap(
-                        parentEventId = eventId,
-                        parentCalendarId = parentCalendarId,
-                        instanceMillis = instanceMillis,
-                        timezoneId = TimeZone.getDefault().id,
-                        parentAllDay = parentAllDay,
-                    ).toCalendarEventContentValues()
-            insert(CalendarContract.Events.CONTENT_URI, cv) != null
+            require(instanceMillis != null)
+            excludeInstanceFromParent(eventId, instanceMillis, parentAllDay)
         }
         RecurringEditScope.ThisAndFollowing -> {
             require(instanceMillis != null && parentRrule != null)
