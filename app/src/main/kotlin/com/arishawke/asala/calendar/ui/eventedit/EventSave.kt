@@ -84,13 +84,15 @@ internal object EventSave {
 
         val rrule =
             form.recurrenceFrequency?.let { freq ->
-                // editing the whole series in place: if the user left recurrence
-                // untouched, keep the loaded rule verbatim rather than rebuilding.
-                // build() only models FREQ/INTERVAL/UNTIL/COUNT, so a rebuild would
-                // drop a sub-day UNTIL time (widening it to ...235959Z) or BYDAY/
-                // WKST tokens, which can resurrect a split-off occurrence.
+                // if the user left recurrence untouched, keep the loaded rule
+                // verbatim rather than rebuilding. build() only models
+                // FREQ/INTERVAL/UNTIL/COUNT, so a rebuild would drop a sub-day
+                // UNTIL time (widening it to ...235959Z) or BYDAY/WKST tokens.
+                // Applies to the whole-series edit and to the this-and-following
+                // split's future series (whose COUNT is still reduced downstream),
+                // so an imported BYDAY series keeps its days on the split half.
                 val keepOriginal =
-                    scope == RecurringEditScope.AllEvents &&
+                    scope != RecurringEditScope.ThisInstance &&
                         parentRrule != null &&
                         RecurrenceRule.matchesEditorFields(
                             parentRrule,
