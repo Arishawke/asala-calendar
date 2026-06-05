@@ -200,6 +200,7 @@ data class EventEditFormState(
                 rrule = source.rrule,
                 instanceStartMillis = instanceStartMillis,
                 zone = zone,
+                defaultDurationMinutes = defaultDurationMinutes,
             )
             return EventEditFormState(
                 selectedCalendarId = source.calendarId,
@@ -298,6 +299,7 @@ class EventEditViewModel(
                         rrule = existing.rrule,
                         instanceStartMillis = editingInstanceMillis,
                         zone = zone,
+                        defaultDurationMinutes = defaultDurationMinutes,
                     )
                     // an imported rrule may carry both UNTIL and COUNT (RFC 5545
                     // forbids it, but CalDAV rows can); prefer UNTIL so the form

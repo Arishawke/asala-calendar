@@ -8,6 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.eventedit
 
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -35,9 +36,20 @@ internal fun extractLocalRange(
     rrule: String?,
     instanceStartMillis: Long?,
     zone: ZoneId,
+    defaultDurationMinutes: Int = 60,
 ): LocalRange {
     val effectiveStart = if (rrule != null && instanceStartMillis != null) instanceStartMillis else startMillis
-    val effectiveEnd = effectiveStart + (endMillis - startMillis)
+    val rawEnd = effectiveStart + (endMillis - startMillis)
+    // a malformed zero-length or inverted timed row (end <= start) would reseed
+    // the editor with end <= start, which the save guard then rejects (blocking
+    // even a title-only edit); widen it to the default duration. all-day has its
+    // own date clamp below.
+    val effectiveEnd =
+        if (!allDay && rawEnd <= effectiveStart) {
+            effectiveStart + Duration.ofMinutes(defaultDurationMinutes.toLong()).toMillis()
+        } else {
+            rawEnd
+        }
     val extractionZone = if (allDay) ZoneOffset.UTC else zone
     val sLocal = Instant.ofEpochMilli(effectiveStart).atZone(extractionZone).toLocalDateTime()
     val eLocal = Instant.ofEpochMilli(effectiveEnd).atZone(extractionZone).toLocalDateTime()

@@ -29,6 +29,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - A cancelled occurrence synced from another calendar (for example an event
   cancelled in Google Calendar) is now hidden from the calendar views, search,
   and widgets instead of lingering struck-through.
+- Opening a malformed timed event whose stored end equals its start (for
+  example a zero-length row from an import) no longer leaves the editor stuck.
+  Its end is shown as the default event duration so it can be edited and saved.
 
 ## [0.19.0] - 2026-06-05
 

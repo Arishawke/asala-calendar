@@ -80,4 +80,39 @@ class EventEditLocalRangeTest {
         assertEquals(LocalTime.MIDNIGHT, range.startTime)
         assertEquals(LocalTime.of(1, 0), range.endTime)
     }
+
+    // a malformed zero-length timed row (end == start) would reseed the editor
+    // with end == start, which the save guard then rejects (blocking even a
+    // title-only edit); widen the display end to the default duration.
+    @Test
+    fun `zero-length timed row widens the end to the default duration`() {
+        val range = extractLocalRange(
+            startMillis = hourMs,
+            endMillis = hourMs,
+            allDay = false,
+            rrule = null,
+            instanceStartMillis = null,
+            zone = ZoneOffset.UTC,
+            defaultDurationMinutes = 30,
+        )
+        assertEquals(LocalTime.of(1, 0), range.startTime)
+        assertEquals(LocalTime.of(1, 30), range.endTime)
+        assertEquals(range.startDate, range.endDate)
+    }
+
+    // a legitimately short timed event (end > start, even under the default
+    // duration) keeps its real end; only degenerate rows are widened.
+    @Test
+    fun `short timed event keeps its real end`() {
+        val range = extractLocalRange(
+            startMillis = 0L,
+            endMillis = 15 * 60_000L,
+            allDay = false,
+            rrule = null,
+            instanceStartMillis = null,
+            zone = ZoneOffset.UTC,
+            defaultDurationMinutes = 60,
+        )
+        assertEquals(LocalTime.of(0, 15), range.endTime)
+    }
 }
