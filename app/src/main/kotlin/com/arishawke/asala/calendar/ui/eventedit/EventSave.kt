@@ -20,7 +20,7 @@ import java.util.TimeZone
 internal object EventSave {
     // early-return chain per save step keeps the partial-failure contract
     // flat; detekt thresholds suppressed for the intentionally linear body.
-    @Suppress("LongParameterList", "LongMethod", "ReturnCount")
+    @Suppress("LongParameterList", "LongMethod", "ReturnCount", "CyclomaticComplexMethod")
     suspend fun attempt(
         form: EventEditFormState,
         editingEventId: Long?,
@@ -32,6 +32,9 @@ internal object EventSave {
         // rather than clobbering it to CONFIRMED / BUSY on every local edit.
         loadedStatus: Int? = null,
         loadedAvailability: Int? = null,
+        // preserve the authored EVENT_TIMEZONE on edit; only new events fall back
+        // to the device zone. clobbering it shifts the intended-zone occurrences.
+        loadedTimezone: String? = null,
         insertEvent: suspend (EventDraft) -> Long?,
         // returns the id reminders attach to: original for AllEvents, or the
         // new exception/split id for the recurring scopes. null on failure.
@@ -40,7 +43,10 @@ internal object EventSave {
     ): SaveResult {
         val calId = form.selectedCalendarId ?: return SaveResult.Failure
         val zone = ZoneId.systemDefault()
-        val tz = if (form.allDay) "UTC" else TimeZone.getDefault().id
+        val tz = if (form.allDay) "UTC" else (loadedTimezone ?: TimeZone.getDefault().id)
+        // the event zone drives the recurrence UNTIL cutoff; fall back to the
+        // device zone if a stored EVENT_TIMEZONE can't be parsed.
+        val eventZone = runCatching { ZoneId.of(tz) }.getOrDefault(zone)
 
         val startMillis: Long
         val endMillis: Long
@@ -70,6 +76,11 @@ internal object EventSave {
                     .toInstant()
                     .toEpochMilli()
         }
+        // reject an inverted or zero-length range rather than writing it: the
+        // EventDraft duration floor would otherwise silently widen it to 60s
+        // (or one day for all-day). all-day end is exclusive, so a single-day
+        // event has endMillis a day past startMillis and still passes.
+        if (endMillis <= startMillis) return SaveResult.Failure
 
         val rrule =
             form.recurrenceFrequency?.let { freq ->
@@ -87,6 +98,7 @@ internal object EventSave {
                             form.recurrenceInterval,
                             form.recurrenceUntilDate,
                             form.recurrenceCount,
+                            eventZone,
                         )
                 if (keepOriginal) {
                     parentRrule
@@ -94,9 +106,10 @@ internal object EventSave {
                     RecurrenceRule.build(
                         frequency = freq,
                         interval = form.recurrenceInterval,
-                        untilUtc = form.recurrenceUntilDate,
+                        untilDate = form.recurrenceUntilDate,
                         count = form.recurrenceCount,
                         allDay = form.allDay,
+                        zoneId = eventZone,
                     )
                 }
             }

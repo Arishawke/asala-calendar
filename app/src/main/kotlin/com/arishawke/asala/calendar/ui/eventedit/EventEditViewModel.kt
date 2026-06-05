@@ -302,7 +302,10 @@ class EventEditViewModel(
                     // an imported rrule may carry both UNTIL and COUNT (RFC 5545
                     // forbids it, but CalDAV rows can); prefer UNTIL so the form
                     // invariant holds and the end-mode radios don't both select.
-                    val recurrenceUntil = RecurrenceRule.untilDateOf(existing.rrule)
+                    // read the timed UNTIL back in the event zone so a non-UTC
+                    // series shows the local end-date the user actually picked.
+                    val eventZone = runCatching { ZoneId.of(existing.eventTimezone) }.getOrElse { zone }
+                    val recurrenceUntil = RecurrenceRule.untilDateOf(existing.rrule, eventZone)
                     EventEditFormState(
                         calendars = cals,
                         selectedCalendarId = existing.calendarId,
@@ -374,6 +377,7 @@ class EventEditViewModel(
                 parentAllDay = loadedDetail?.allDay == true,
                 loadedStatus = loadedDetail?.status,
                 loadedAvailability = loadedDetail?.availability,
+                loadedTimezone = loadedDetail?.eventTimezone,
                 insertEvent = eventRepo::insertEvent,
                 updateEvent = eventRepo::updateEvent,
                 setReminder = remindersRepo::setReminder,

@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
+import java.time.ZoneId
 
 class RecurrenceRuleTest {
     @Test fun parses_daily() {
@@ -33,7 +34,7 @@ class RecurrenceRuleTest {
     }
 
     @Test fun builds_daily_no_end() {
-        val r = RecurrenceRule.build(RecurrenceFrequency.Daily, interval = 1, untilUtc = null, count = null)
+        val r = RecurrenceRule.build(RecurrenceFrequency.Daily, interval = 1, untilDate = null, count = null)
         assertEquals("FREQ=DAILY", r)
     }
 
@@ -42,19 +43,19 @@ class RecurrenceRuleTest {
             RecurrenceRule.build(
                 frequency = RecurrenceFrequency.Weekly,
                 interval = 1,
-                untilUtc = LocalDate.of(2026, 12, 31),
+                untilDate = LocalDate.of(2026, 12, 31),
                 count = null,
             )
         assertEquals("FREQ=WEEKLY;UNTIL=20261231T235959Z", r)
     }
 
     @Test fun builds_monthly_count() {
-        val r = RecurrenceRule.build(RecurrenceFrequency.Monthly, interval = 1, untilUtc = null, count = 12)
+        val r = RecurrenceRule.build(RecurrenceFrequency.Monthly, interval = 1, untilDate = null, count = 12)
         assertEquals("FREQ=MONTHLY;COUNT=12", r)
     }
 
     @Test fun builds_yearly_interval_2() {
-        val r = RecurrenceRule.build(RecurrenceFrequency.Yearly, interval = 2, untilUtc = null, count = null)
+        val r = RecurrenceRule.build(RecurrenceFrequency.Yearly, interval = 2, untilDate = null, count = null)
         assertEquals("FREQ=YEARLY;INTERVAL=2", r)
     }
 
@@ -102,7 +103,7 @@ class RecurrenceRuleTest {
             RecurrenceRule.build(
                 frequency = RecurrenceFrequency.Daily,
                 interval = 1,
-                untilUtc = LocalDate.of(2026, 12, 31),
+                untilDate = LocalDate.of(2026, 12, 31),
                 count = null,
                 allDay = true,
             )
@@ -114,7 +115,7 @@ class RecurrenceRuleTest {
             RecurrenceRule.build(
                 frequency = RecurrenceFrequency.Weekly,
                 interval = 1,
-                untilUtc = LocalDate.of(2026, 12, 31),
+                untilDate = LocalDate.of(2026, 12, 31),
                 count = null,
                 allDay = false,
             )
@@ -161,9 +162,51 @@ class RecurrenceRuleTest {
             RecurrenceRule.build(
                 frequency = RecurrenceFrequency.Weekly,
                 interval = 1,
-                untilUtc = LocalDate.of(2026, 12, 31),
+                untilDate = LocalDate.of(2026, 12, 31),
                 count = 10,
             )
         assertEquals("FREQ=WEEKLY;UNTIL=20261231T235959Z", r)
+    }
+
+    // F6: a timed UNTIL closes the chosen day at the EVENT zone's end-of-day,
+    // expressed in UTC. A blanket T235959Z stamps a UTC time on a local date and
+    // drops a boundary-day occurrence in zones offset from UTC.
+    @Test fun builds_timed_until_at_event_zone_end_of_day_in_utc() {
+        val r =
+            RecurrenceRule.build(
+                frequency = RecurrenceFrequency.Daily,
+                interval = 1,
+                untilDate = LocalDate.of(2026, 12, 31),
+                count = null,
+                allDay = false,
+                zoneId = ZoneId.of("America/New_York"),
+            )
+        // 2026-12-31 23:59:59 EST (UTC-5) = 2027-01-01 04:59:59 UTC.
+        assertEquals("FREQ=DAILY;UNTIL=20270101T045959Z", r)
+    }
+
+    // the UTC datetime round-trips back to the local end-date the user picked
+    // when read in the same event zone.
+    @Test fun until_date_round_trips_through_event_zone() {
+        assertEquals(
+            LocalDate.of(2026, 12, 31),
+            RecurrenceRule.untilDateOf("FREQ=DAILY;UNTIL=20270101T045959Z", ZoneId.of("America/New_York")),
+        )
+    }
+
+    // matchesEditorFields uses the event zone, so an unchanged non-UTC series is
+    // kept verbatim (not rebuilt) when the editor reseeds the same local date.
+    @Test fun matches_editor_fields_true_for_unchanged_non_utc_series() {
+        assertEquals(
+            true,
+            RecurrenceRule.matchesEditorFields(
+                "FREQ=DAILY;UNTIL=20270101T045959Z",
+                RecurrenceFrequency.Daily,
+                interval = 1,
+                untilDate = LocalDate.of(2026, 12, 31),
+                count = null,
+                zoneId = ZoneId.of("America/New_York"),
+            ),
+        )
     }
 }

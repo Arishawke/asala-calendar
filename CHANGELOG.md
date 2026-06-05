@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+- A repeating event with an end date now stops on the correct day in time zones
+  other than UTC. The final occurrence on the end date is no longer dropped.
+- Editing a repeating event no longer rewrites its time zone to the device's.
+  Editing an event created in another zone (while traveling, or imported) kept
+  the right occurrences only by chance; the original time zone is now preserved.
+- Saving an event whose end is before its start is now rejected instead of
+  silently storing an inverted or zero-length time range.
+
 ## [0.19.0] - 2026-06-05
 
 ### Added
