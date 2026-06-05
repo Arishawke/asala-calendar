@@ -50,19 +50,7 @@ data class EventDraft(
         }
     }
 
-    fun toContentValues(): ContentValues {
-        val cv = ContentValues()
-        toMap().forEach { (key, value) ->
-            when (value) {
-                null -> cv.putNull(key)
-                is Long -> cv.put(key, value)
-                is Int -> cv.put(key, value)
-                is String -> cv.put(key, value)
-                else -> cv.put(key, value.toString())
-            }
-        }
-        return cv
-    }
+    fun toContentValues(): ContentValues = toMap().toCalendarEventContentValues()
 
     private fun iso8601Duration(durationMillis: Long, allDay: Boolean): String {
         // all-day rows store day-form durations. the provider's fixAllDayTime
