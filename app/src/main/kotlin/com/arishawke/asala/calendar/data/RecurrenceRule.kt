@@ -46,6 +46,27 @@ object RecurrenceRule {
         }.getOrNull()
     }
 
+    // true when the editor's recurrence fields exactly reproduce what this rule
+    // was loaded as (see EventEditViewModel seeding), i.e. the user changed
+    // nothing the editor models. Callers keep the original rule verbatim in that
+    // case so tokens the editor cannot represent (a sub-day UNTIL time, BYDAY,
+    // WKST) are not dropped, and a date-only UNTIL is not widened to ...235959Z
+    // and made to regenerate a split-off occurrence.
+    fun matchesEditorFields(
+        rrule: String?,
+        frequency: RecurrenceFrequency,
+        interval: Int,
+        untilDate: LocalDate?,
+        count: Int?,
+    ): Boolean {
+        val until = untilDateOf(rrule)
+        val effectiveCount = if (until != null) null else countOf(rrule)
+        return frequencyOf(rrule) == frequency &&
+            intervalOf(rrule) == interval &&
+            until == untilDate &&
+            effectiveCount == count
+    }
+
     private fun partOf(rrule: String?, prefix: String): String? {
         if (rrule.isNullOrBlank()) return null
         return rrule

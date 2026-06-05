@@ -121,6 +121,38 @@ class RecurrenceRuleTest {
         assertEquals("FREQ=WEEKLY;UNTIL=20261231T235959Z", r)
     }
 
+    // matchesEditorFields gates keeping the original rule verbatim. It must be
+    // true when the form still holds the values the loader seeded from the rule,
+    // even when the rule carries tokens the editor cannot model.
+    @Test fun matches_editor_fields_true_when_untouched_including_unmodeled_tokens() {
+        // a sub-day UNTIL time and a BYDAY the editor never surfaces: the form
+        // shows freq=Weekly, interval=1, untilDate=2026-03-01, count=null.
+        assertEquals(
+            true,
+            RecurrenceRule.matchesEditorFields(
+                "FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20260301T080000Z",
+                RecurrenceFrequency.Weekly,
+                interval = 1,
+                untilDate = LocalDate.of(2026, 3, 1),
+                count = null,
+            ),
+        )
+    }
+
+    @Test fun matches_editor_fields_false_when_a_field_changed() {
+        // user moved the end date a day later: must rebuild, not keep the rule.
+        assertEquals(
+            false,
+            RecurrenceRule.matchesEditorFields(
+                "FREQ=WEEKLY;UNTIL=20260301T080000Z",
+                RecurrenceFrequency.Weekly,
+                interval = 1,
+                untilDate = LocalDate.of(2026, 3, 2),
+                count = null,
+            ),
+        )
+    }
+
     // RFC 5545 §3.3.10 forbids UNTIL and COUNT in the same rule, but imported
     // ICS / CalDAV rows can carry both. Prefer UNTIL and drop COUNT rather than
     // throwing, so saving such an event can't crash the editor.

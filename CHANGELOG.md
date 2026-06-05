@@ -28,6 +28,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   access is revoked mid-session (for example a removed account or a changed
   permission). Such failures now surface the save-failed message or show an
   empty view instead of closing the app.
+- Editing a repeating event without changing its repeat settings no longer
+  shifts when the series ends or drops repeat details the editor does not
+  show. Previously an unrelated edit could move the end to the end of the day
+  and bring back an occurrence that a "this and following" change had split off.
+- Choosing "this and following" on the first occurrence of a repeating event
+  now edits the whole series instead of leaving an empty leftover event behind.
 - Tapping a day in the month view now opens that exact day. Previously a day more
   than about two months from today opened a nearer day instead, because the day
   view only covered a short range around today.

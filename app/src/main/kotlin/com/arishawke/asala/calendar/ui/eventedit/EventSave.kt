@@ -73,13 +73,32 @@ internal object EventSave {
 
         val rrule =
             form.recurrenceFrequency?.let { freq ->
-                RecurrenceRule.build(
-                    frequency = freq,
-                    interval = form.recurrenceInterval,
-                    untilUtc = form.recurrenceUntilDate,
-                    count = form.recurrenceCount,
-                    allDay = form.allDay,
-                )
+                // editing the whole series in place: if the user left recurrence
+                // untouched, keep the loaded rule verbatim rather than rebuilding.
+                // build() only models FREQ/INTERVAL/UNTIL/COUNT, so a rebuild would
+                // drop a sub-day UNTIL time (widening it to ...235959Z) or BYDAY/
+                // WKST tokens, which can resurrect a split-off occurrence.
+                val keepOriginal =
+                    scope == RecurringEditScope.AllEvents &&
+                        parentRrule != null &&
+                        RecurrenceRule.matchesEditorFields(
+                            parentRrule,
+                            freq,
+                            form.recurrenceInterval,
+                            form.recurrenceUntilDate,
+                            form.recurrenceCount,
+                        )
+                if (keepOriginal) {
+                    parentRrule
+                } else {
+                    RecurrenceRule.build(
+                        frequency = freq,
+                        interval = form.recurrenceInterval,
+                        untilUtc = form.recurrenceUntilDate,
+                        count = form.recurrenceCount,
+                        allDay = form.allDay,
+                    )
+                }
             }
 
         val draft =

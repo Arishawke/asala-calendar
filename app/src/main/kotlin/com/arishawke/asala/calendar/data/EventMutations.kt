@@ -129,42 +129,55 @@ internal suspend fun ContentResolver.updateEventScoped(
         }
         RecurringEditScope.ThisAndFollowing -> {
             require(instanceMillis != null && parentRrule != null)
-            val parentDtStart = queryEventDtStart(eventId)
-            val splitRrule = draft.rrule
-            // preserve the total occurrence count: a COUNT-bounded series must
-            // split its COUNT across parent + future, else the future series
-            // regenerates the full count from its new anchor and over-generates.
-            // only when the split still carries the inherited count, so a count
-            // the user retyped in the editor is honored as-is.
-            val splitDraft =
-                if (splitRrule != null && parentDtStart != null &&
-                    shouldReduceSplitCount(parentRrule, splitRrule)
-                ) {
-                    val kept = countParentInstancesBefore(eventId, parentDtStart, instanceMillis)
-                    draft.copy(rrule = RecurrenceExceptionMath.reduceSplitCount(splitRrule, kept))
-                } else {
-                    draft
-                }
-            val newRrule =
-                RecurrenceExceptionMath.appendUntil(
-                    parentRrule,
-                    RecurrenceExceptionMath.untilUtcForTruncation(instanceMillis, parentAllDay),
-                )
-            // insert the split first: if truncation fails the user sees a
-            // recoverable duplicate rather than losing following occurrences.
-            val uri = insert(CalendarContract.Events.CONTENT_URI, splitDraft.toContentValues())
-                ?: return@withContext null
-            val newId = ContentUris.parseId(uri).takeIf { it > 0L } ?: return@withContext null
-            if (truncateParentRecurrence(eventId, parentDtStart, newRrule) <= 0) {
-                Timber.e(
-                    "ThisAndFollowing: split %d inserted but parent %d truncation failed",
-                    newId,
-                    eventId,
-                )
-            }
-            newId
+            updateThisAndFollowing(eventId, draft, instanceMillis, parentRrule, parentAllDay)
         }
     }
+}
+
+// the "this and following" split, extracted to keep updateEventScoped's branch
+// count under the complexity gate. caller is on Dispatchers.IO.
+@Suppress("ReturnCount") // linear early-return chain on each provider step
+private fun ContentResolver.updateThisAndFollowing(
+    eventId: Long,
+    draft: EventDraft,
+    instanceMillis: Long,
+    parentRrule: String,
+    parentAllDay: Boolean,
+): Long? {
+    val parentDtStart = queryEventDtStart(eventId)
+    // "this and following" from the first occurrence covers the whole series:
+    // update the parent in place rather than truncating it to an occurrence-less
+    // row and inserting a duplicate split. both values are direct reads, so this
+    // never mis-fires the way an Instances count can.
+    if (parentDtStart != null && instanceMillis <= parentDtStart) {
+        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+        return if (update(uri, draft.toContentValues(), null, null) > 0) eventId else null
+    }
+    val splitRrule = draft.rrule
+    // preserve the total occurrence count: a COUNT-bounded series must split its
+    // COUNT across parent + future, else the future series regenerates the full
+    // count from its new anchor and over-generates. only when the split still
+    // carries the inherited count, so a count the user retyped is honored as-is.
+    val splitDraft =
+        if (splitRrule != null && parentDtStart != null && shouldReduceSplitCount(parentRrule, splitRrule)) {
+            val kept = countParentInstancesBefore(eventId, parentDtStart, instanceMillis)
+            draft.copy(rrule = RecurrenceExceptionMath.reduceSplitCount(splitRrule, kept))
+        } else {
+            draft
+        }
+    val newRrule =
+        RecurrenceExceptionMath.appendUntil(
+            parentRrule,
+            RecurrenceExceptionMath.untilUtcForTruncation(instanceMillis, parentAllDay),
+        )
+    // insert the split first: if truncation fails the user sees a recoverable
+    // duplicate rather than losing following occurrences.
+    val uri = insert(CalendarContract.Events.CONTENT_URI, splitDraft.toContentValues()) ?: return null
+    val newId = ContentUris.parseId(uri).takeIf { it > 0L } ?: return null
+    if (truncateParentRecurrence(eventId, parentDtStart, newRrule) <= 0) {
+        Timber.e("ThisAndFollowing: split %d inserted but parent %d truncation failed", newId, eventId)
+    }
+    return newId
 }
 
 internal suspend fun ContentResolver.deleteEventScoped(

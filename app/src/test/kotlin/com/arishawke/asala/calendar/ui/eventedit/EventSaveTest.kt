@@ -8,6 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.eventedit
 
+import com.arishawke.asala.calendar.data.RecurrenceFrequency
 import com.arishawke.asala.calendar.data.RecurringEditScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -211,6 +212,63 @@ class EventSaveTest {
         assertEquals(SaveResult.Success(7L), result)
         assertEquals(7L, updateId)
         assertEquals(7L, reminderId)
+    }
+
+    // Editing the whole series without touching recurrence must keep the loaded
+    // rule verbatim. build() only models FREQ/INTERVAL/UNTIL/COUNT, so rebuilding
+    // would drop the BYDAY and widen the sub-day UNTIL to ...235959Z, which can
+    // resurrect an occurrence a prior "this and following" split moved away.
+    @Test
+    fun `AllEvents edit keeps the original rule when recurrence is untouched`() = runBlocking {
+        var savedRrule: String? = "sentinel"
+        val original = "FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20260301T080000Z"
+        val recurringForm = form().copy(
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 1,
+            recurrenceUntilDate = LocalDate.of(2026, 3, 1),
+            recurrenceCount = null,
+        )
+        EventSave.attempt(
+            form = recurringForm,
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = null,
+            parentRrule = original,
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedRrule = draft.rrule
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals(original, savedRrule)
+    }
+
+    // Moving the end date is a real recurrence change, so the rule is rebuilt
+    // (and the editor's day-granular UNTIL correctly closes the day).
+    @Test
+    fun `AllEvents edit rebuilds the rule when the end date changed`() = runBlocking {
+        var savedRrule: String? = null
+        val recurringForm = form().copy(
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 1,
+            recurrenceUntilDate = LocalDate.of(2026, 3, 8),
+            recurrenceCount = null,
+        )
+        EventSave.attempt(
+            form = recurringForm,
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = null,
+            parentRrule = "FREQ=WEEKLY;UNTIL=20260301T080000Z",
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedRrule = draft.rrule
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals("FREQ=WEEKLY;UNTIL=20260308T235959Z", savedRrule)
     }
 
     // Edit path reminder rejection: same partial-failure contract as the
