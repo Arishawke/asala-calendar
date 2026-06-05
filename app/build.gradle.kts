@@ -63,6 +63,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // separate package + label so a local debug build installs alongside
+            // the Play-signed release instead of colliding with it.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             // R8 dead-code-eliminates unused code from Compose / Material3 /
             // androidx and tree-shakes resources. With these off the release
