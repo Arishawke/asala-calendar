@@ -97,40 +97,37 @@ fun AppViewModel.deleteEvent(
     }
 }
 
-// drag-reschedule entry: preserves duration, routes to immediate save
-// (non-recurring) or the scope picker (recurring). all-day ignored for now.
+// drag-reschedule entry: the pure rescheduleOutcome decides; this keeps the I/O.
+// preserves duration, routes to immediate save (non-recurring) or the scope
+// picker (recurring). every abandon path reverts the optimistic chip exactly once.
 fun AppViewModel.rescheduleEvent(eventId: Long, instanceMillis: Long, newStartMillis: Long) {
     viewModelScope.launch {
-        // every abandon path must snap the optimistic chip back, else it is
-        // stranded at the dragged time with no write behind it.
-        val detail = eventRepository.fetchEventDetail(eventId) ?: run {
-            dragRevertSignalBacker.tryEmit(eventId)
-            return@launch
-        }
-        if (detail.allDay) {
-            dragRevertSignalBacker.tryEmit(eventId)
-            return@launch
-        }
-        val duration = detail.endMillis - detail.startMillis
-        val newEnd = newStartMillis + duration
-        if (newStartMillis == detail.startMillis) return@launch
-        if (detail.rrule == null) {
-            saveRescheduleNow(
-                detail = detail,
-                instanceMillis = instanceMillis,
-                newStart = newStartMillis,
-                newEnd = newEnd,
-                scope = RecurringEditScope.AllEvents,
-            )
-        } else {
-            pendingRescheduleBacker.update {
-                PendingReschedule(
-                    detail = detail,
+        val detail = eventRepository.fetchEventDetail(eventId)
+        when (val outcome = rescheduleOutcome(detail, newStartMillis)) {
+            RescheduleDecision.RevertNoDetail,
+            RescheduleDecision.RevertAllDay,
+            -> dragRevertSignalBacker.tryEmit(eventId)
+            RescheduleDecision.NoOp -> Unit
+            // requireNotNull documents the invariant: the decision is only ever
+            // Save/AskScope when detail loaded (else RevertNoDetail). fail loud
+            // rather than silently dropping the write if that ever breaks.
+            is RescheduleDecision.Save ->
+                saveRescheduleNow(
+                    detail = requireNotNull(detail),
                     instanceMillis = instanceMillis,
-                    newStartMillis = newStartMillis,
-                    newEndMillis = newEnd,
+                    newStart = newStartMillis,
+                    newEnd = outcome.newEndMillis,
+                    scope = RecurringEditScope.AllEvents,
                 )
-            }
+            is RescheduleDecision.AskScope ->
+                pendingRescheduleBacker.update {
+                    PendingReschedule(
+                        detail = requireNotNull(detail),
+                        instanceMillis = instanceMillis,
+                        newStartMillis = newStartMillis,
+                        newEndMillis = outcome.newEndMillis,
+                    )
+                }
         }
     }
 }
