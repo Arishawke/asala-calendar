@@ -127,7 +127,6 @@ internal fun AppOverlays(
                     scope = scope,
                     instanceMillis = o.instanceMillis,
                     parentRrule = loadedDetail?.rrule,
-                    parentCalendarId = loadedDetail?.calendarId,
                     parentAllDay = loadedDetail?.allDay == true,
                 )
             },

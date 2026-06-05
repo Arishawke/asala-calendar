@@ -9,6 +9,9 @@ kizitonwoseCalendar = "2.10.1"
 datastorePreferences = "1.2.1"
 glance = "1.1.1"
 junit = "4.13.2"
+androidxTestExtJunit = "1.2.1"
+androidxTestRunner = "1.6.2"
+androidxTestRules = "1.6.1"
 timber = "5.0.1"
 spotless = "8.5.1"
 ktlint = "1.5.0"
@@ -38,6 +41,9 @@ jakewharton-timber = { group = "com.jakewharton.timber", name = "timber", versio
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 skydoves-colorpicker-compose = { group = "com.github.skydoves", name = "colorpicker-compose", version.ref = "skydovesColorpicker" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTestRules" }
 compose-lint-checks = { module = "com.slack.lint.compose:compose-lint-checks", version.ref = "composeLints" }
 
 [plugins]

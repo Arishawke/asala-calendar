@@ -163,7 +163,6 @@ class EventRepository(private val contentResolver: ContentResolver) {
         scope: RecurringEditScope = RecurringEditScope.AllEvents,
         instanceMillis: Long? = null,
         parentRrule: String? = null,
-        parentCalendarId: Long? = null,
         parentAllDay: Boolean = false,
     ): Boolean = providerCall("deleteEvent", onError = false) {
         contentResolver.deleteEventScoped(
@@ -171,7 +170,6 @@ class EventRepository(private val contentResolver: ContentResolver) {
             scope,
             instanceMillis,
             parentRrule,
-            parentCalendarId,
             parentAllDay,
         )
     }

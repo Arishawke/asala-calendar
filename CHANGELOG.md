@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+- Deleting a single occurrence of a repeating event ("this event only") no
+  longer removes the whole series. The other occurrences now stay.
+- Editing a single occurrence of a repeating event ("this event only") no
+  longer removes the whole series. Only that occurrence changes; the rest
+  stay. The edited occurrence becomes its own one-off event.
+
 ## [0.19.0] - 2026-06-05
 
 ### Added

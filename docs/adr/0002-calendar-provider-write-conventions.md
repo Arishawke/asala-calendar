@@ -2,7 +2,15 @@
 
 ## Status
 
-Accepted, 2026-05-22.
+Accepted, 2026-05-22. Partially superseded by
+[ADR-0006](0006-single-occurrence-recurrence-edits-via-exdate.md): the
+single-occurrence delete/edit conventions in this ADR (STATUS_CANCELED
+cancellation rows, exception rows carrying the parent CALENDAR_ID, the
+`parentCalendarId` write chain, all-day exception rows) are replaced by an
+EXDATE-on-parent approach, because exception rows drop the whole series from
+the provider's instance expansion on-device. The non-exception conventions
+here (null-not-throw, DTSTART-re-send for instance rebuilds, DURATION/RRULE
+round-trip quirks) still hold.
 
 ## Context
 
