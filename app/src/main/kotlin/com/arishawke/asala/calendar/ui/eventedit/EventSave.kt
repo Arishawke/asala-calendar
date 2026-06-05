@@ -45,7 +45,13 @@ internal object EventSave {
         val zone = ZoneId.systemDefault()
         val tz = if (form.allDay) "UTC" else (loadedTimezone ?: TimeZone.getDefault().id)
         // the event zone drives the recurrence UNTIL cutoff; fall back to the
-        // device zone if a stored EVENT_TIMEZONE can't be parsed.
+        // device zone if a stored EVENT_TIMEZONE can't be parsed. note the
+        // start/end instants below are interpreted in the device `zone` (the same
+        // zone the editor displays the clock in), while EVENT_TIMEZONE keeps the
+        // authored value: a clock edited on a device in a different zone than the
+        // event's is interpreted as device-local. preserving the authored zone is
+        // still correct for the common edit (clock untouched) and avoids the prior
+        // clobber-to-device-zone bug.
         val eventZone = runCatching { ZoneId.of(tz) }.getOrDefault(zone)
 
         val startMillis: Long
