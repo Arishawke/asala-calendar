@@ -77,9 +77,6 @@ Ideas and opportunities. May not happen. Kept for reference.
   detail sheet; optional pinned secondary timezone in the Day / Week
   rail), and travel-aware display when the device timezone differs from
   the event's stored timezone.
-- **Locale audit:** confirm every `DateTimeFormatter.ofPattern(...)`
-  call site honors `Locale.getDefault()` and
-  `DateFormat.is24HourFormat(...)` rather than hardcoded formats.
 - **Translation infrastructure:** strings already live in
   `res/values/strings.xml`; add `values-XX/` per language once
   translators or machine-translation seeds are available (candidate
@@ -94,9 +91,8 @@ Ideas and opportunities. May not happen. Kept for reference.
 - Fuzzy / typo-tolerant search on top of the existing exact-substring
   search; saved searches / quick filters.
 - Sync conflict resolution UI (only relevant once CalDAV sync ships).
-- **Obtainium pointer in the README.** Obtainium watches GitHub
-  Releases tags and notifies users of new versions; add an
-  `obtainium://app/...` deep-link button. GitHub Releases is the only
-  distribution channel (see README "Install"); no app store is pursued.
+- **Obtainium deep-link button in the README.** The README already
+  recommends Obtainium for auto-updates; add an `obtainium://app/...`
+  deep-link button so one tap points Obtainium at this repository.
 - Optional opt-in **in-app update check** (GitHub releases API, browser
   hand-off first), only if users ask.
