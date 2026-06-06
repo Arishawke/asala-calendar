@@ -44,6 +44,12 @@ Planned and near-term. Rough priority order within each group.
 
 Ideas and opportunities. May not happen. Kept for reference.
 
+- **Reorder calendar accounts in the drawer.** Persist a per-account
+  display order and apply it where accounts are grouped. The clean build
+  is a dedicated flat "Reorder accounts" sheet with drag handles (or
+  plain Move up / Move down on each account header); dragging accounts in
+  place in the drawer is the trap, since each account is a header plus its
+  calendar rows inside one mixed `LazyColumn`.
 - **Multi-line event titles in Month view.** The chip-capacity math in
   `EventChips.kt` assumes a fixed per-chip height to decide the +N
   overflow row; variable heights break it. Needs a capacity-heuristics
