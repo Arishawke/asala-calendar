@@ -8,8 +8,16 @@
  */
 package com.arishawke.asala.calendar.ui.header
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,22 +28,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.accessibility.rememberAnimationsEnabled
 import com.arishawke.asala.calendar.ui.theme.CalendarTokens
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -54,6 +62,12 @@ private const val WeekColumns = 7
 private const val WeekRows = 6
 private const val MaxDotsPerCell = 3
 
+// horizontal travel before a swipe flips the month
+private val SwipeThreshold = 48.dp
+
+// LongMethod: one cohesive panel (title, swipe + a11y actions, animated grid);
+// splitting it would scatter the gesture and animation wiring.
+@Suppress("LongMethod")
 @Composable
 internal fun MiniMonthPanel(
     displayedMonth: YearMonth,
@@ -66,56 +80,78 @@ internal fun MiniMonthPanel(
 ) {
     val locale = LocalConfiguration.current.locales.get(0)
     val titleFmt = remember(locale) { DateTimeFormatter.ofPattern("MMMM yyyy", locale) }
+    val animationsEnabled by rememberAnimationsEnabled()
+    // swipe replaces the prev/next arrows; keep the same actions reachable for
+    // TalkBack, which can't perform the swipe.
+    val prevLabel = stringResource(R.string.cd_mini_month_prev)
+    val nextLabel = stringResource(R.string.cd_mini_month_next)
 
     Column(
         modifier = modifier
             .fillMaxWidth()
+            // swipe left -> next month, right -> previous; taps fall through to
+            // the date cells (a tap never crosses the drag slop).
+            .pointerInput(Unit) {
+                val thresholdPx = SwipeThreshold.toPx()
+                var totalDrag = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { totalDrag = 0f },
+                    onDragEnd = {
+                        when {
+                            totalDrag <= -thresholdPx -> onShiftMonth(1)
+                            totalDrag >= thresholdPx -> onShiftMonth(-1)
+                        }
+                    },
+                ) { change, dragAmount ->
+                    totalDrag += dragAmount
+                    change.consume()
+                }
+            }
+            .semantics {
+                customActions = listOf(
+                    CustomAccessibilityAction(prevLabel) {
+                        onShiftMonth(-1)
+                        true
+                    },
+                    CustomAccessibilityAction(nextLabel) {
+                        onShiftMonth(1)
+                        true
+                    },
+                )
+            }
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
-        MonthNavRow(
-            label = titleFmt.format(displayedMonth),
-            onPrev = { onShiftMonth(-1) },
-            onNext = { onShiftMonth(1) },
+        Text(
+            text = titleFmt.format(displayedMonth),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(4.dp))
         WeekdayHeader(firstDayOfWeek = firstDayOfWeek, locale = locale)
         Spacer(modifier = Modifier.height(2.dp))
-        DateGrid(
-            displayedMonth = displayedMonth,
-            today = today,
-            firstDayOfWeek = firstDayOfWeek,
-            eventsByDate = eventsByDate,
-            onSelectDate = onSelectDate,
-        )
-    }
-}
-
-@Composable
-private fun MonthNavRow(label: String, onPrev: () -> Unit, onNext: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onPrev) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = stringResource(R.string.cd_mini_month_prev),
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center,
-        )
-        IconButton(onClick = onNext) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = stringResource(R.string.cd_mini_month_next),
-                tint = MaterialTheme.colorScheme.onSurface,
+        AnimatedContent(
+            targetState = displayedMonth,
+            transitionSpec = {
+                if (!animationsEnabled) {
+                    EnterTransition.None togetherWith ExitTransition.None
+                } else {
+                    val forward = targetState > initialState
+                    val direction = if (forward) SlideDirection.Left else SlideDirection.Right
+                    (fadeIn() + slideIntoContainer(direction)) togetherWith
+                        (fadeOut() + slideOutOfContainer(direction))
+                }
+            },
+            label = "mini-month-grid",
+        ) { month ->
+            DateGrid(
+                displayedMonth = month,
+                today = today,
+                firstDayOfWeek = firstDayOfWeek,
+                eventsByDate = eventsByDate,
+                onSelectDate = onSelectDate,
             )
         }
     }

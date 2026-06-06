@@ -255,6 +255,11 @@ internal fun AppShell(vm: AppViewModel) {
                                     headerExpanded = false
                                     vm.requestJumpTo(date, state.currentView)
                                 },
+                                // swiping the mini-month keeps the panel open and
+                                // moves the view to the first of that month.
+                                onNavigateMonth = { ym ->
+                                    vm.requestJumpTo(ym.atDay(1), state.currentView)
+                                },
                             )
                         }
                     }

@@ -23,6 +23,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - The month view now defaults to continuous (endless vertical scroll) instead of
   paged. Switch back any time in Settings > General > Month scroll style.
 - Week can now start on any day, not just Sunday, Monday, or Saturday.
+- The mini-month panel (the split view in Week, 3-Day, Day, and Schedule) now
+  changes months by swiping left or right instead of arrow buttons, and
+  switching months moves the view to the first of that month.
 
 ### Fixed
 - Deleting a single occurrence of a repeating event ("this event only") no

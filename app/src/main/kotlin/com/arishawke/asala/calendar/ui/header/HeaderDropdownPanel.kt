@@ -28,6 +28,9 @@ import java.time.YearMonth
 
 // Month gets the quick-jump chip strip; timeline views get the mini-month
 // with event dots since their natural target is a single date.
+// LongParameterList: a Compose surface fanning flows and callbacks down to the
+// month chips and mini-month panels.
+@Suppress("LongParameterList")
 @Composable
 internal fun HeaderDropdownPanel(
     currentView: CalendarView,
@@ -39,6 +42,7 @@ internal fun HeaderDropdownPanel(
     eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
     onSelectMonth: (YearMonth) -> Unit,
     onSelectDate: (LocalDate) -> Unit,
+    onNavigateMonth: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (currentView) {
@@ -73,7 +77,11 @@ internal fun HeaderDropdownPanel(
                 firstDayOfWeek = firstDayOfWeekOverride ?: firstDayOfWeekFromLocale(),
                 eventsByDate = state.eventsByDate,
                 onSelectDate = onSelectDate,
-                onShiftMonth = { delta -> vm.showMonth(state.displayedMonth.plusMonths(delta.toLong())) },
+                onShiftMonth = { delta ->
+                    val target = state.displayedMonth.plusMonths(delta.toLong())
+                    vm.showMonth(target)
+                    onNavigateMonth(target)
+                },
                 modifier = modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface),
