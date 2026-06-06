@@ -58,6 +58,7 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 - Reminders before events start, with snooze and separate defaults for timed and all-day events.
 - Per-event colors from a preset palette or a custom hex.
 - Material 3 throughout, with dynamic color on Android 12+ and Light, Dark, and AMOLED themes.
+- A mini-month split view in Week, 3-Day, Day, and Schedule: tap the header to peek a month with event dots and jump to any day.
 - A focus mode that dims non-working hours and days.
 - Follows your phone: the 24-hour setting, your device language for dates and month names, and optional ISO week numbers.
 - A tidy drawer to toggle calendars, hide whole accounts, recolor anything, and rename or delete local calendars.
