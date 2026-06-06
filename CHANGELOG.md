@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-06-06
+
 ### Added
 - Widget appearance settings (Settings > Widgets): the home-screen agenda and
   month widgets can now use their own theme (Follow app, System, Light, Dark, or
@@ -1612,7 +1614,8 @@ notification firing from this app lands in M4.
 - Live updates from the Calendar Provider via ContentObserver.
 - Branding as Asala Calendar; GPL v3 license; README.
 
-[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/Arishawke/asala-calendar/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Arishawke/asala-calendar/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/Arishawke/asala-calendar/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/Arishawke/asala-calendar/compare/v0.16.0...v0.17.0
