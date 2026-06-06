@@ -31,6 +31,7 @@ import com.arishawke.asala.calendar.ui.theme.Spacing
 @Composable
 internal fun GeneralSettings(s: UserPrefs, vm: SettingsViewModel) {
     DefaultViewRow(current = s.defaultView, tasksEnabled = s.tasksEnabled, onChange = vm::setDefaultView)
+    MonthScrollStyleRow(current = s.monthScrollStyle, onChange = vm::setMonthScrollStyle)
     WeekStartsOnRow(s.weekStartsOn, vm::setWeekStartsOn)
     DefaultDurationDropdown(current = s.defaultDurationMinutes, onChange = vm::setDefaultDurationMinutes)
     TimeFormatRow(current = s.is24HourOverride, onChange = vm::setIs24HourOverride)
@@ -80,7 +81,6 @@ internal fun AppearanceSettings(s: UserPrefs, vm: SettingsViewModel) {
         onChange = vm::setShowWeekNumber,
         supporting = stringResource(R.string.settings_show_week_number_supporting),
     )
-    MonthScrollStyleRow(current = s.monthScrollStyle, onChange = vm::setMonthScrollStyle)
 }
 
 @Composable

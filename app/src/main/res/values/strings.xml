@@ -254,9 +254,6 @@
     <string name="settings_widget_translucent_summary">Let the wallpaper show through the widget background.</string>
     <string name="settings_dim_past_dates">Dim past dates</string>
     <string name="week_starts_system">System default</string>
-    <string name="week_starts_sunday">Sunday</string>
-    <string name="week_starts_monday">Monday</string>
-    <string name="week_starts_saturday">Saturday</string>
 
     <!-- Reminder notification channel -->
     <string name="notif_channel_reminders_name">Event reminders</string>

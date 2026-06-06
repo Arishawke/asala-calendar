@@ -16,8 +16,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Changed
 - The Settings screen is now organized into collapsible sections. It opens with
-  all sections collapsed, so it is shorter and easier to scan; tap a section
-  header to expand or collapse it.
+  General expanded and the rest collapsed, so it is shorter and easier to scan;
+  tap a section header to expand or collapse it.
+- Settings sections reordered: Widgets now sits below Notifications.
+- Month scroll style moved into the General section, just below Default view.
+- The month view now defaults to continuous (endless vertical scroll) instead of
+  paged. Switch back any time in Settings > General > Month scroll style.
+- Week can now start on any day, not just Sunday, Monday, or Saturday.
 
 ### Fixed
 - Deleting a single occurrence of a repeating event ("this event only") no

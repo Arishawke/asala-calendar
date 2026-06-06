@@ -61,8 +61,8 @@ fun SettingsScreen(
             )
         },
     ) { padding ->
-        // each section is a collapsible disclosure; the screen opens to just the
-        // six headers (all collapsed) so it is short and scannable.
+        // each section is a collapsible disclosure; the screen opens with General
+        // expanded and the rest collapsed so it stays short and scannable.
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -70,7 +70,10 @@ fun SettingsScreen(
                 .fillMaxSize(),
         ) {
             item("section-general") {
-                CollapsibleSection(stringResource(R.string.settings_section_general)) {
+                CollapsibleSection(
+                    stringResource(R.string.settings_section_general),
+                    initiallyExpanded = true,
+                ) {
                     GeneralSettings(s, vm)
                 }
             }
@@ -79,14 +82,14 @@ fun SettingsScreen(
                     AppearanceSettings(s, vm)
                 }
             }
-            item("section-widgets") {
-                CollapsibleSection(stringResource(R.string.settings_section_widgets)) {
-                    WidgetsSettings(s, vm)
-                }
-            }
             item("section-notifications") {
                 CollapsibleSection(stringResource(R.string.settings_notifications_header)) {
                     NotificationsSettings(s, vm, notificationPermissionGranted, onRequestNotificationPermission)
+                }
+            }
+            item("section-widgets") {
+                CollapsibleSection(stringResource(R.string.settings_section_widgets)) {
+                    WidgetsSettings(s, vm)
                 }
             }
             item("section-calendars") {

@@ -43,11 +43,16 @@ import com.arishawke.asala.calendar.R
 private const val ChevronExpandedRotation = 180f
 
 // disclosure section: a tappable header that shows/hides its rows. self-manages
-// expanded state, default collapsed; in a LazyColumn item with a stable key the
-// saveable state survives scroll and rotation but resets on a fresh screen open.
+// expanded state, collapsed unless initiallyExpanded; in a LazyColumn item with a
+// stable key the saveable state survives scroll and rotation but resets on a fresh
+// screen open.
 @Composable
-internal fun CollapsibleSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
+internal fun CollapsibleSection(
+    title: String,
+    initiallyExpanded: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     val expandedDesc = stringResource(R.string.settings_section_expanded)
     val collapsedDesc = stringResource(R.string.settings_section_collapsed)
     val expandAction = stringResource(R.string.settings_section_expand)

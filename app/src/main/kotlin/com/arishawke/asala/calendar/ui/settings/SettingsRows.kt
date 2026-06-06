@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.CalendarView
@@ -31,6 +32,7 @@ import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.isAlwaysVisible
 import com.arishawke.asala.calendar.label
 import java.time.DayOfWeek
+import java.time.format.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,13 +148,11 @@ private fun monthScrollStyleLabel(style: MonthScrollStyle): Int = when (style) {
 @Composable
 internal fun WeekStartsOnRow(current: DayOfWeek?, onChange: (DayOfWeek?) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val label = when (current) {
-        null -> stringResource(R.string.week_starts_system)
-        DayOfWeek.SUNDAY -> stringResource(R.string.week_starts_sunday)
-        DayOfWeek.MONDAY -> stringResource(R.string.week_starts_monday)
-        DayOfWeek.SATURDAY -> stringResource(R.string.week_starts_saturday)
-        else -> current.name
-    }
+    val locale = LocalConfiguration.current.locales.get(0)
+    // localized day names, same source as the weekday headers; null follows the
+    // system first-day-of-week.
+    val label = current?.getDisplayName(TextStyle.FULL, locale)
+        ?: stringResource(R.string.week_starts_system)
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
             value = label,
@@ -173,20 +173,9 @@ internal fun WeekStartsOnRow(current: DayOfWeek?, onChange: (DayOfWeek?) -> Unit
                     expanded = false
                 },
             )
-            listOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.SATURDAY).forEach { d ->
+            DayOfWeek.entries.forEach { d ->
                 DropdownMenuItem(
-                    text = {
-                        Text(
-                            stringResource(
-                                when (d) {
-                                    DayOfWeek.SUNDAY -> R.string.week_starts_sunday
-                                    DayOfWeek.MONDAY -> R.string.week_starts_monday
-                                    DayOfWeek.SATURDAY -> R.string.week_starts_saturday
-                                    else -> R.string.week_starts_system
-                                },
-                            ),
-                        )
-                    },
+                    text = { Text(d.getDisplayName(TextStyle.FULL, locale)) },
                     onClick = {
                         onChange(d)
                         expanded = false

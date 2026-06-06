@@ -139,7 +139,7 @@ data class UserPrefs(
             workingDaysEnabled = false,
             workingDays = WorkingDaysDefault,
             showWeekNumber = false,
-            monthScrollStyle = MonthScrollStyle.Paged,
+            monthScrollStyle = MonthScrollStyle.Continuous,
             widgetThemeMode = WidgetThemeMode.FollowApp,
             widgetTranslucent = false,
         )

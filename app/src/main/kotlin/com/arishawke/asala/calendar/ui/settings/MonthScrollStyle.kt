@@ -9,7 +9,7 @@
 package com.arishawke.asala.calendar.ui.settings
 
 // Paged is the historic HorizontalPager; Continuous is the vertical
-// LazyColumn. default Paged so existing installs see no behavior change.
+// LazyColumn and the default.
 enum class MonthScrollStyle {
     Paged,
     Continuous,
