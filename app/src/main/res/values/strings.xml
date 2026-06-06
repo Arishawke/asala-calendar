@@ -319,7 +319,7 @@
     <!-- Tasks placeholder screen -->
     <string name="view_tasks">Tasks</string>
     <string name="tasks_coming_soon_title">Tasks are coming soon</string>
-    <string name="tasks_coming_soon_body">Still designing how tasks work in Asala. Track progress in docs/ROADMAP.md.</string>
+    <string name="tasks_coming_soon_body">Still designing how tasks work in Asala.</string>
 
     <!-- Notification action labels (Snooze two-tier) -->
     <string name="notif_action_snooze_default_format">Snooze %1$dm</string>
