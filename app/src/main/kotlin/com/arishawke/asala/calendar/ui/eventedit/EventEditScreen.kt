@@ -13,12 +13,15 @@ import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -92,6 +96,7 @@ fun EventEditScreen(
         ),
     )
     val state by vm.form.collectAsStateWithLifecycle()
+    val loading by vm.loading.collectAsStateWithLifecycle()
     val saveError by vm.saveError.collectAsStateWithLifecycle()
     val notifGranted by appViewModel.notificationPermissionGranted.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -170,12 +175,20 @@ fun EventEditScreen(
                         .padding(horizontal = Spacing.lg, vertical = Spacing.md),
                 )
             }
-            EventForm(
-                state = state,
-                onChange = { newState -> vm.updateForm { newState } },
-                palette = palette,
-                is24Hour = is24Hour,
-            )
+            if (loading) {
+                // edit / duplicate fetch their data async; show a spinner until
+                // it lands rather than an editable blank form that gets replaced.
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                EventForm(
+                    state = state,
+                    onChange = { newState -> vm.updateForm { newState } },
+                    palette = palette,
+                    is24Hour = is24Hour,
+                )
+            }
         }
     }
 

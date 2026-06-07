@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+- Opening an existing event to edit (or duplicating one) now shows a brief
+  loading spinner until its details finish loading, instead of a blank form.
+  This prevents an edit made in that first moment, such as changing the time,
+  from being silently discarded when the event's data lands a moment later.
+  This was only reachable when the load was slow (large or syncing calendars,
+  slower devices). Creating a new event is unaffected.
+
 ## [0.20.0] - 2026-06-06
 
 ### Added

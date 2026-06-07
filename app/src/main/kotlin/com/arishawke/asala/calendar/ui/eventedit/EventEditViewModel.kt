@@ -230,6 +230,12 @@ sealed interface SaveResult {
     object Failure : SaveResult
 }
 
+// existing events and duplicates fetch their data asynchronously and then
+// replace the form wholesale; gate input until that lands so a fast edit
+// during a slow load isn't clobbered. new events have nothing to wait on.
+internal fun shouldGateEditorUntilLoaded(editingEventId: Long?, duplicateFromEventId: Long?): Boolean =
+    editingEventId != null || duplicateFromEventId != null
+
 @Suppress("LongParameterList")
 class EventEditViewModel(
     private val eventRepo: EventRepository,
@@ -263,6 +269,12 @@ class EventEditViewModel(
     // cleared at the start of each save() so a successful retry hides the banner.
     private val _saveError = MutableStateFlow(false)
     val saveError: StateFlow<Boolean> = _saveError.asStateFlow()
+
+    // true until the async load below lands, but only for opens that replace the
+    // form (edit / duplicate). the screen shows a spinner meanwhile so the user
+    // can't edit a half-blank form whose edits would be overwritten on load.
+    private val _loading = MutableStateFlow(shouldGateEditorUntilLoaded(editingEventId, duplicateFromEventId))
+    val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
     // preserved so scope-aware save can supply parentDtstart and parentRrule
     private var loadedDetail: EventDetail? = null
@@ -354,6 +366,7 @@ class EventEditViewModel(
                         selectedCalendarId = cals.firstOrNull()?.id,
                     )
                 }
+            _loading.value = false
         }
     }
 
