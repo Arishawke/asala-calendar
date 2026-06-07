@@ -31,7 +31,14 @@ data class EventDetail(
     // (e.g. DAVx5) isn't clobbered by a local title edit.
     val availability: Int = CalendarContract.Events.AVAILABILITY_BUSY,
     val isBirthday: Boolean = false,
-)
+    // CalendarContract.Calendars.CAL_ACCESS_*; 500 = CAL_ACCESS_CONTRIBUTOR.
+    // below this the calendar is read-only (subscriptions, holidays, birthdays),
+    // so edit/delete would be rejected by the provider. defaults to owner so an
+    // unpopulated value never hides the actions for a writable event.
+    val accessLevel: Int = CalendarContract.Calendars.CAL_ACCESS_OWNER,
+) {
+    val isWritable: Boolean get() = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+}
 
 // chip color precedence: event > calendar > default.
 fun resolveEventDetailColor(

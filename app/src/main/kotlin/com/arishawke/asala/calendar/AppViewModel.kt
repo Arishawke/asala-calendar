@@ -366,6 +366,12 @@ class AppViewModel(
         initialValue = null,
     )
 
+    // surfaced in the detail sheet when a delete is rejected (read-only calendar,
+    // permission revoked mid-session, removed account) so a failed destructive op
+    // isn't silent. reset on open / close.
+    internal val deleteFailedBacker = MutableStateFlow(false)
+    val deleteFailed: StateFlow<Boolean> = deleteFailedBacker.asStateFlow()
+
     // null = no editor open; -1L = create new; >0 = edit existing
     internal val editEventIdBacker = MutableStateFlow<Long?>(null)
     val editEventId: StateFlow<Long?> = editEventIdBacker.asStateFlow()

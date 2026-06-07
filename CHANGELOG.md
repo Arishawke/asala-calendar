@@ -14,6 +14,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   from being silently discarded when the event's data lands a moment later.
   This was only reachable when the load was slow (large or syncing calendars,
   slower devices). Creating a new event is unaffected.
+- Events on read-only calendars (such as holidays, birthdays, and subscribed
+  calendars) no longer show Edit and Delete buttons that could never work. When
+  a delete is rejected for any reason, for example a read-only calendar or
+  calendar permission revoked while the app is open, the app now shows a brief
+  message instead of failing silently.
 - A repeating event whose "ends on" date was set earlier than its start date no
   longer saves as an event with no occurrences that silently disappears. The
   date picker now blocks those dates, and the save is rejected if one slips

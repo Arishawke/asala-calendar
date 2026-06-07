@@ -61,6 +61,7 @@ fun EventDetailSheet(
     onEdit: (Long) -> Unit,
     onDuplicate: (Long) -> Unit,
     onDelete: (Long, RecurringEditScope) -> Unit,
+    deleteFailed: Boolean = false,
     notificationPermissionGranted: Boolean = true,
     onRequestNotificationPermission: () -> Unit = {},
 ) {
@@ -78,6 +79,7 @@ fun EventDetailSheet(
             EventDetailContent(
                 detail = detail,
                 instanceMillis = instanceMillis,
+                deleteFailed = deleteFailed,
                 notificationPermissionGranted = notificationPermissionGranted,
                 onRequestNotificationPermission = onRequestNotificationPermission,
                 onEdit = { onEdit(detail.eventId) },
@@ -96,6 +98,7 @@ fun EventDetailSheet(
 private fun EventDetailContent(
     detail: EventDetail,
     instanceMillis: Long?,
+    deleteFailed: Boolean,
     notificationPermissionGranted: Boolean,
     onRequestNotificationPermission: () -> Unit,
     onEdit: () -> Unit,
@@ -224,19 +227,33 @@ private fun EventDetailContent(
             }
         }
 
+        if (deleteFailed) {
+            Text(
+                text = stringResource(R.string.error_delete_failed),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
         Spacer(Modifier.height(Spacing.sm))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            TextButton(onClick = {
-                if (isRecurring) showDeleteScopeDialog = true else showConfirmDelete = true
-            }) { Text(stringResource(R.string.action_delete)) }
+            // edit/delete only for writable calendars; read-only sources
+            // (holidays, birthdays, subscriptions) reject the provider write.
+            if (detail.isWritable) {
+                TextButton(onClick = {
+                    if (isRecurring) showDeleteScopeDialog = true else showConfirmDelete = true
+                }) { Text(stringResource(R.string.action_delete)) }
+            }
             TextButton(onClick = onDuplicate) { Text(stringResource(R.string.action_duplicate)) }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onClose) { Text(stringResource(R.string.action_close)) }
-            Button(onClick = onEdit) { Text(stringResource(R.string.action_edit)) }
+            if (detail.isWritable) {
+                Button(onClick = onEdit) { Text(stringResource(R.string.action_edit)) }
+            }
         }
     }
 }

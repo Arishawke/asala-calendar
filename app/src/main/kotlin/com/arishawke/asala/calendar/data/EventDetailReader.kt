@@ -39,6 +39,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             CalendarContract.Events.CALENDAR_DISPLAY_NAME,
             CalendarContract.Events.STATUS,
             CalendarContract.Events.AVAILABILITY,
+            CalendarContract.Events.CALENDAR_ACCESS_LEVEL,
         )
 
     val event =
@@ -64,6 +65,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             val calNameIdx = c.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_DISPLAY_NAME)
             val statusIdx = c.getColumnIndexOrThrow(CalendarContract.Events.STATUS)
             val availabilityIdx = c.getColumnIndexOrThrow(CalendarContract.Events.AVAILABILITY)
+            val accessLevelIdx = c.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ACCESS_LEVEL)
             val dtStart = c.getLong(dtStartIdx)
             val endMillis =
                 EventEndMillis.compute(
@@ -97,6 +99,11 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
                     c.getInt(availabilityIdx)
                 },
                 isBirthday = BirthdayDetection.isBirthdayCalendar(calendarName),
+                accessLevel = if (c.isNull(accessLevelIdx)) {
+                    CalendarContract.Calendars.CAL_ACCESS_OWNER
+                } else {
+                    c.getInt(accessLevelIdx)
+                },
             )
         } ?: return@withContext null
 

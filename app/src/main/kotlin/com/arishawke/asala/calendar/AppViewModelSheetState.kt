@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 fun AppViewModel.openEventDetail(eventId: Long, instanceMillis: Long) {
     detailSheetEventBacker.update { OpenEvent(eventId, instanceMillis) }
     loadedDetailRawBacker.update { null }
+    deleteFailedBacker.update { false }
     viewModelScope.launch {
         // store raw only; override resolution happens live in loadedDetail
         loadedDetailRawBacker.update { eventRepository.fetchEventDetail(eventId) }
@@ -35,6 +36,7 @@ fun AppViewModel.openEventDetail(eventId: Long, instanceMillis: Long) {
 fun AppViewModel.closeEventDetail() {
     detailSheetEventBacker.update { null }
     loadedDetailRawBacker.update { null }
+    deleteFailedBacker.update { false }
 }
 
 fun AppViewModel.openCreateEditor() {
@@ -76,10 +78,11 @@ fun AppViewModel.deleteEvent(
     parentAllDay: Boolean = false,
 ) {
     viewModelScope.launch {
+        deleteFailedBacker.update { false }
         // only finalize when the provider actually deleted. on failure keep the
-        // sheet open so the still-present event signals the delete did not take,
-        // rather than closing on a false success and (AllEvents) dropping a color
-        // override that could re-attach to a recycled id.
+        // sheet open AND surface an explicit message so the failed destructive op
+        // isn't silent, rather than closing on a false success and (AllEvents)
+        // dropping a color override that could re-attach to a recycled id.
         val deleted = eventRepository.deleteEvent(
             eventId = eventId,
             scope = scope,
@@ -87,7 +90,10 @@ fun AppViewModel.deleteEvent(
             parentRrule = parentRrule,
             parentAllDay = parentAllDay,
         )
-        if (!deleted) return@launch
+        if (!deleted) {
+            deleteFailedBacker.update { true }
+            return@launch
+        }
         // AllEvents drops the row, orphaning the per-event override (would
         // re-attach on a recycled id); other scopes keep the eventId.
         if (shouldClearEventOverrideOnDelete(scope)) {

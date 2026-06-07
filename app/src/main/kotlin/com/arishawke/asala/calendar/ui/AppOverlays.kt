@@ -59,6 +59,7 @@ internal fun AppOverlays(
     val openEvent by vm.detailSheetEvent.collectAsStateWithLifecycle()
     val pendingReschedule by vm.pendingReschedule.collectAsStateWithLifecycle()
     val loadedDetail by vm.loadedDetail.collectAsStateWithLifecycle()
+    val deleteFailed by vm.deleteFailed.collectAsStateWithLifecycle()
     val editId by vm.editEventId.collectAsStateWithLifecycle()
     val editInstanceMillis by vm.editInstanceMillis.collectAsStateWithLifecycle()
     val searchOpen by vm.searchOpen.collectAsStateWithLifecycle()
@@ -106,6 +107,7 @@ internal fun AppOverlays(
         EventDetailSheet(
             detail = loadedDetail,
             instanceMillis = o.instanceMillis,
+            deleteFailed = deleteFailed,
             notificationPermissionGranted = notifGranted,
             onRequestNotificationPermission = {
                 notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
