@@ -22,6 +22,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -160,7 +161,16 @@ private fun EndConditionSection(state: EventEditFormState, onChange: (EventEditF
     if (showDatePicker) {
         val initialMillis = (state.recurrenceUntilDate ?: state.endDate.plusMonths(1))
             .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+        // UNTIL before the event start expands to zero occurrences; block those
+        // dates so the user can't pick a recurrence that ends before it begins.
+        val startMillis = state.startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialMillis,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis >= startMillis
+                override fun isSelectableYear(year: Int): Boolean = year >= state.startDate.year
+            },
+        )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {

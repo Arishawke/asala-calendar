@@ -60,6 +60,61 @@ class EventSaveTest {
         assertTrue("setReminder must not be called", !reminded)
     }
 
+    // A recurrence whose UNTIL date precedes the event start expands to zero
+    // occurrences. The provider accepts it, so the event would save "successfully"
+    // and silently vanish. Reject it at the save layer (the date picker also
+    // blocks it) so the user sees the failure banner instead.
+    @Test
+    fun `recurrence until before the start date returns Failure without inserting`() = runBlocking {
+        var inserted = false
+        val result =
+            EventSave.attempt(
+                form = form().copy(
+                    recurrenceFrequency = RecurrenceFrequency.Weekly,
+                    recurrenceUntilDate = LocalDate.of(2026, 5, 31),
+                ),
+                editingEventId = null,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                insertEvent = {
+                    inserted = true
+                    1L
+                },
+                updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
+                setReminder = { _, _ -> true },
+            )
+        assertEquals(SaveResult.Failure, result)
+        assertTrue("must not insert a zero-occurrence recurrence", !inserted)
+    }
+
+    // UNTIL equal to the start date is valid: the series keeps its first
+    // occurrence. The guard uses strict isBefore precisely to allow this; a
+    // refactor to <= would silently reject a legitimate single-occurrence series.
+    @Test
+    fun `recurrence until equal to the start date still saves`() = runBlocking {
+        var inserted = false
+        val result =
+            EventSave.attempt(
+                form = form().copy(
+                    recurrenceFrequency = RecurrenceFrequency.Weekly,
+                    recurrenceUntilDate = LocalDate.of(2026, 6, 1),
+                ),
+                editingEventId = null,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                insertEvent = {
+                    inserted = true
+                    42L
+                },
+                updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
+                setReminder = { _, _ -> true },
+            )
+        assertEquals(SaveResult.Success(42L), result)
+        assertTrue("a same-day UNTIL must still insert", inserted)
+    }
+
     // Insert path happy case: the event id from insertEvent flows through
     // to SaveResult.Success and setReminder is invoked against it.
     @Test
@@ -224,6 +279,9 @@ class EventSaveTest {
         var savedRrule: String? = "sentinel"
         val original = "FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20260301T080000Z"
         val recurringForm = form().copy(
+            // start precedes the UNTIL so the edited series is well-formed
+            startDate = LocalDate.of(2026, 1, 1),
+            endDate = LocalDate.of(2026, 1, 1),
             recurrenceFrequency = RecurrenceFrequency.Weekly,
             recurrenceInterval = 1,
             recurrenceUntilDate = LocalDate.of(2026, 3, 1),
@@ -252,6 +310,9 @@ class EventSaveTest {
     fun `AllEvents edit rebuilds the rule when the end date changed`() = runBlocking {
         var savedRrule: String? = null
         val recurringForm = form().copy(
+            // start precedes the UNTIL so the edited series is well-formed
+            startDate = LocalDate.of(2026, 1, 1),
+            endDate = LocalDate.of(2026, 1, 1),
             recurrenceFrequency = RecurrenceFrequency.Weekly,
             recurrenceInterval = 1,
             recurrenceUntilDate = LocalDate.of(2026, 3, 8),

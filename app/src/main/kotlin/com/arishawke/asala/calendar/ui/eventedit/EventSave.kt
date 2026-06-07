@@ -88,6 +88,15 @@ internal object EventSave {
         // event has endMillis a day past startMillis and still passes.
         if (endMillis <= startMillis) return SaveResult.Failure
 
+        // a recurrence whose UNTIL date precedes the start expands to zero
+        // occurrences; the provider accepts it and the event silently vanishes.
+        // reject it here (the editor's date picker also blocks the bad pick).
+        if (form.recurrenceFrequency != null &&
+            form.recurrenceUntilDate?.isBefore(form.startDate) == true
+        ) {
+            return SaveResult.Failure
+        }
+
         val rrule =
             form.recurrenceFrequency?.let { freq ->
                 // if the user left recurrence untouched, keep the loaded rule

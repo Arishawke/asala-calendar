@@ -14,6 +14,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   from being silently discarded when the event's data lands a moment later.
   This was only reachable when the load was slow (large or syncing calendars,
   slower devices). Creating a new event is unaffected.
+- A repeating event whose "ends on" date was set earlier than its start date no
+  longer saves as an event with no occurrences that silently disappears. The
+  date picker now blocks those dates, and the save is rejected if one slips
+  through.
 - Deleting "this and following events" from the first occurrence of a repeating
   event now removes the whole series cleanly, instead of leaving an invisible
   leftover event behind that could resurface when syncing.
