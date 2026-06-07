@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   from being silently discarded when the event's data lands a moment later.
   This was only reachable when the load was slow (large or syncing calendars,
   slower devices). Creating a new event is unaffected.
+- Deleting "this and following events" from the first occurrence of a repeating
+  event now removes the whole series cleanly, instead of leaving an invisible
+  leftover event behind that could resurface when syncing.
 - The highlighted "today" now updates after a device time-zone change, for
   example when travelling across the date line, instead of staying on the
   previous day until the app is restarted.

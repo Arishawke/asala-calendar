@@ -86,4 +86,28 @@ class EventMutationsTest {
     fun `shouldReduceSplitCount is false when the split dropped the count`() {
         assertFalse(shouldReduceSplitCount("FREQ=DAILY;COUNT=10", "FREQ=DAILY;UNTIL=20261231T235959Z"))
     }
+
+    // Deleting "this and following" from the first occurrence (instance start at
+    // or before the parent DTSTART) must delete the whole series, not truncate it
+    // to a UNTIL-before-DTSTART shell. The update path already guards this; the
+    // delete path must match.
+    @Test
+    fun `shouldDeleteEntireSeries is true when deleting from the first occurrence`() {
+        assertTrue(shouldDeleteEntireSeries(instanceMillis = 1_000L, parentDtStart = 1_000L))
+    }
+
+    @Test
+    fun `shouldDeleteEntireSeries is true when the instance precedes the parent start`() {
+        assertTrue(shouldDeleteEntireSeries(instanceMillis = 1_000L, parentDtStart = 2_000L))
+    }
+
+    @Test
+    fun `shouldDeleteEntireSeries is false for a later occurrence`() {
+        assertFalse(shouldDeleteEntireSeries(instanceMillis = 2_000L, parentDtStart = 1_000L))
+    }
+
+    @Test
+    fun `shouldDeleteEntireSeries is false when the parent start is unknown`() {
+        assertFalse(shouldDeleteEntireSeries(instanceMillis = 1_000L, parentDtStart = null))
+    }
 }

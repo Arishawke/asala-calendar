@@ -6,6 +6,9 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
+
+@file:Suppress("TooManyFunctions") // cohesive recurrence-mutation provider helpers
+
 package com.arishawke.asala.calendar.data
 
 import android.content.ContentResolver
@@ -99,6 +102,13 @@ internal fun shouldReduceSplitCount(parentRrule: String?, splitRrule: String): B
     val parentCount = RecurrenceRule.countOf(parentRrule) ?: return false
     return RecurrenceRule.countOf(splitRrule) == parentCount
 }
+
+// "this and following" from the first occurrence covers the entire series, so
+// the delete must remove the parent row outright rather than truncate it to an
+// UNTIL-before-DTSTART shell that expands to nothing but lingers in the Events
+// table. mirrors the in-place guard in updateThisAndFollowing.
+internal fun shouldDeleteEntireSeries(instanceMillis: Long, parentDtStart: Long?): Boolean =
+    parentDtStart != null && instanceMillis <= parentDtStart
 
 // counts the parent's occurrences in [fromMillis, beforeMillis) via the
 // provider's own expansion (BYDAY/INTERVAL-proof) so a split can carry the
@@ -246,12 +256,22 @@ internal suspend fun ContentResolver.deleteEventScoped(
         }
         RecurringEditScope.ThisAndFollowing -> {
             require(instanceMillis != null && parentRrule != null)
-            val newRrule =
-                RecurrenceExceptionMath.appendUntil(
-                    parentRrule,
-                    RecurrenceExceptionMath.untilUtcForTruncation(instanceMillis, parentAllDay),
-                )
-            truncateParentRecurrence(eventId, queryEventDtStart(eventId), newRrule) > 0
+            val parentDtStart = queryEventDtStart(eventId)
+            if (shouldDeleteEntireSeries(instanceMillis, parentDtStart)) {
+                // first occurrence: this-and-following covers the whole series, so
+                // delete the parent row outright. truncating it would append an
+                // UNTIL before its own DTSTART, leaving a row that expands to nothing
+                // but lingers in the Events table (and can resurface on CalDAV sync).
+                val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+                delete(uri, null, null) > 0
+            } else {
+                val newRrule =
+                    RecurrenceExceptionMath.appendUntil(
+                        parentRrule,
+                        RecurrenceExceptionMath.untilUtcForTruncation(instanceMillis, parentAllDay),
+                    )
+                truncateParentRecurrence(eventId, parentDtStart, newRrule) > 0
+            }
         }
     }
 }
