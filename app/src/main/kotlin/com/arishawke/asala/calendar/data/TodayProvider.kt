@@ -13,20 +13,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.Clock
 import java.time.LocalDate
+import java.time.ZoneId
 
 // shared "today" source so the highlight refreshes on midnight cross, clock
 // change, or tz shift. without it each screen captures LocalDate.now() once at
 // construction and stays on yesterday until the next process start.
 // pure StateFlow holder (BroadcastReceiver wiring lives on the Application)
 // so JVM tests can drive it with a synthetic Clock.
-class TodayProvider(private val clock: Clock = Clock.systemDefaultZone()) {
-    private val _today = MutableStateFlow(LocalDate.now(clock))
+class TodayProvider(
+    private val clock: Clock = Clock.systemDefaultZone(),
+    // resolved per read so a timezone change moves "today". capturing the zone
+    // at construction (the old LocalDate.now(clock), which uses clock.getZone())
+    // froze it and left the highlight on the old zone's date after a tz shift
+    // until the next process start.
+    private val zoneId: () -> ZoneId = { ZoneId.systemDefault() },
+) {
+    private val _today = MutableStateFlow(clock.instant().atZone(zoneId()).toLocalDate())
     val today: StateFlow<LocalDate> = _today.asStateFlow()
 
     // called on DATE/TIME/TIMEZONE_CHANGED broadcasts and on ON_RESUME
     // (fallback for broadcasts missed under doze / battery-saver).
     fun refresh() {
-        val now = LocalDate.now(clock)
+        val now = clock.instant().atZone(zoneId()).toLocalDate()
         if (_today.value != now) _today.value = now
     }
 }
