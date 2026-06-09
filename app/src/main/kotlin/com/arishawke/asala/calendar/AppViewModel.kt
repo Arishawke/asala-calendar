@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.time.LocalDate
+import java.time.LocalTime
 
 enum class CalendarView { Year, Month, Week, ThreeDay, Day, Schedule, Tasks }
 
@@ -77,6 +78,11 @@ data class DrawerHiddenAccount(val accountKey: String, val accountName: String, 
 // not meant for it, so the source screen can't consume a jump intended for
 // the destination during an AnimatedContent transition.
 data class PendingDateJump(val date: LocalDate, val view: CalendarView)
+
+// post-save reveal target for the timeline views. carries the time and event
+// id that a plain date jump lacks; `view` is filtered for the same reason as
+// PendingDateJump. time is null for all-day (no timeline position to point at).
+data class PendingEventReveal(val date: LocalDate, val time: LocalTime?, val eventId: Long, val view: CalendarView)
 
 // mirrors `accountOverrideKey` in ui/month/drawer/AccountSection.kt; inlined
 // to avoid importing a UI-layer helper here
@@ -144,6 +150,11 @@ class AppViewModel(
     // and an unfiltered handler raced to consume the value first.
     private val _pendingDateJump = MutableStateFlow<PendingDateJump?>(null)
     val pendingDateJump: StateFlow<PendingDateJump?> = _pendingDateJump.asStateFlow()
+
+    // post-save reveal target for the timeline views; consumed once the timeline
+    // shows the pill or glows the event.
+    private val _pendingEventReveal = MutableStateFlow<PendingEventReveal?>(null)
+    val pendingEventReveal: StateFlow<PendingEventReveal?> = _pendingEventReveal.asStateFlow()
 
     // Month-view's visible YearMonth, pushed up for the header chip strip.
     // stale on other views, but the chip strip only renders in Month view.
@@ -292,6 +303,20 @@ class AppViewModel(
 
     fun consumePendingDateJump() {
         _pendingDateJump.update { null }
+    }
+
+    fun revealSavedEvent(date: LocalDate, time: LocalTime?, eventId: Long) {
+        val view = currentView.value
+        if (view.isTimelineView()) {
+            _pendingEventReveal.update { PendingEventReveal(date, time, eventId, view) }
+        } else {
+            // schedule/month/year/tasks: just land on the date, no pill.
+            _pendingDateJump.update { PendingDateJump(date, view) }
+        }
+    }
+
+    fun consumeEventReveal() {
+        _pendingEventReveal.update { null }
     }
 
     fun setViewedMonth(yearMonth: java.time.YearMonth) {
