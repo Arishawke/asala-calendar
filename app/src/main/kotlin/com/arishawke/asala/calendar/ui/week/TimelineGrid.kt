@@ -171,6 +171,7 @@ internal fun DayColumn(
     isNonWorkingDay: Boolean = false,
     showEndTime: Boolean = false,
     onOverflow: ((date: LocalDate, events: List<EventItem>) -> Unit)? = null,
+    highlightEventId: Long? = null,
 ) {
     val density = LocalDensity.current
     BoxWithConstraints(
@@ -208,6 +209,7 @@ internal fun DayColumn(
                 weekDayIndex = weekDayIndex,
                 weekDayCount = weekDayCount,
                 showEndTime = showEndTime,
+                isHighlighted = originalEvent.eventId == highlightEventId,
                 onClick = onEventClick?.let { cb ->
                     { cb(originalEvent.eventId, originalEvent.startMillis) }
                 },
