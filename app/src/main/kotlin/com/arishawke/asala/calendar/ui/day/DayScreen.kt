@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.ui.day
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -50,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
+import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
@@ -58,9 +61,12 @@ import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
 import com.arishawke.asala.calendar.ui.timeline.DayClippedEvent
 import com.arishawke.asala.calendar.ui.timeline.HourAxis
 import com.arishawke.asala.calendar.ui.timeline.HourHeight
+import com.arishawke.asala.calendar.ui.timeline.RevealOverlay
 import com.arishawke.asala.calendar.ui.timeline.clipToDay
 import com.arishawke.asala.calendar.ui.timeline.rememberNowMinutes
+import com.arishawke.asala.calendar.ui.timeline.revealTargetPx
 import com.arishawke.asala.calendar.ui.week.DayColumn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalTime
@@ -69,6 +75,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.max
 
 private const val AllDayLuminanceMidpoint = 0.5f
+private const val HighlightClearMs = 2_000L
 
 @Composable
 // pager state + jumps + workingHours/workingDays params exceed detekt's
@@ -82,6 +89,8 @@ fun DayScreen(
     todayJumpCounter: StateFlow<Int>,
     pendingDateJump: StateFlow<PendingDateJump?>,
     onConsumePendingDateJump: () -> Unit,
+    pendingEventReveal: StateFlow<PendingEventReveal?>,
+    onConsumeEventReveal: () -> Unit,
     modifier: Modifier = Modifier,
     workingHoursEnabled: Boolean = false,
     workingHoursStartHour: Int = 9,
@@ -142,6 +151,14 @@ fun DayScreen(
         onConsumePendingDateJump()
     }
 
+    val reveal by pendingEventReveal.collectAsStateWithLifecycle()
+    LaunchedEffect(reveal, state.today) {
+        val r = reveal?.takeIf { it.view == CalendarView.Day } ?: return@LaunchedEffect
+        val target = DayPaging.pageForDate(state.today, r.date)
+        // page only; the destination page's Timeline scrolls/pills and consumes.
+        if (pagerState.currentPage != target) pagerState.animateScrollToPage(target)
+    }
+
     HorizontalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize(),
@@ -149,6 +166,7 @@ fun DayScreen(
         flingBehavior = rememberCalendarPagerFling(pagerState),
     ) { page ->
         val pageDate = DayPaging.dateForPage(state.today, page)
+        val pageReveal = reveal?.takeIf { it.view == CalendarView.Day && it.date == pageDate }
         DayPage(
             date = pageDate,
             today = state.today,
@@ -160,6 +178,8 @@ fun DayScreen(
             workingDaysMask = workingDaysMask,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            reveal = pageReveal,
+            onConsumeReveal = onConsumeEventReveal,
         )
     }
 }
@@ -177,6 +197,8 @@ private fun DayPage(
     workingDaysMask: Long,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
+    reveal: PendingEventReveal? = null,
+    onConsumeReveal: () -> Unit = {},
 ) {
     val zone = remember { ZoneId.systemDefault() }
     val isToday = date == today
@@ -208,6 +230,8 @@ private fun DayPage(
             isNonWorkingDay = isNonWorkingDay,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            reveal = reveal,
+            onConsumeReveal = onConsumeReveal,
         )
     }
 }
@@ -274,43 +298,75 @@ private fun Timeline(
     isNonWorkingDay: Boolean,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
+    reveal: PendingEventReveal? = null,
+    onConsumeReveal: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
+    val hourHeightPx = with(density) { HourHeight.toPx() }
     val initialHour = if (isToday) {
         max(LocalTime.now(zone).hour - 1, 0)
     } else {
         7
     }
+
+    var highlightEventId by remember { mutableStateOf<Long?>(null) }
+    LaunchedEffect(highlightEventId) {
+        if (highlightEventId != null) {
+            delay(HighlightClearMs)
+            highlightEventId = null
+        }
+    }
+
+    // first composition of this day opens on the revealed event if one targets
+    // this date (the "different day" landing), else the default hour. keyed on
+    // date only, so a same-day reveal does not re-scroll.
     LaunchedEffect(date) {
-        val px = with(density) { (HourHeight.toPx() * initialHour).toInt() }
+        val revealTime = reveal?.takeIf { it.date == date }?.time
+        val px = if (revealTime != null) {
+            revealTargetPx(revealTime, hourHeightPx)
+        } else {
+            (hourHeightPx * initialHour).toInt()
+        }
         scrollState.scrollTo(px)
     }
 
     val nowMinutes = rememberNowMinutes(zone = zone, enabled = isToday)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState),
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            HourAxis()
-            DayColumn(
-                date = date,
-                isToday = isToday,
-                events = events,
-                zone = zone,
-                onEventClick = onEventClick,
-                onReschedule = onReschedule,
-                nowMinutes = nowMinutes,
-                workingHoursEnabled = workingHoursEnabled,
-                workingHoursStartHour = workingHoursStartHour,
-                workingHoursEndHour = workingHoursEndHour,
-                isNonWorkingDay = isNonWorkingDay,
-                showEndTime = true,
-                modifier = Modifier.weight(1f),
-            )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val viewportPx = constraints.maxHeight
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+        ) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                HourAxis()
+                DayColumn(
+                    date = date,
+                    isToday = isToday,
+                    events = events,
+                    zone = zone,
+                    onEventClick = onEventClick,
+                    onReschedule = onReschedule,
+                    nowMinutes = nowMinutes,
+                    workingHoursEnabled = workingHoursEnabled,
+                    workingHoursStartHour = workingHoursStartHour,
+                    workingHoursEndHour = workingHoursEndHour,
+                    isNonWorkingDay = isNonWorkingDay,
+                    showEndTime = true,
+                    highlightEventId = highlightEventId,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
+        RevealOverlay(
+            reveal = reveal,
+            scrollState = scrollState,
+            viewportHeightPx = viewportPx,
+            hourHeightPx = hourHeightPx,
+            onHighlight = { highlightEventId = it },
+            onConsume = onConsumeReveal,
+        )
     }
 }

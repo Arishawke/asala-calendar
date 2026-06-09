@@ -143,6 +143,8 @@ internal fun CalendarViewSwitcher(
                 todayJumpCounter = vm.todayJumpCounter,
                 pendingDateJump = vm.pendingDateJump,
                 onConsumePendingDateJump = vm::consumePendingDateJump,
+                pendingEventReveal = vm.pendingEventReveal,
+                onConsumeEventReveal = vm::consumeEventReveal,
                 workingHoursEnabled = prefs.workingHoursEnabled,
                 workingHoursStartHour = prefs.workingHoursStartHour,
                 workingHoursEndHour = prefs.workingHoursEndHour,
