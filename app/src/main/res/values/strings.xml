@@ -72,6 +72,8 @@
     <string name="event_no_title">(no title)</string>
     <!-- Continuation badge on a timed event that spans more than one day, e.g. "1/2". -->
     <string name="event_segment_badge">%1$d/%2$d</string>
+    <!-- Pill pointing to a just-saved event that is off-screen; %1$s is its start time. -->
+    <string name="reveal_new_event_pill">New event at %1$s</string>
 
     <!-- Date cell semantics (announced after the day number by TalkBack) -->
     <string name="state_day_today">today</string>
