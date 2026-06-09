@@ -109,6 +109,17 @@ fun EventEditScreen(
         appViewModel.setEventColorOverride(savedEventId, state.colorOverrideArgb)
     }
 
+    // after a successful save, ask the calendar to reveal the saved event in
+    // whatever view is showing. reads the freshest form, not the captured state.
+    fun revealSaved(savedEventId: Long) {
+        val f = vm.form.value
+        appViewModel.revealSavedEvent(
+            date = f.startDate,
+            time = if (f.allDay) null else f.startTime,
+            eventId = savedEventId,
+        )
+    }
+
     fun doSave() {
         if (eventId != null && vm.isEditingRecurring) {
             showScopeDialog = true
@@ -117,6 +128,7 @@ fun EventEditScreen(
                 val r = vm.save()
                 if (r is SaveResult.Success) {
                     persistColorOverride(r.eventId)
+                    revealSaved(r.eventId)
                     onSaved(r.eventId)
                 }
             }
@@ -214,6 +226,7 @@ fun EventEditScreen(
                     val r = vm.save(scope = pickedScope, instanceMillis = instanceMillis)
                     if (r is SaveResult.Success) {
                         persistColorOverride(r.eventId)
+                        revealSaved(r.eventId)
                         onSaved(r.eventId)
                     }
                 }
