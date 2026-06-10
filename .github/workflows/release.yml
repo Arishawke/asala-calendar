@@ -31,8 +31,9 @@ jobs:
         # fail loud if the tag and the app versionName disagree, so a
         # forgotten version bump cannot ship under the wrong tag.
         run: |
+          set -euo pipefail
           tag_version="${GITHUB_REF_NAME#v}"
-          gradle_version="$(grep -E 'versionName = ' app/build.gradle.kts | head -1 | cut -d '"' -f2)"
+          gradle_version="$(grep -m1 -E 'versionName = ' app/build.gradle.kts | cut -d '"' -f2)"
           if [ "$tag_version" != "$gradle_version" ]; then
             echo "::error::tag $GITHUB_REF_NAME does not match app versionName $gradle_version"
             exit 1
@@ -43,6 +44,7 @@ jobs:
         # slice the [version] section out of CHANGELOG.md for the release body;
         # fail if it is missing so we never draft a release with empty notes.
         run: |
+          set -euo pipefail
           version="${{ steps.version.outputs.version }}"
           awk -v ver="$version" '
             $0 ~ "^## \\[" ver "\\]" { flag=1; next }
@@ -71,9 +73,10 @@ jobs:
 
       - name: Stage unsigned artifacts under versioned names
         run: |
+          set -euo pipefail
           version="${{ steps.version.outputs.version }}"
-          apk="$(ls app/build/outputs/apk/release/*.apk | head -1)"
-          cp "$apk" "asala-calendar-v${version}-unsigned.apk"
+          apks=(app/build/outputs/apk/release/*.apk)
+          cp "${apks[0]}" "asala-calendar-v${version}-unsigned.apk"
           cp app/build/outputs/bundle/release/app-release.aab "asala-calendar-v${version}-unsigned.aab"
 
       - name: Upload unsigned artifacts
