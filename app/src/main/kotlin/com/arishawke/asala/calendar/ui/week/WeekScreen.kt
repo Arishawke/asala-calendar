@@ -39,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
+import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
@@ -66,6 +67,8 @@ fun WeekScreen(
     todayJumpCounter: StateFlow<Int>,
     pendingDateJump: StateFlow<PendingDateJump?>,
     onConsumePendingDateJump: () -> Unit,
+    pendingEventReveal: StateFlow<PendingEventReveal?>,
+    onConsumeEventReveal: () -> Unit,
     modifier: Modifier = Modifier,
     firstDayOfWeekOverride: DayOfWeek? = null,
     dimPastDates: Boolean = false,
@@ -137,6 +140,17 @@ fun WeekScreen(
         onConsumePendingDateJump()
     }
 
+    // reveal a just-saved event: page to its week, then the destination page's
+    // grid scrolls/pills and consumes. filtered to this view.
+    val reveal by pendingEventReveal.collectAsStateWithLifecycle()
+    LaunchedEffect(reveal, todayWeekStart) {
+        val r = reveal?.takeIf { it.view == CalendarView.Week } ?: return@LaunchedEffect
+        val targetWeekStart = r.date.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+        val offset = java.time.temporal.ChronoUnit.WEEKS.between(todayWeekStart, targetWeekStart).toInt()
+        val target = (todayPageIndex + offset).coerceIn(0, pageCount - 1)
+        if (pagerState.currentPage != target) pagerState.animateScrollToPage(target)
+    }
+
     val zone = remember { ZoneId.systemDefault() }
 
     HorizontalPager(
@@ -151,6 +165,7 @@ fun WeekScreen(
         val days = remember(weekStart) {
             (0..6).map { weekStart.plusDays(it.toLong()) }
         }
+        val pageReveal = reveal?.takeIf { it.view == CalendarView.Week && it.date in days }
         WeekPage(
             days = days,
             today = today,
@@ -165,6 +180,8 @@ fun WeekScreen(
             showWeekNumber = showWeekNumber,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            reveal = pageReveal,
+            onConsumeReveal = onConsumeEventReveal,
         )
     }
 }
@@ -188,6 +205,8 @@ internal fun WeekPage(
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
     enableOverflow: Boolean = true,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
+    reveal: PendingEventReveal? = null,
+    onConsumeReveal: () -> Unit = {},
 ) {
     val visibleEvents = remember(days, events) {
         events.filter { it.isVisibleIn(days.first(), days.last(), zone) }
@@ -250,6 +269,8 @@ internal fun WeekPage(
             enableOverflow = enableOverflow,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            reveal = reveal,
+            onConsumeReveal = onConsumeReveal,
         )
     }
 }

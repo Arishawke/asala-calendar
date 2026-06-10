@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.TimeUnits
 import com.arishawke.asala.calendar.ui.month.DayOverflowSheet
@@ -47,14 +48,19 @@ import com.arishawke.asala.calendar.ui.timeline.DayHeight
 import com.arishawke.asala.calendar.ui.timeline.HourAxis
 import com.arishawke.asala.calendar.ui.timeline.HourHeight
 import com.arishawke.asala.calendar.ui.timeline.NowLineRow
+import com.arishawke.asala.calendar.ui.timeline.RevealOverlay
 import com.arishawke.asala.calendar.ui.timeline.clipEventsByDay
 import com.arishawke.asala.calendar.ui.timeline.crowdedLayout
 import com.arishawke.asala.calendar.ui.timeline.rememberNowMinutes
+import com.arishawke.asala.calendar.ui.timeline.revealTargetPx
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import kotlin.math.max
+
+private const val HighlightClearMs = 2_000L
 
 @Composable
 // LongMethod: overflow opt-out gate pushes this past detekt's 60-line default;
@@ -74,17 +80,37 @@ internal fun TimelineGrid(
     enableOverflow: Boolean = true,
     onEventClick: ((eventId: Long, instanceMillis: Long) -> Unit)? = null,
     onReschedule: ((eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit)? = null,
+    reveal: PendingEventReveal? = null,
+    onConsumeReveal: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
+    val hourHeightPx = with(density) { HourHeight.toPx() }
     val showNowLine = today in days
     val initialHour = if (showNowLine) {
         max(LocalTime.now(zone).hour - 1, 0)
     } else {
         7
     }
-    LaunchedEffect(Unit) {
-        val px = with(density) { (HourHeight.toPx() * initialHour).toInt() }
+
+    var highlightEventId by remember { mutableStateOf<Long?>(null) }
+    LaunchedEffect(highlightEventId) {
+        if (highlightEventId != null) {
+            delay(HighlightClearMs)
+            highlightEventId = null
+        }
+    }
+
+    // opens on the revealed event when one targets a day on this page (the
+    // "different day" landing), else the default hour. keyed on the page's
+    // first day so a same-page reveal does not re-scroll.
+    LaunchedEffect(days.first()) {
+        val revealTime = reveal?.takeIf { it.date in days }?.time
+        val px = if (revealTime != null) {
+            revealTargetPx(revealTime, hourHeightPx)
+        } else {
+            (hourHeightPx * initialHour).toInt()
+        }
         scrollState.scrollTo(px)
     }
 
@@ -103,36 +129,50 @@ internal fun TimelineGrid(
     // stable per-day lists so the now-line tick doesn't re-filter every column.
     val timedByDay = remember(events, days, zone) { clipEventsByDay(events, days, zone) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState),
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            HourAxis(labelOffsetY = (-6).dp)
-            days.forEachIndexed { index, date ->
-                val isNonWorkingDay = workingDaysEnabled && !workingDaysMask.containsWorkingDay(date.dayOfWeek)
-                DayColumn(
-                    date = date,
-                    isToday = date == today,
-                    isPast = dimPastDates && date.isBefore(today),
-                    events = timedByDay.getValue(date),
-                    zone = zone,
-                    weekDayIndex = index,
-                    weekDayCount = days.size,
-                    onEventClick = onEventClick,
-                    onOverflow = overflowCallback,
-                    onReschedule = onReschedule,
-                    nowMinutes = if (date == today) nowMinutes else null,
-                    // non-working full-column dim supersedes the band dim; avoids double-dim.
-                    workingHoursEnabled = workingHoursEnabled && !isNonWorkingDay,
-                    workingHoursStartHour = workingHoursStartHour,
-                    workingHoursEndHour = workingHoursEndHour,
-                    isNonWorkingDay = isNonWorkingDay,
-                    modifier = Modifier.weight(1f),
-                )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val viewportPx = constraints.maxHeight
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+        ) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                HourAxis(labelOffsetY = (-6).dp)
+                days.forEachIndexed { index, date ->
+                    val isNonWorkingDay = workingDaysEnabled && !workingDaysMask.containsWorkingDay(date.dayOfWeek)
+                    DayColumn(
+                        date = date,
+                        isToday = date == today,
+                        isPast = dimPastDates && date.isBefore(today),
+                        events = timedByDay.getValue(date),
+                        zone = zone,
+                        weekDayIndex = index,
+                        weekDayCount = days.size,
+                        onEventClick = onEventClick,
+                        onOverflow = overflowCallback,
+                        onReschedule = onReschedule,
+                        nowMinutes = if (date == today) nowMinutes else null,
+                        // non-working full-column dim supersedes the band dim; avoids double-dim.
+                        workingHoursEnabled = workingHoursEnabled && !isNonWorkingDay,
+                        workingHoursStartHour = workingHoursStartHour,
+                        workingHoursEndHour = workingHoursEndHour,
+                        isNonWorkingDay = isNonWorkingDay,
+                        highlightEventId = highlightEventId,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
+        // shared margin reveal pill + glow; eventId is unique so passing the same
+        // highlight to every column only lights the column that owns the event.
+        RevealOverlay(
+            reveal = reveal,
+            scrollState = scrollState,
+            viewportHeightPx = viewportPx,
+            hourHeightPx = hourHeightPx,
+            onHighlight = { highlightEventId = it },
+            onConsume = onConsumeReveal,
+        )
     }
 
     overflowSheet?.let { (sheetDate, sheetEvents) ->

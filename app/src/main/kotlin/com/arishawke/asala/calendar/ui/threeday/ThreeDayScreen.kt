@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
+import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
 import com.arishawke.asala.calendar.ui.week.WeekPage
 import com.arishawke.asala.calendar.ui.week.formatWeekRange
@@ -45,6 +46,8 @@ fun ThreeDayScreen(
     todayJumpCounter: StateFlow<Int>,
     pendingDateJump: StateFlow<PendingDateJump?>,
     onConsumePendingDateJump: () -> Unit,
+    pendingEventReveal: StateFlow<PendingEventReveal?>,
+    onConsumeEventReveal: () -> Unit,
     modifier: Modifier = Modifier,
     workingHoursEnabled: Boolean = false,
     workingHoursStartHour: Int = 9,
@@ -109,6 +112,15 @@ fun ThreeDayScreen(
         onConsumePendingDateJump()
     }
 
+    // reveal a just-saved event: page to it, then the destination page's grid
+    // scrolls/pills and consumes. filtered to this view.
+    val reveal by pendingEventReveal.collectAsStateWithLifecycle()
+    LaunchedEffect(reveal, anchor) {
+        val r = reveal?.takeIf { it.view == CalendarView.ThreeDay } ?: return@LaunchedEffect
+        val target = pageForDate(anchor, r.date, center).coerceIn(0, pageCount - 1)
+        if (pagerState.currentPage != target) pagerState.animateScrollToPage(target)
+    }
+
     HorizontalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize(),
@@ -119,6 +131,7 @@ fun ThreeDayScreen(
             val start = pageStart(anchor, page, center)
             (0 until ThreeDayPageSize).map { start.plusDays(it.toLong()) }
         }
+        val pageReveal = reveal?.takeIf { it.view == CalendarView.ThreeDay && it.date in days }
         WeekPage(
             days = days,
             today = state.today,
@@ -134,6 +147,8 @@ fun ThreeDayScreen(
             enableOverflow = false,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            reveal = pageReveal,
+            onConsumeReveal = onConsumeEventReveal,
         )
     }
 }
