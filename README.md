@@ -19,6 +19,10 @@ A private, offline-first calendar for Android, dressed in Material 3.
   <a href="docs/ROADMAP.md"><img alt="Roadmap" src="https://img.shields.io/badge/roadmap-docs%2FROADMAP.md-informational"></a>
 </p>
 
+<p align="center">
+  <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="200" /></a>
+</p>
+
 > [!WARNING]
 > **Personal project, heavy AI assistance.** Asala is a hobby Android app built with substantial AI assistance. It is not production software. Use at your own discretion.
 
@@ -67,10 +71,8 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 Asala ships through GitHub Releases, with a Google Play release in preparation.
 
-<a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="200" /></a>
-
 - **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
-- **Auto-update via Obtainium.** Tap the badge above, or point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository, and it notifies you when a new version ships.
+- **Auto-update via Obtainium.** Tap the Obtainium button at the top of this page, or point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository, and it notifies you when a new version ships.
 - **No in-app updater.** Asala never checks for or downloads updates itself. Updates arrive through your install source (GitHub via Obtainium, or Google Play once published), which is what keeps the app free of any internet or install permission.
 
 ## Build from source
