@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- Saving a new or edited event now points you to it when it lands off-screen. In
+  the day, week, and 3-day views, a tappable indicator appears at the top or
+  bottom edge ("New event at 9:00 PM") without moving your place; tapping it
+  glides to the event, which briefly glows. An event saved onto a different day
+  opens that day parked on it. Events already in view just glow, and all-day
+  events show no indicator. The schedule, month, and year views continue to
+  jump straight to the date.
+
 ### Fixed
 - Opening an existing event to edit (or duplicating one) now shows a brief
   loading spinner until its details finish loading, instead of a blank form.
