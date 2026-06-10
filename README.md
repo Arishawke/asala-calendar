@@ -52,7 +52,7 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 - **Six views.** Year, Month, Week, 3-Day, Day, and Schedule.
 - **Drag to reschedule.** Pick up an event in Day or Week and drop it on a new time.
 
-### Everything you'd expect
+### The usuals
 
 - Create, edit, duplicate, and delete events, including all-day and repeating ones. 
 - Reminders before events start, with snooze and separate defaults for timed and all-day events.
@@ -67,8 +67,10 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 Asala ships through GitHub Releases, with a Google Play release in preparation.
 
+[![Get it on Obtainium](https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png)](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar)
+
 - **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
-- **Auto-update via Obtainium.** Point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository and it notifies you when a new version ships.
+- **Auto-update via Obtainium.** Tap the badge above, or point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository, and it notifies you when a new version ships.
 - **No in-app updater.** Asala never checks for or downloads updates itself. Updates arrive through your install source (GitHub via Obtainium, or Google Play once published), which is what keeps the app free of any internet or install permission.
 
 ## Build from source
@@ -89,17 +91,6 @@ Kotlin and Jetpack Compose on Material 3, reading and writing the Android Calend
 ## Roadmap and architecture
 
 A single Gradle module. The Compose UI reads and writes the system Calendar Provider through two repositories; reminders are armed out of process via `AlarmManager`, so they fire even when the app is closed.
-
-```mermaid
-graph TD
-    Prefs["UserPreferences<br/>(Jetpack DataStore)"] --> UI
-    UI["Compose UI<br/>per-view screens + ViewModels"] -->|observe flows| Repo["Repositories<br/>EventRepository / CalendarRepository"]
-    Repo -->|ContentResolver| Provider[("Android Calendar Provider<br/>CalendarContract")]
-    Provider -.->|ContentObserver tick| Repo
-    Provider -.->|change| Sched["ReminderScheduler"]
-    Sched -->|arm / cancel| Alarm["AlarmManager"]
-    Alarm -->|fires at wall-clock time| Recv["Alarm + action receivers<br/>post notifications"]
-```
 
 For a file-by-file tour, see [docs/CODE_TOUR.md](docs/CODE_TOUR.md).
 
