@@ -243,11 +243,14 @@ above). The tag is created separately, after `main` is updated.
    git tag vX.Y.Z -m "vX.Y.Z" <release-commit-sha>
    git push origin vX.Y.Z
    ```
-7. Build the signed APK:
+7. Build the signed APK and AAB:
    ```bash
-   ./gradlew assembleRelease
+   ./gradlew assembleRelease bundleRelease
    ```
-   Output: `app/build/outputs/apk/release/app-release.apk`.
+   Outputs: `app/build/outputs/apk/release/app-release.apk` and
+   `app/build/outputs/bundle/release/app-release.aab`. Deliver each
+   under the versioned name `asala-calendar-vX.Y.Z.{apk,aab}`. The APK
+   attaches to the GitHub release; the AAB is uploaded to Play separately.
 8. Verify the cert fingerprint matches prior releases (so users
    get in-place upgrades, not "this app is signed differently"
    rejections):
@@ -257,12 +260,11 @@ above). The tag is created separately, after `main` is updated.
    ```
    Expected since v0.2.0:
    `a701b85f0f356ac30833303c1a13976cd112806a4b1c15afda01ba005302c68e`.
-9. Create the GitHub release. Use `--prerelease` while versions
-   are `0.x.y`. Drop the flag once the app reaches 1.0:
+9. Create the GitHub release (a full release; the `--prerelease`
+   policy was lifted at v0.18.0):
    ```bash
    gh release create vX.Y.Z \
      app/build/outputs/apk/release/app-release.apk \
-     --prerelease \
      --notes-file <(awk '/^## \[X\.Y\.Z\]/{p=1; next} /^## \[/{p=0} p' CHANGELOG.md)
    ```
    The `awk` script prints the body of the `[X.Y.Z]` section

@@ -20,24 +20,24 @@ Single Gradle module: `:app`. All Kotlin lives under `app/src/main/kotlin/com/ar
 | [`ui/`](../app/src/main/kotlin/com/arishawke/asala/calendar/ui) | Compose screens, ViewModels, themed components. Sub-packages mirror screen surfaces: `year/`, `month/`, `week/`, `threeday/`, `day/`, `schedule/`, `eventedit/`, `eventdetail/`, `settings/`, `permissions/`, `calendars/`, `search/`, `notifications/`, `timeline/`, `multidaybars/`, `header/`, `theme/`, `accessibility/`, `components/`, `widget/`. |
 | Root | App shell and top-level state: [MainActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/MainActivity.kt), [AppViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AppViewModel.kt), [AsalaCalendarApplication.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AsalaCalendarApplication.kt), [CalendarViewLabel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/CalendarViewLabel.kt). |
 
-No `:core` / `:data` / `:ui` split. The reasoning: package layout already enforces the boundary clarity, and around 15K total lines is still below the threshold where modularization pays back.
+No `:core` / `:data` / `:ui` split. The reasoning: package layout already enforces the boundary clarity, and the codebase is still below the size where modularization pays back.
 
 ## Where to start reading
 
 Ranked. Open these in order and the rest should not surprise.
 
-| # | File | Lines | Why it matters |
-| --- | --- | --- | --- |
-| 1 | [MainActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/MainActivity.kt) + [ui/App.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/App.kt) / [ui/AppShell.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/AppShell.kt) | 98 / 52 / 336 | App entry, theme + permission gate, drawer + scaffold + view switcher. Owns the header-dropdown panel (clickable title + chevron + `AnimatedVisibility` panel hosting [ui/header/](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/header)). Overlay surfaces live in [ui/AppOverlays.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/AppOverlays.kt). |
-| 2 | [AppViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AppViewModel.kt) | 571 | Top-level state owner. Every screen subscribes to its flows. `hiddenCalendarIdsFlow` is the user-toggle union with drawer-hidden accounts (`drawerHiddenAccountKeys`) and [StorageModeFilter](../app/src/main/kotlin/com/arishawke/asala/calendar/data/StorageModeFilter.kt) mode hides. `viewedMonth` is pushed up from `MonthScreen` so the header dropdown's chip strip can highlight the current month. |
-| 3 | [data/EventRepository.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/EventRepository.kt) | 198 | Only file that talks to `CalendarContract` for events. |
-| 4 | [data/CalendarRepository.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/CalendarRepository.kt) | 160 | Same idea for the calendars table. Smaller. |
-| 5 | [data/ContentResolverFlow.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/ContentResolverFlow.kt) | 47 | Whole change-notification mechanism in one tiny file. |
-| 6 | [notifications/ReminderScheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/ReminderScheduler.kt) | 179 | Diff-based plan for `AlarmManager`. The logic lives here. |
-| 7 | [ui/permissions/CalendarPermissionGate.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/permissions/CalendarPermissionGate.kt) | 199 | Gates everything else behind `READ_CALENDAR` / `WRITE_CALENDAR`. |
-| 8 | [ui/eventedit/EventEditViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventEditViewModel.kt) | 388 | Biggest user-facing flow with real logic. Save orchestration lives in [EventSave.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventSave.kt). |
-| 9 | [ui/settings/UserPreferences.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/settings/UserPreferences.kt) | 398 | DataStore pattern every preference uses, in one file. |
-| 10 | [notifications/BootRescheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/BootRescheduler.kt) | 57 | Small file, recent permission bug. Worked example of receiver awkwardness. |
+| # | File | Why it matters |
+| --- | --- | --- |
+| 1 | [MainActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/MainActivity.kt) + [ui/App.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/App.kt) / [ui/AppShell.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/AppShell.kt) | App entry, theme + permission gate, drawer + scaffold + view switcher. Owns the header-dropdown panel (clickable title + chevron + `AnimatedVisibility` panel hosting [ui/header/](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/header)). Overlay surfaces live in [ui/AppOverlays.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/AppOverlays.kt). |
+| 2 | [AppViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AppViewModel.kt) | Top-level state owner. Every screen subscribes to its flows. `hiddenCalendarIdsFlow` is the user-toggle union with drawer-hidden accounts (`drawerHiddenAccountKeys`) and [StorageModeFilter](../app/src/main/kotlin/com/arishawke/asala/calendar/data/StorageModeFilter.kt) mode hides. `viewedMonth` is pushed up from `MonthScreen` so the header dropdown's chip strip can highlight the current month. |
+| 3 | [data/EventRepository.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/EventRepository.kt) | Only file that talks to `CalendarContract` for events. |
+| 4 | [data/CalendarRepository.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/CalendarRepository.kt) | Same idea for the calendars table. Smaller. |
+| 5 | [data/ContentResolverFlow.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/ContentResolverFlow.kt) | Whole change-notification mechanism in one tiny file. |
+| 6 | [notifications/ReminderScheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/ReminderScheduler.kt) | Diff-based plan for `AlarmManager`. The logic lives here. |
+| 7 | [ui/permissions/CalendarPermissionGate.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/permissions/CalendarPermissionGate.kt) | Gates everything else behind `READ_CALENDAR` / `WRITE_CALENDAR`. |
+| 8 | [ui/eventedit/EventEditViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventEditViewModel.kt) | Biggest user-facing flow with real logic. Save orchestration lives in [EventSave.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/EventSave.kt). |
+| 9 | [ui/settings/UserPreferences.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/settings/UserPreferences.kt) | DataStore pattern every preference uses, in one file. |
+| 10 | [notifications/BootRescheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/BootRescheduler.kt) | Small file, recent permission bug. Worked example of receiver awkwardness. |
 
 ## How the app is wired
 
@@ -96,48 +96,7 @@ Reminder side path:
 - Scheduler arms and cancels alarms via `AlarmManager`.
 - After boot, package replace, or timezone change, [BootRescheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/BootRescheduler.kt) does the same job.
 
-## Key concepts
-
-### ContentResolver and the Calendar Provider
-
-- Android ships a system `ContentProvider` (the Calendar Provider) that owns every event on the device, across every account.
-- Apps query it via `context.contentResolver` and URIs from `CalendarContract`.
-- Asala has no database of its own.
-- [EventRepository.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/EventRepository.kt) and [CalendarRepository.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/CalendarRepository.kt) are the only files that touch the provider.
-
-### ViewModel + StateFlow + collectAsStateWithLifecycle
-
-- `ViewModel`: state-holding object that outlives rotation and theme switches.
-- One per screen: `MonthViewModel`, `WeekViewModel`, etc.
-- State exposed as `StateFlow<T>` (hot, always has a current value).
-- Composables read it with `collectAsStateWithLifecycle()`, which pauses subscription when offstage.
-
-### Compose and recomposition
-
-- UI described by `@Composable` Kotlin functions.
-- They take state in, return nothing.
-- Framework re-runs only the parts whose inputs changed.
-- No manual "update this widget" code anywhere.
-
-### DataStore preferences
-
-- Jetpack DataStore is the recommended key-value store for small settings.
-- Wrapped in [UserPreferences.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/settings/UserPreferences.kt).
-- Keys: private constants.
-- Reads: one `Flow<UserPrefs>` typed data class.
-- Writes: one function per setting.
-- Defaults baked into the wrapper, not stored.
-- SharedPreferences is not used anywhere.
-
-### AlarmManager + BroadcastReceiver for reminders
-
-- Reminders are not fired from inside the app process.
-- `ReminderScheduler` asks `AlarmManager` to fire a `PendingIntent` at a wall-clock time.
-- When it fires, `ReminderAlarmReceiver` runs briefly and posts a notification.
-- Notification action buttons go to `NotificationActionReceiver` (dismiss, snooze).
-- Alarms do not survive reboot or package replace. `BootRescheduler` re-arms them.
-
-### Permission gating
+## Permission gating
 
 Decision tree:
 
@@ -176,9 +135,9 @@ Each item names the gotcha, then links the file.
 - Theme is collected separately from `uiState` so it can apply before calendar permission is granted. The combined `uiState` flow includes a `ContentObserver` registration that crashes pre-grant. See the `themeMode` declaration in [AppViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AppViewModel.kt).
 - `BootRescheduler.onReceive` must check `READ_CALENDAR` before touching the provider. `MY_PACKAGE_REPLACED` fires after a fresh install, before any permission grant. See [BootRescheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/BootRescheduler.kt) and commit `866d894`.
 - Receivers use `goAsync()` for off-thread work. Without it the system can kill the process mid-write. See [BootRescheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/BootRescheduler.kt) and [NotificationActionReceiver.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/NotificationActionReceiver.kt), commit `f499709`.
-- Snooze picker is an `AlertDialog` inside a translucent Activity, not a `ModalBottomSheet`. The earlier sheet-in-floating-Activity combo had layout oddities and crashed on selection. See [SnoozePickerActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/SnoozePickerActivity.kt) and [notes/archive/v0.7-snooze-and-ghost-event-handoff.md](../notes/archive/v0.7-snooze-and-ghost-event-handoff.md).
+- Snooze picker is an `AlertDialog` inside a translucent Activity, not a `ModalBottomSheet`. The earlier sheet-in-floating-Activity combo had layout oddities and crashed on selection. See [SnoozePickerActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/SnoozePickerActivity.kt).
 - Day-range math uses a half-open interval `[startOfDay, startOfNextDay)`. Events at 23:59 must still belong to the "begin" day. DST days must yield 23h or 25h spans, not 24h. See [DayRangeMath.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/DayRangeMath.kt) and [DayRangeMathTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/DayRangeMathTest.kt).
-- "Only this event" on a recurring series writes a cancellation exception, not a delete. New queries must go through `CalendarContract.Instances`; querying `Events` directly leaks a ghost. See [RecurrenceExceptionMath.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/RecurrenceExceptionMath.kt), [RecurringExceptionMathTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/RecurringExceptionMathTest.kt), and [notes/archive/v0.7-snooze-and-ghost-event-handoff.md](../notes/archive/v0.7-snooze-and-ghost-event-handoff.md).
+- "Only this event" delete/edit on a recurring series is modeled on the parent's `EXDATE`, not a provider exception row. Attaching any exception row to a recurring parent makes the provider drop the whole series from its `Instances` expansion. Delete appends the occurrence to the parent `EXDATE`; edit inserts a standalone one-off first (so a failed `EXDATE` write rolls back cleanly), then appends to `EXDATE`. Both re-send `DTSTART` and `RRULE` in the same delta or the series truncates at the excluded date. See [ADR-0006](adr/0006-single-occurrence-recurrence-edits-via-exdate.md), [EventMutations.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/data/EventMutations.kt), and the instrumented [RecurringSingleOccurrenceTest.kt](../app/src/androidTest/kotlin/com/arishawke/asala/calendar/data/RecurringSingleOccurrenceTest.kt).
 - Editing the start time auto-shifts the end to preserve duration. Edge cases (midnight crossings, all-day toggling, backward shifts) are pinned by [StartShiftDurationTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/ui/eventedit/StartShiftDurationTest.kt), commit `ed918a0`.
 - Editor uses a fresh `ViewModelStore` per open so re-opening does not inherit the previous draft's title. See [ui/AppShell.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/ui/AppShell.kt) (`ScopedViewModelStore`).
 - A single `Mutex` inside [ReminderScheduler.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications/ReminderScheduler.kt) serializes reschedules. Bursts (e.g. CalDAV touching 50 rows) queue rather than race.
@@ -222,7 +181,6 @@ notification posted by ReminderAlarmReceiver
 | [RecurrenceRuleTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/RecurrenceRuleTest.kt) | RRULE parsing and serialization. |
 | [RecurringExceptionMathTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/RecurringExceptionMathTest.kt) | "This and following" cut math for recurring edits. |
 | [EventDraftTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/EventDraftTest.kt) | Draft serialization. |
-| [EventCancellationTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/EventCancellationTest.kt) | Recurring "this instance only" cancellation row schema. |
 | [EventEndMillisTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/EventEndMillisTest.kt) | DTEND-or-DURATION fallback for recurring detail rows. |
 | [StorageModeFilterTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/StorageModeFilterTest.kt) | Mode-driven calendar hides (Local only blanks sync). |
 | [EventEditCalendarPickerTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/EventEditCalendarPickerTest.kt) | Event-editor picker filter: writable plus storage-mode constraint. |
@@ -241,7 +199,7 @@ notification posted by ReminderAlarmReceiver
 | Repositories | No tests; they touch the provider directly. |
 | Receivers | No tests. |
 | Application object | No tests. |
-| Compose screens | A few previews exist. No Compose UI tests, no Robolectric, no instrumented tests. |
+| Compose screens | A few previews exist. No Compose UI tests and no Robolectric. The one instrumented test is [RecurringSingleOccurrenceTest.kt](../app/src/androidTest/kotlin/com/arishawke/asala/calendar/data/RecurringSingleOccurrenceTest.kt), which exercises single-occurrence recurrence edits against the real provider. |
 
 > Heads up: a known testing gap is screen tests for the storage-mode onboarding picker, the event-save flow, and the snooze picker.
 
@@ -284,7 +242,6 @@ Architectural decisions: [docs/adr/](adr/). Conventions (commit style, lint poli
 ## Where to ask for help
 
 - The codebase first. Open the file, then open the sibling test file. Test names encode the rules.
-- Handoff notes under [notes/](../notes/) document non-trivial in-flight problems. Most recent: [v0.7-snooze-and-ghost-event-handoff.md](../notes/v0.7-snooze-and-ghost-event-handoff.md).
-- ADRs under [docs/adr/](adr/) answer "why is it this way." [0001](adr/0001-data-layer-is-calendarcontract.md) on `CalendarContract` as the data layer; [0002](adr/0002-calendar-provider-write-conventions.md) on write conventions; [0003](adr/0003-launcher-icon-source-and-density.md) on the launcher icon; [0004](adr/0004-quality-gates.md) on the quality-gates initiative; [0005](adr/0005-github-native-dependency-scanning.md) on the migration to GitHub-native dependency scanning.
+- ADRs under [docs/adr/](adr/) answer "why is it this way." [0001](adr/0001-data-layer-is-calendarcontract.md) on `CalendarContract` as the data layer; [0002](adr/0002-calendar-provider-write-conventions.md) on write conventions; [0003](adr/0003-launcher-icon-source-and-density.md) on the launcher icon; [0004](adr/0004-quality-gates.md) on the quality-gates initiative; [0005](adr/0005-github-native-dependency-scanning.md) on the migration to GitHub-native dependency scanning; [0006](adr/0006-single-occurrence-recurrence-edits-via-exdate.md) on EXDATE-based single-occurrence recurrence edits.
 - [CHANGELOG.md](../CHANGELOG.md) records every released change with a one-line reason.
 - File an issue on [GitHub](https://github.com/Arishawke/asala-calendar/issues) if something looks wrong. The README disclaimer is the audit trail; bug reports are how it gets corrected.
