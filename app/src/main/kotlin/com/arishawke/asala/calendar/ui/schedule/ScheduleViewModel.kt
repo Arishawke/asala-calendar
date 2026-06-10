@@ -16,9 +16,11 @@ import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.filteredAndRecolored
 import com.arishawke.asala.calendar.ui.timeline.clipToDay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 import java.time.LocalDate
@@ -116,23 +118,29 @@ class ScheduleViewModel(
 ) : ViewModel() {
 
     private val initialToday: LocalDate = todayFlow.value
-    private val windowStart = initialToday.minusDays(WindowBeforeDays)
-    private val windowEndExclusive = initialToday.plusDays(WindowAfterDays)
 
-    private val events = eventRepo.observeEvents(
-        startDate = windowStart,
-        endExclusive = windowEndExclusive,
-        zone = zone,
-    )
+    // window follows today so the +60d forward horizon doesn't shrink as
+    // midnights pass in a long session; flatMapLatest re-queries on a new day.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val eventsForWindow =
+        todayFlow.flatMapLatest { today ->
+            eventRepo.observeEvents(
+                startDate = today.minusDays(WindowBeforeDays),
+                endExclusive = today.plusDays(WindowAfterDays),
+                zone = zone,
+            )
+        }
 
     val uiState: StateFlow<ScheduleUiState> =
         combine(
-            events,
+            eventsForWindow,
             hiddenCalendarIdsFlow,
             calendarColorOverridesFlow,
             eventColorOverridesFlow,
             todayFlow,
         ) { all, hidden, calOverrides, evtOverrides, today ->
+            val windowStart = today.minusDays(WindowBeforeDays)
+            val windowEndExclusive = today.plusDays(WindowAfterDays)
             val visible = all.filteredAndRecolored(hidden, calOverrides, evtOverrides)
             val rows = expandToScheduleRows(visible, zone, windowStart, windowEndExclusive)
             // all-day rows lead each day; timed rows follow by start time

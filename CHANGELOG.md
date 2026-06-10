@@ -22,6 +22,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   jump straight to the date.
 
 ### Fixed
+- The Schedule view's event window now follows the date. Previously it was fixed
+  at app start, so leaving the app open across one or more midnights slowly
+  shrank how far ahead the agenda showed events. It now re-anchors as the day
+  changes.
 - Opening an existing event to edit (or duplicating one) now shows a brief
   loading spinner until its details finish loading, instead of a blank form.
   This prevents an edit made in that first moment, such as changing the time,
