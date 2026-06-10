@@ -67,7 +67,7 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 Asala ships through GitHub Releases, with a Google Play release in preparation.
 
-[![Get it on Obtainium](https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png)](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar)
+<a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="200" /></a>
 
 - **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
 - **Auto-update via Obtainium.** Tap the badge above, or point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository, and it notifies you when a new version ships.
