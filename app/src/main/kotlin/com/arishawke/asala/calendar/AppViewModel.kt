@@ -307,7 +307,7 @@ class AppViewModel(
         if (view.isTimelineView()) {
             _pendingEventReveal.update { PendingEventReveal(date, time, eventId, view) }
         } else {
-            // schedule/month/year/tasks: just land on the date, no pill.
+            // schedule/month/year: just land on the date, no pill.
             _pendingDateJump.update { PendingDateJump(date, view) }
         }
     }

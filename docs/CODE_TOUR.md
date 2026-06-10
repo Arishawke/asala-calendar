@@ -17,7 +17,7 @@ Single Gradle module: `:app`. All Kotlin lives under `app/src/main/kotlin/com/ar
 | --- | --- |
 | [`data/`](../app/src/main/kotlin/com/arishawke/asala/calendar/data) | Repositories wrapping the Android Calendar Provider, plus pure-function helpers (RRULE, day-range math, recurring exceptions). |
 | [`notifications/`](../app/src/main/kotlin/com/arishawke/asala/calendar/notifications) | Reminder scheduling, boot rescheduler, alarm and action receivers, snooze picker Activity. |
-| [`ui/`](../app/src/main/kotlin/com/arishawke/asala/calendar/ui) | Compose screens, ViewModels, themed components. Sub-packages mirror screen surfaces: `month/`, `week/`, `day/`, `schedule/`, `tasks/`, `eventedit/`, `eventdetail/`, `settings/`, `permissions/`, `calendars/`, `search/`, `notifications/`, `timeline/`, `header/`, `theme/`, `accessibility/`, `components/`. |
+| [`ui/`](../app/src/main/kotlin/com/arishawke/asala/calendar/ui) | Compose screens, ViewModels, themed components. Sub-packages mirror screen surfaces: `year/`, `month/`, `week/`, `threeday/`, `day/`, `schedule/`, `eventedit/`, `eventdetail/`, `settings/`, `permissions/`, `calendars/`, `search/`, `notifications/`, `timeline/`, `multidaybars/`, `header/`, `theme/`, `accessibility/`, `components/`, `widget/`. |
 | Root | App shell and top-level state: [MainActivity.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/MainActivity.kt), [AppViewModel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AppViewModel.kt), [AsalaCalendarApplication.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/AsalaCalendarApplication.kt), [CalendarViewLabel.kt](../app/src/main/kotlin/com/arishawke/asala/calendar/CalendarViewLabel.kt). |
 
 No `:core` / `:data` / `:ui` split. The reasoning: package layout already enforces the boundary clarity, and around 15K total lines is still below the threshold where modularization pays back.
@@ -72,7 +72,7 @@ CalendarPermissionGate (READ_CALENDAR + WRITE_CALENDAR)
                          |  TopAppBar (Today, search, settings, view label)
                          |  FloatingActionButton (create event)
                          |  AnimatedContent on currentView:
-                         |    Month / Week / Day / Schedule / Tasks
+                         |    Year / Month / Week / 3-Day / Day / Schedule
                          v
                   per-view Screen + ViewModel
                          |  subscribes to:

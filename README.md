@@ -88,6 +88,21 @@ Kotlin and Jetpack Compose on Material 3, reading and writing the Android Calend
 
 ## Roadmap and architecture
 
+A single Gradle module. The Compose UI reads and writes the system Calendar Provider through two repositories; reminders are armed out of process via `AlarmManager`, so they fire even when the app is closed.
+
+```mermaid
+graph TD
+    Prefs["UserPreferences<br/>(Jetpack DataStore)"] --> UI
+    UI["Compose UI<br/>per-view screens + ViewModels"] -->|observe flows| Repo["Repositories<br/>EventRepository / CalendarRepository"]
+    Repo -->|ContentResolver| Provider[("Android Calendar Provider<br/>CalendarContract")]
+    Provider -.->|ContentObserver tick| Repo
+    Provider -.->|change| Sched["ReminderScheduler"]
+    Sched -->|arm / cancel| Alarm["AlarmManager"]
+    Alarm -->|fires at wall-clock time| Recv["Alarm + action receivers<br/>post notifications"]
+```
+
+For a file-by-file tour, see [docs/CODE_TOUR.md](docs/CODE_TOUR.md).
+
 - [docs/ROADMAP.md](docs/ROADMAP.md): where Asala is headed.
 - [docs/adr/](docs/adr/): architecture decisions, including why the data layer is `CalendarContract` and the conventions for writing to the Calendar Provider.
 
