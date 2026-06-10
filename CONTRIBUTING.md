@@ -14,6 +14,8 @@ It is GPLv3, so you are free to fork, build, and adapt it.
   ./gradlew spotlessCheck detekt lintDebug testDebugUnitTest
   ```
 
+- **Local hooks:** after cloning, run `pip install --user pre-commit && pre-commit install`
+  once to arm the local gitleaks secret-scan hook. CI re-runs it regardless.
 - **Security:** report privately and verify a download per [SECURITY.md](SECURITY.md).
 
 ## License
