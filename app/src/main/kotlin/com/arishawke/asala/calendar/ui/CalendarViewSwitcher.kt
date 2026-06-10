@@ -16,13 +16,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import com.arishawke.asala.calendar.AppViewModel
 import com.arishawke.asala.calendar.CalendarView
-import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.rescheduleEvent
 import com.arishawke.asala.calendar.ui.day.DayScreen
@@ -30,7 +27,6 @@ import com.arishawke.asala.calendar.ui.month.MonthScreen
 import com.arishawke.asala.calendar.ui.schedule.ScheduleScreen
 import com.arishawke.asala.calendar.ui.settings.UserPrefs
 import com.arishawke.asala.calendar.ui.settings.toWorkingDaysMask
-import com.arishawke.asala.calendar.ui.tasks.TasksComingSoonScreen
 import com.arishawke.asala.calendar.ui.threeday.ThreeDayScreen
 import com.arishawke.asala.calendar.ui.week.WeekScreen
 import com.arishawke.asala.calendar.ui.year.YearScreen
@@ -171,11 +167,6 @@ internal fun CalendarViewSwitcher(
                 onEventClick = { eid, millis -> vm.openEventDetail(eid, millis) },
                 onViewedDateChange = vm::setViewedDate,
             )
-            CalendarView.Tasks -> {
-                val tasksTitle = stringResource(R.string.view_tasks)
-                LaunchedEffect(tasksTitle) { onTitleChange(tasksTitle) }
-                TasksComingSoonScreen()
-            }
         }
     }
 }

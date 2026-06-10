@@ -23,6 +23,5 @@ class CalendarViewKindTest {
         assertFalse(CalendarView.Year.isTimelineView())
         assertFalse(CalendarView.Month.isTimelineView())
         assertFalse(CalendarView.Schedule.isTimelineView())
-        assertFalse(CalendarView.Tasks.isTimelineView())
     }
 }

@@ -312,17 +312,8 @@
     <!-- Settings: Hidden accounts section (restore drawer-hidden accounts) -->
     <string name="settings_section_hidden_accounts">Hidden accounts</string>
 
-    <!-- Settings: Tasks toggle -->
-    <string name="settings_tasks_enabled">Tasks (experimental)</string>
-    <string name="settings_tasks_enabled_summary">Off by default. Turn on to see a Tasks tab.</string>
-
     <!-- Settings: General default duration -->
     <string name="settings_default_duration">Default event duration</string>
-
-    <!-- Tasks placeholder screen -->
-    <string name="view_tasks">Tasks</string>
-    <string name="tasks_coming_soon_title">Tasks are coming soon</string>
-    <string name="tasks_coming_soon_body">Still designing how tasks work in Asala.</string>
 
     <!-- Notification action labels (Snooze two-tier) -->
     <string name="notif_action_snooze_default_format">Snooze %1$dm</string>

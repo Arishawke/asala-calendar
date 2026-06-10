@@ -46,7 +46,7 @@ internal fun HeaderDropdownPanel(
     modifier: Modifier = Modifier,
 ) {
     when (currentView) {
-        CalendarView.Tasks, CalendarView.Year -> Unit
+        CalendarView.Year -> Unit
         CalendarView.Month -> MonthChipsPanel(
             viewedMonth = viewedMonth,
             today = YearMonth.from(today),

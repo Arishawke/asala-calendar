@@ -7,6 +7,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Removed
+- The experimental Tasks toggle and its "coming soon" placeholder view. Asala is
+  focusing on being a clean calendar; task management is no longer planned. A
+  saved "Tasks" default-view preference falls back to Month.
+
 ### Added
 - Saving a new or edited event now points you to it when it lands off-screen. In
   the day, week, and 3-day views, a tappable indicator appears at the top or

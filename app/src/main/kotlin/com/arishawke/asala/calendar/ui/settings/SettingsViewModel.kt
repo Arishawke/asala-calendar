@@ -85,10 +85,6 @@ class SettingsViewModel(
         viewModelScope.launch { prefs.setDefaultSnoozeMinutes(minutes) }
     }
 
-    fun setTasksEnabled(b: Boolean) {
-        viewModelScope.launch { prefs.setTasksEnabled(b) }
-    }
-
     fun setDefaultDurationMinutes(minutes: Int) {
         viewModelScope.launch { prefs.setDefaultDurationMinutes(minutes) }
     }

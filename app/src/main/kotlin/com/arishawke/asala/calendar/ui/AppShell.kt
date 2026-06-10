@@ -106,9 +106,8 @@ internal fun AppShell(vm: AppViewModel) {
     // the header highlight doesn't stick on yesterday across midnight
     val today by application.todayProvider.today.collectAsStateWithLifecycle()
     var headerExpanded by remember { mutableStateOf(false) }
-    // Tasks and Year have no dropdown panel, so suppress the expand chevron
-    val canExpandHeader =
-        state.currentView != CalendarView.Tasks && state.currentView != CalendarView.Year
+    // Year has no dropdown panel, so suppress the expand chevron
+    val canExpandHeader = state.currentView != CalendarView.Year
     // collapse the panel on view switch
     LaunchedEffect(state.currentView) { headerExpanded = false }
 
@@ -205,7 +204,6 @@ internal fun AppShell(vm: AppViewModel) {
                             actions = {
                                 ViewSwitcherMenu(
                                     currentView = state.currentView,
-                                    tasksEnabled = prefs.tasksEnabled,
                                     onSelectView = vm::selectView,
                                 )
                                 IconButton(onClick = { vm.openSearch() }) {

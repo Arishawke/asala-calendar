@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.StorageMode
-import com.arishawke.asala.calendar.isAlwaysVisible
 import com.arishawke.asala.calendar.label
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -188,9 +187,9 @@ internal fun WeekStartsOnRow(current: DayOfWeek?, onChange: (DayOfWeek?) -> Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DefaultViewRow(current: CalendarView, tasksEnabled: Boolean, onChange: (CalendarView) -> Unit) {
+internal fun DefaultViewRow(current: CalendarView, onChange: (CalendarView) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val views = CalendarView.entries.filter { it.isAlwaysVisible() || tasksEnabled }
+    val views = CalendarView.entries
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
             value = current.label(),

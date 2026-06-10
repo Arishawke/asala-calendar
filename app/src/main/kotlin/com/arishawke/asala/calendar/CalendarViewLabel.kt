@@ -20,6 +20,5 @@ fun CalendarView.label(): String = stringResource(
         CalendarView.ThreeDay -> R.string.view_three_day
         CalendarView.Day -> R.string.view_day
         CalendarView.Schedule -> R.string.view_schedule
-        CalendarView.Tasks -> R.string.view_tasks
     },
 )

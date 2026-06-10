@@ -9,6 +9,6 @@
 package com.arishawke.asala.calendar
 
 // the three vertical-timeline views; only these get the off-screen pill. the
-// rest (Year/Month/Schedule/Tasks) navigate to the date instead.
+// rest (Year/Month/Schedule) navigate to the date instead.
 internal fun CalendarView.isTimelineView(): Boolean =
     this == CalendarView.Day || this == CalendarView.Week || this == CalendarView.ThreeDay

@@ -28,21 +28,17 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.R
-import com.arishawke.asala.calendar.isAlwaysVisible
 import com.arishawke.asala.calendar.label
 
-// top-bar view-switcher dropdown. tasksEnabled gates the Tasks entry.
+// top-bar view-switcher dropdown.
 @Composable
 internal fun ViewSwitcherMenu(
     currentView: CalendarView,
-    tasksEnabled: Boolean,
     onSelectView: (CalendarView) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val views = remember(tasksEnabled) {
-        CalendarView.entries.filter { it.isAlwaysVisible() || tasksEnabled }
-    }
+    val views = CalendarView.entries
     // Box anchors the dropdown and keeps a single top-level emitter
     // (compose-lints ComposeMultipleContentEmitters).
     Box(modifier = modifier) {

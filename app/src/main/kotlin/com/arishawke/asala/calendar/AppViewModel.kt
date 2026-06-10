@@ -45,10 +45,7 @@ import timber.log.Timber
 import java.time.LocalDate
 import java.time.LocalTime
 
-enum class CalendarView { Year, Month, Week, ThreeDay, Day, Schedule, Tasks }
-
-// tasks entry is suppressed when the tasksEnabled toggle is off
-fun CalendarView.isAlwaysVisible(): Boolean = this != CalendarView.Tasks
+enum class CalendarView { Year, Month, Week, ThreeDay, Day, Schedule }
 
 data class OpenEvent(val eventId: Long, val instanceMillis: Long)
 

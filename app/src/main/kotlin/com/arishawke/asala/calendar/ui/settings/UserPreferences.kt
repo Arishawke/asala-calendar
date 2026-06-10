@@ -72,7 +72,6 @@ data class UserPrefs(
     val defaultSnoozeMinutes: Int,
     val oemAdvisoryShown: Boolean,
     val storageMode: StorageMode,
-    val tasksEnabled: Boolean,
     // per-account avatar color. key "<type>:<name>", value ARGB int.
     val accountAvatarColors: Map<String, Int>,
     // per-calendar color keyed by Calendars._ID. only persistence for synced
@@ -125,7 +124,6 @@ data class UserPrefs(
             defaultSnoozeMinutes = 10,
             oemAdvisoryShown = false,
             storageMode = StorageMode.Unset,
-            tasksEnabled = false,
             accountAvatarColors = emptyMap(),
             calendarColorOverrides = emptyMap(),
             defaultDurationMinutes = 60,
@@ -165,7 +163,6 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                 defaultSnoozeMinutes = p[KEY_DEFAULT_SNOOZE_MIN] ?: d.defaultSnoozeMinutes,
                 oemAdvisoryShown = p[KEY_OEM_ADVISORY_SHOWN] ?: d.oemAdvisoryShown,
                 storageMode = parseEnum(p[KEY_STORAGE_MODE], d.storageMode) { StorageMode.valueOf(it) },
-                tasksEnabled = p[KEY_TASKS_ENABLED] ?: d.tasksEnabled,
                 accountAvatarColors = decodeStringIntMap(p[KEY_ACCOUNT_AVATAR_COLORS]),
                 calendarColorOverrides = decodeLongIntMap(p[KEY_CALENDAR_COLOR_OVERRIDES]),
                 defaultDurationMinutes = p[KEY_DEFAULT_DURATION_MIN] ?: d.defaultDurationMinutes,
@@ -255,10 +252,6 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setStorageMode(mode: StorageMode) {
         dataStore.edit { it[KEY_STORAGE_MODE] = mode.name }
-    }
-
-    suspend fun setTasksEnabled(enabled: Boolean) {
-        dataStore.edit { it[KEY_TASKS_ENABLED] = enabled }
     }
 
     suspend fun setAccountAvatarColor(accountKey: String, argb: Int?) {
@@ -392,7 +385,6 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val KEY_DEFAULT_SNOOZE_MIN = intPreferencesKey("default_snooze_minutes")
         val KEY_OEM_ADVISORY_SHOWN = booleanPreferencesKey("oem_advisory_shown")
         val KEY_STORAGE_MODE = stringPreferencesKey("storage_mode")
-        val KEY_TASKS_ENABLED = booleanPreferencesKey("tasks_enabled")
         val KEY_ACCOUNT_AVATAR_COLORS = stringPreferencesKey("account_avatar_colors")
         val KEY_CALENDAR_COLOR_OVERRIDES = stringPreferencesKey("calendar_color_overrides")
         val KEY_DEFAULT_DURATION_MIN = intPreferencesKey("default_duration_minutes")
