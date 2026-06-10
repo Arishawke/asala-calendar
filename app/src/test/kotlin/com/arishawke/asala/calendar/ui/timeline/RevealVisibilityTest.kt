@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.ui.timeline
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalTime
+import java.util.Locale
 
 class RevealVisibilityTest {
     private val hourHeightPx = 72f // matches HourHeight default at 1x
@@ -47,7 +48,7 @@ class RevealVisibilityTest {
     }
 
     @Test fun formats_12h_and_24h() {
-        assertEquals("9:00 PM", formatRevealTime(LocalTime.of(21, 0), is24Hour = false))
-        assertEquals("21:00", formatRevealTime(LocalTime.of(21, 0), is24Hour = true))
+        assertEquals("9:00 PM", formatRevealTime(LocalTime.of(21, 0), is24Hour = false, locale = Locale.US))
+        assertEquals("21:00", formatRevealTime(LocalTime.of(21, 0), is24Hour = true, locale = Locale.US))
     }
 }

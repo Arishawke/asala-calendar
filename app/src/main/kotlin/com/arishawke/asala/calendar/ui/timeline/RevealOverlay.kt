@@ -23,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
@@ -69,7 +70,8 @@ internal fun BoxScope.RevealOverlay(
     }
 
     val is24Hour = LocalIs24Hour.current
-    val timeText = remember(time, is24Hour) { formatRevealTime(time, is24Hour) }
+    val locale = LocalLocale.current.platformLocale
+    val timeText = remember(time, is24Hour, locale) { formatRevealTime(time, is24Hour, locale) }
     AnimatedVisibility(
         visible = edge != RevealEdge.Visible,
         enter = fadeIn(),

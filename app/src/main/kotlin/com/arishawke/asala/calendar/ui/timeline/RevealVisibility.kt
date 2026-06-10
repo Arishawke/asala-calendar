@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.ui.timeline
 import com.arishawke.asala.calendar.data.TimeUnits
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 internal enum class RevealEdge { Above, Visible, Below }
 
@@ -30,5 +31,6 @@ internal fun revealEdge(targetPx: Int, scrollPx: Int, viewportPx: Int, marginPx:
     }
 }
 
-internal fun formatRevealTime(time: LocalTime, is24Hour: Boolean): String =
-    time.format(DateTimeFormatter.ofPattern(if (is24Hour) "HH:mm" else "h:mm a"))
+// locale drives the AM/PM marker on 12-hour patterns, matching HourAxis.
+internal fun formatRevealTime(time: LocalTime, is24Hour: Boolean, locale: Locale): String =
+    time.format(DateTimeFormatter.ofPattern(if (is24Hour) "HH:mm" else "h:mm a", locale))

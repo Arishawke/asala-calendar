@@ -163,8 +163,8 @@ internal fun TimelineGrid(
                 }
             }
         }
-        // shared margin reveal pill + glow; eventId is unique so passing the same
-        // highlight to every column only lights the column that owns the event.
+        // shared margin reveal pill + glow. the highlight id goes to every column;
+        // a midnight-crossing event glows in each of its day segments, which is fine.
         RevealOverlay(
             reveal = reveal,
             scrollState = scrollState,
