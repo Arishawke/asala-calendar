@@ -91,8 +91,5 @@ Ideas and opportunities. May not happen. Kept for reference.
 - Fuzzy / typo-tolerant search on top of the existing exact-substring
   search; saved searches / quick filters.
 - Sync conflict resolution UI (only relevant once CalDAV sync ships).
-- **Obtainium deep-link button in the README.** The README already
-  recommends Obtainium for auto-updates; add an `obtainium://app/...`
-  deep-link button so one tap points Obtainium at this repository.
 - Optional opt-in **in-app update check** (GitHub releases API, browser
   hand-off first), only if users ask.
