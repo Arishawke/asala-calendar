@@ -17,14 +17,6 @@ One sentence: what is this PR for? Link the issue if applicable.
 
 For High-risk changes, add a brief security note below explaining what crosses a trust boundary and how it's bounded.
 
-## AI contribution disclosure
-
-- [ ] No AI (hand-written).
-- [ ] AI-assisted (some lines suggested by AI, reviewed line-by-line).
-- [ ] AI-generated, reviewed (significant blocks AI-authored, reviewed and tested).
-
-Files with AI contribution: <list, or "see commit messages">
-
 ## Test plan
 
 What automated tests cover this? What manual checks did you run? What didn't you test?
