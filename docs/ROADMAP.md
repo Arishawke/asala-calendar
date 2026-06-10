@@ -17,22 +17,12 @@ Planned and near-term. Rough priority order within each group.
   Local rule-based parser first; an on-device model only if the local
   parser misses too much.
 
-**Sync and tasks**
+**Sync**
 
 - **Native CalDAV sync inside Asala.** Probably via `ical4j-android`
   plus a `SyncAdapter`. Server providers: Nextcloud, Fastmail,
   mailbox.org, posteo. Lets Asala stand alone without the DAVx5
   companion app.
-- **Tasks integration:** a new "Tasks" view plus a unified Schedule
-  that interleaves events and incomplete tasks.
-  - Read tasks from the Android Tasks Provider (where supported) or
-    from Tasks.org / DAVx5-synced CalDAV TODO lists.
-  - Show or hide completed tasks as a toggle.
-  - Create / edit / delete tasks with title, due date, optional
-    reminder, completion checkbox.
-  - Open design questions: depend on Tasks.org instead of
-    reimplementing? CalDAV `VTODO` natively? Or a local-first store
-    first and sync later?
 
 **Widgets**
 
