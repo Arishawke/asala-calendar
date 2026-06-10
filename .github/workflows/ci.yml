@@ -49,7 +49,9 @@ jobs:
         # --continue: run all gates even if an early one fails, so a single
         # Spotless nit does not hide a real test failure (PR #19 review,
         # MODERATE). All reports upload as artifacts below regardless.
-        run: ./gradlew spotlessCheck detekt lintDebug testDebugUnitTest koverXmlReport assembleDebug --continue --no-daemon --stacktrace
+        # assembleRelease exercises R8 + resource-shrink (unsigned in CI, no
+        # keystore) to catch shrink-only breakage before a release tag.
+        run: ./gradlew spotlessCheck detekt lintDebug testDebugUnitTest koverXmlReport assembleDebug assembleRelease --continue --no-daemon --stacktrace
 
       - name: Upload lint report on failure
         if: failure()
