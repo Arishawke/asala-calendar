@@ -64,9 +64,11 @@ time.
 - The signing key's blast radius stays one machine. There is no cloud secret to
   leak, and nothing to rotate in GitHub.
 - Releases are never silently asset-less. The draft is always created with the
-  correct tag, title, and notes, the build is verified before the draft exists,
-  and any failure hard-stops (version mismatch, missing CHANGELOG section, or
-  missing artifacts).
+  correct tag, title, and notes, the release build is exercised through R8 and
+  resource-shrink before the draft exists, and any failure hard-stops (version
+  mismatch, missing CHANGELOG section, or missing artifacts). Tests and lint are
+  the maintainer's pre-tag responsibility (release commits land via a CI-green
+  PR); this workflow does not re-run the full gate.
 - The asset-attach and publish step stays manual by design. CI cannot attach a
   signed binary without the key, so the human still signs and publishes. What is
   closed is "the release scaffold is wrong or missing," not "the human must
