@@ -52,8 +52,10 @@ private const val DraggingBackgroundAlpha = 0.55f
 // low tint so the title wins over the fill; drag bumps to DraggingBackgroundAlpha.
 private const val IdleBackgroundAlpha = 0.18f
 
-@Suppress("LongParameterList")
 @Composable
+// LongMethod: sizing + drag state + reveal-highlight border + content are one
+// render concern; extracting any part would just thread state through a callee.
+@Suppress("LongParameterList", "LongMethod")
 internal fun EventBlock(
     clipped: DayClippedEvent,
     zone: ZoneId,

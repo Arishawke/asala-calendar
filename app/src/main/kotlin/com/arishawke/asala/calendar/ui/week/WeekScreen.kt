@@ -203,8 +203,8 @@ internal fun WeekPage(
     workingDaysMask: Long,
     showWeekNumber: Boolean,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
-    enableOverflow: Boolean = true,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
+    enableOverflow: Boolean = true,
     reveal: PendingEventReveal? = null,
     onConsumeReveal: () -> Unit = {},
 ) {

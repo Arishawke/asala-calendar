@@ -8,6 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.timeline
 
+import com.arishawke.asala.calendar.data.TimeUnits
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -15,7 +16,7 @@ internal enum class RevealEdge { Above, Visible, Below }
 
 // top pixel of a time-of-day given the per-hour height.
 internal fun revealTargetPx(time: LocalTime, hourHeightPx: Float): Int =
-    ((time.hour + time.minute / 60f) * hourHeightPx).toInt()
+    ((time.hour + time.minute / TimeUnits.MinutesPerHour.toFloat()) * hourHeightPx).toInt()
 
 // where the target sits vs the current scroll window. margin keeps a target
 // that is only a sliver into view from counting as fully visible.

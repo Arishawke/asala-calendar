@@ -286,7 +286,9 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
 }
 
 @Composable
-@Suppress("LongParameterList")
+// LongMethod: scroll + highlight state + reveal-aware scroll + overlay share one
+// BoxWithConstraints scope; splitting would thread the scope through callees.
+@Suppress("LongParameterList", "LongMethod")
 private fun Timeline(
     date: LocalDate,
     isToday: Boolean,
