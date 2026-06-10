@@ -1,0 +1,109 @@
+name: Release
+
+# Tag-triggered release scaffolding. CI builds UNSIGNED artifacts only (no
+# keystore lives in GitHub) and opens a draft release with the matching
+# CHANGELOG section as the body. The maintainer signs locally and publishes.
+# See the job summary for the finish-the-release checklist.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  draft-release:
+    name: draft-release
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Resolve version and guard tag matches versionName
+        id: version
+        # fail loud if the tag and the app versionName disagree, so a
+        # forgotten version bump cannot ship under the wrong tag.
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          gradle_version="$(grep -E 'versionName = ' app/build.gradle.kts | head -1 | cut -d '"' -f2)"
+          if [ "$tag_version" != "$gradle_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match app versionName $gradle_version"
+            exit 1
+          fi
+          echo "version=$tag_version" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog section
+        # slice the [version] section out of CHANGELOG.md for the release body;
+        # fail if it is missing so we never draft a release with empty notes.
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          awk -v ver="$version" '
+            $0 ~ "^## \\[" ver "\\]" { flag=1; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md > release-notes.md
+          sed -i -e '/./,$!d' release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::no CHANGELOG section found for $version"
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+
+      - name: Build unsigned release artifacts
+        # unsigned in CI (no keystore); verifies the tagged commit builds the
+        # shippable APK + AAB through R8 + resource-shrink.
+        run: ./gradlew :app:assembleRelease :app:bundleRelease --no-daemon --stacktrace
+
+      - name: Stage unsigned artifacts under versioned names
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          apk="$(ls app/build/outputs/apk/release/*.apk | head -1)"
+          cp "$apk" "asala-calendar-v${version}-unsigned.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "asala-calendar-v${version}-unsigned.aab"
+
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-release-v${{ steps.version.outputs.version }}
+          path: asala-calendar-v*-unsigned.*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Create draft release
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --verify-tag \
+            --title "Asala Calendar v${version}" \
+            --notes-file release-notes.md
+
+      - name: Finish-the-release checklist
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          {
+            echo "## Draft release v${version} created"
+            echo ""
+            echo "CI built only **unsigned** artifacts; no keystore lives in GitHub."
+            echo "Finish the release locally:"
+            echo ""
+            echo "1. Build signed artifacts: \`./gradlew :app:assembleRelease :app:bundleRelease\`"
+            echo "2. Attach the signed APK as \`asala-calendar-v${version}.apk\` to the draft."
+            echo "3. Upload the signed AAB to Play (not attached to the GitHub release)."
+            echo "4. Publish the draft."
+          } >> "$GITHUB_STEP_SUMMARY"
