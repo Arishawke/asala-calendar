@@ -41,7 +41,6 @@
     <ID>MagicNumber:DateGrammar.kt$DateGrammar$2000</ID>
     <ID>MagicNumber:DateGrammar.kt$DateGrammar$3</ID>
     <ID>MagicNumber:DateGrammar.kt$DateGrammar$7</ID>
-    <ID>MagicNumber:DateGrammar.kt$DateGrammar$9</ID>
     <ID>MagicNumber:DayCellPreviews.kt$2026</ID>
     <ID>MagicNumber:DayCellPreviews.kt$21</ID>
     <ID>MagicNumber:DayCellPreviews.kt$22</ID>
@@ -138,6 +137,8 @@
     <ID>MagicNumber:TimelineGrid.kt$60f</ID>
     <ID>MagicNumber:TimelineGrid.kt$7</ID>
     <ID>MagicNumber:TimelineMetrics.kt$24</ID>
+    <ID>MagicNumber:Vocabulary.kt$3</ID>
+    <ID>MagicNumber:Vocabulary.kt$9</ID>
     <ID>MagicNumber:WcagContrast.kt$WcagContrast$0.03928</ID>
     <ID>MagicNumber:WcagContrast.kt$WcagContrast$0.05</ID>
     <ID>MagicNumber:WcagContrast.kt$WcagContrast$0.055</ID>
@@ -157,15 +158,15 @@
     <ID>MagicNumber:WeekViewModel.kt$WeekViewModel$7</ID>
     <ID>NestedBlockDepth:ReminderScheduler.kt$ReminderScheduler$private fun readUpcomingReminders( cr: ContentResolver, windowStart: Long, windowEnd: Long, ): List&lt;ScheduledReminder&gt;</ID>
     <ID>ReturnCount:AccountSection.kt$internal fun avatarColor(accountType: String, account: String, overrideArgb: Int?): Color</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$fun find(work: String, today: LocalDate, locale: Locale): DateMatch?</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun monthNameDate(work: String, today: LocalDate): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$fun find(work: String, today: LocalDate, locale: Locale, vocab: Vocabulary = Vocabulary.English): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun monthNameDate(work: String, today: LocalDate, vocab: Vocabulary): DateMatch?</ID>
     <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun numericDate(work: String, today: LocalDate, locale: Locale): DateMatch?</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun ordinalDate(work: String, today: LocalDate): DateMatch?</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun relative(work: String, today: LocalDate): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun ordinalDate(work: String, today: LocalDate, vocab: Vocabulary): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun relative(work: String, today: LocalDate, vocab: Vocabulary): DateMatch?</ID>
     <ID>ReturnCount:DayClippedEvent.kt$internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClippedEvent?</ID>
     <ID>ReturnCount:EventDraft.kt$EventDraft.Companion$fun parseIso8601DurationMs(raw: String?): Long?</ID>
-    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractSingleTime(acc: Acc)</ID>
-    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractTimeRange(acc: Acc)</ID>
+    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractSingleTime(acc: Acc, vocab: Vocabulary)</ID>
+    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractTimeRange(acc: Acc, vocab: Vocabulary)</ID>
     <ID>ReturnCount:RecurrenceRule.kt$RecurrenceRule$fun frequencyOf(rrule: String?): RecurrenceFrequency?</ID>
     <ID>TooGenericExceptionCaught:NotificationActionReceiver.kt$NotificationActionReceiver$t: Throwable</ID>
     <ID>TooGenericExceptionCaught:SnoozeApplier.kt$t: Throwable</ID>

@@ -44,7 +44,9 @@ internal data class Vocabulary(
         val English: Vocabulary = englishVocabulary()
 
         // seam: today every locale is English. a future language becomes one
-        // branch here keyed on locale.language, touching no grammar code.
+        // branch here keyed on locale.language, touching no grammar code. the
+        // param is unused until that branch exists, by design.
+        @Suppress("UnusedParameter")
         fun forLocale(locale: Locale): Vocabulary = English
     }
 }
@@ -94,7 +96,8 @@ private fun englishVocabulary(): Vocabulary {
         midnight = listOf("midnight"),
         meridiemAm = listOf("am"),
         meridiemPm = listOf("pm"),
-        locationTrimConnectors = listOf("on", "from", "at"), // overlap with at/from connectors is intentional: different role
+        // overlap with at/from connectors is intentional: different role
+        locationTrimConnectors = listOf("on", "from", "at"),
     )
 }
 
@@ -103,5 +106,4 @@ private fun englishVocabulary(): Vocabulary {
 // token is plain ascii and escaping would interact with IGNORE_CASE. escaping is
 // a future-language concern (see ADR-0008).
 // same-length tokens keep their iteration order, fine for plain-ascii english.
-internal fun alt(tokens: Collection<String>): String =
-    tokens.sortedByDescending { it.length }.joinToString("|")
+internal fun alt(tokens: Collection<String>): String = tokens.sortedByDescending { it.length }.joinToString("|")
