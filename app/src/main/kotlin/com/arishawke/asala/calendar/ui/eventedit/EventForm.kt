@@ -55,6 +55,9 @@ fun EventForm(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
+        if (state.isNewEvent) {
+            QuickAddField(state = state, onChange = onChange, is24Hour = is24Hour)
+        }
         OutlinedTextField(
             value = state.title,
             onValueChange = { onChange(state.copy(title = it)) },

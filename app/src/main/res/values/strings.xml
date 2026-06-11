@@ -112,6 +112,8 @@
 
     <!-- Event edit screen -->
     <string name="event_new">New event</string>
+    <string name="quick_add_label">Quick add (e.g. lunch tomorrow at noon)</string>
+    <string name="quick_add_apply">Fill</string>
     <string name="action_save">Save</string>
     <string name="field_title">Title</string>
     <string name="field_all_day">All day</string>
