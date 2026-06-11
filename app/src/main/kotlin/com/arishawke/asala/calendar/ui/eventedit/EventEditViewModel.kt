@@ -423,6 +423,7 @@ class EventEditViewModel(
                 instanceMillis = instanceMillis,
                 parentRrule = loadedDetail?.rrule,
                 parentAllDay = loadedDetail?.allDay == true,
+                parentStartMillis = loadedDetail?.startMillis,
                 loadedStatus = loadedDetail?.status,
                 loadedAvailability = loadedDetail?.availability,
                 loadedTimezone = loadedDetail?.eventTimezone,

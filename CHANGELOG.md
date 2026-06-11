@@ -28,6 +28,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   jump straight to the date.
 
 ### Fixed
+- Applying a change to "All events" of a repeating event from a later occurrence
+  no longer drops the earlier ones. Dragging an occurrence to a new time (or
+  editing one) and then choosing "All events" now shifts the whole series by the
+  amount you moved it, keeping every occurrence, instead of moving the series
+  start onto the occurrence you touched and silently removing the ones before it.
+  Choosing "This event" or "This and following" was unaffected.
 - The Schedule view's event window now follows the date. Previously it was fixed
   at app start, so leaving the app open across one or more midnights slowly
   shrank how far ahead the agenda showed events. It now re-anchors as the day

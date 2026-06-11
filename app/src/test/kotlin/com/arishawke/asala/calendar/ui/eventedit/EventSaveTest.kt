@@ -16,6 +16,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.util.TimeZone
 
 class EventSaveTest {
@@ -544,6 +545,115 @@ class EventSaveTest {
             setReminder = { _, _ -> true },
         )
         assertEquals("FREQ=WEEKLY;INTERVAL=2", savedRrule)
+    }
+
+    // C1: editing a recurring series via "All events" from a NON-FIRST occurrence
+    // must shift the parent anchor (DTSTART) by the occurrence's delta, not pin it
+    // to the opened occurrence's new time. The editor seeds the form with the
+    // opened occurrence's slot (extractLocalRange), so writing it straight to
+    // DTSTART would jump the series forward and silently drop every earlier
+    // occurrence. Here the user opened the 2026-06-15 occurrence of a weekly series
+    // and moved it +1h; the parent anchor must move +1h, staying on its own date.
+    @Test
+    fun `AllEvents edit from a later occurrence shifts the parent anchor by the delta`() = runBlocking {
+        var savedStart: Long? = null
+        val parentStart = 1_000_000_000_000L
+        val zone = ZoneId.systemDefault()
+        val instance = LocalDate.of(2026, 6, 15).atTime(12, 0).atZone(zone).toInstant().toEpochMilli()
+        val moved = form().copy(
+            startDate = LocalDate.of(2026, 6, 15),
+            startTime = LocalTime.of(13, 0),
+            endDate = LocalDate.of(2026, 6, 15),
+            endTime = LocalTime.of(14, 0),
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 1,
+        )
+        EventSave.attempt(
+            form = moved,
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = instance,
+            parentRrule = "FREQ=WEEKLY",
+            parentStartMillis = parentStart,
+            loadedTimezone = zone.id,
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedStart = draft.startMillis
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        // +1h occurrence move shifts the anchor +1h, NOT to 2026-06-15.
+        assertEquals(parentStart + 3_600_000L, savedStart)
+    }
+
+    // C1 companion: a title-only edit (occurrence start unchanged) on "All events"
+    // must leave the parent anchor exactly where it was. Pre-fix this jumped
+    // DTSTART to the opened occurrence's date, dropping the earlier occurrences.
+    @Test
+    fun `AllEvents edit with no time change keeps the parent anchor`() = runBlocking {
+        var savedStart: Long? = null
+        val parentStart = 1_000_000_000_000L
+        val zone = ZoneId.systemDefault()
+        val instance = LocalDate.of(2026, 6, 15).atTime(12, 0).atZone(zone).toInstant().toEpochMilli()
+        val titleOnly = form().copy(
+            title = "Renamed standup",
+            startDate = LocalDate.of(2026, 6, 15),
+            startTime = LocalTime.of(12, 0),
+            endDate = LocalDate.of(2026, 6, 15),
+            endTime = LocalTime.of(13, 0),
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 1,
+        )
+        EventSave.attempt(
+            form = titleOnly,
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = instance,
+            parentRrule = "FREQ=WEEKLY",
+            parentStartMillis = parentStart,
+            loadedTimezone = zone.id,
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedStart = draft.startMillis
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals(parentStart, savedStart)
+    }
+
+    // C1 all-day variant: all-day occurrences and the parent DTSTART are both
+    // stored at UTC midnight, so an "All events" date shift must move the parent
+    // anchor by whole days, not pin it to the opened occurrence's date. User
+    // opened the 2026-06-15 all-day occurrence and moved it to 2026-06-16 (+1 day).
+    @Test
+    fun `AllEvents all-day edit shifts the parent anchor by whole days`() = runBlocking {
+        var savedStart: Long? = null
+        val parentStart = 1_000_000_000_000L
+        val instance = LocalDate.of(2026, 6, 15).atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+        val movedDay = form().copy(
+            allDay = true,
+            startDate = LocalDate.of(2026, 6, 16),
+            endDate = LocalDate.of(2026, 6, 16),
+            recurrenceFrequency = RecurrenceFrequency.Weekly,
+            recurrenceInterval = 1,
+        )
+        EventSave.attempt(
+            form = movedDay,
+            editingEventId = 7L,
+            scope = RecurringEditScope.AllEvents,
+            instanceMillis = instance,
+            parentRrule = "FREQ=WEEKLY",
+            parentStartMillis = parentStart,
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedStart = draft.startMillis
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals(parentStart + 86_400_000L, savedStart)
     }
 
     // Edit path reminder rejection: same partial-failure contract as the

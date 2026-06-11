@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.ui.eventedit
 import com.arishawke.asala.calendar.data.EventDraft
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
+import com.arishawke.asala.calendar.data.allEventsAnchorRange
 import java.time.ZoneId
 import java.util.TimeZone
 
@@ -28,6 +29,10 @@ internal object EventSave {
         instanceMillis: Long?,
         parentRrule: String?,
         parentAllDay: Boolean = false,
+        // the parent series' DTSTART, used to rebase an AllEvents edit that was
+        // opened from a later occurrence (the form is seeded with that
+        // occurrence's slot). null for new/non-recurring events.
+        parentStartMillis: Long? = null,
         // null on new events. preserves a server-set Tentative / Free value
         // rather than clobbering it to CONFIRMED / BUSY on every local edit.
         loadedStatus: Int? = null,
@@ -131,14 +136,33 @@ internal object EventSave {
                 }
             }
 
+        // AllEvents on a recurring series opened from a specific occurrence: the
+        // form holds that occurrence's slot, so shift the parent anchor by the
+        // occurrence's delta instead of writing the slot straight to DTSTART
+        // (which would jump the series forward and drop every earlier occurrence).
+        // Other scopes (and non-recurring / first-occurrence edits) write as-is.
+        val (effectiveStart, effectiveEnd) =
+            if (scope == RecurringEditScope.AllEvents && parentRrule != null) {
+                // opened from an occurrence: rebase onto the parent anchor so
+                // earlier occurrences survive. first-occurrence/non-instance edits
+                // fall through to the form values.
+                if (instanceMillis != null && parentStartMillis != null) {
+                    allEventsAnchorRange(parentStartMillis, instanceMillis, startMillis, endMillis)
+                } else {
+                    startMillis to endMillis
+                }
+            } else {
+                startMillis to endMillis
+            }
+
         val draft =
             EventDraft(
                 calendarId = calId,
                 title = form.title,
                 description = form.description.ifBlank { null },
                 location = form.location.ifBlank { null },
-                startMillis = startMillis,
-                endMillis = endMillis,
+                startMillis = effectiveStart,
+                endMillis = effectiveEnd,
                 allDay = form.allDay,
                 eventTimezone = tz,
                 rrule = rrule,

@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventDraft
 import com.arishawke.asala.calendar.data.RecurringEditScope
+import com.arishawke.asala.calendar.data.allEventsAnchorRange
 import com.arishawke.asala.calendar.data.shouldClearEventOverrideOnDelete
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -109,7 +110,7 @@ fun AppViewModel.deleteEvent(
 fun AppViewModel.rescheduleEvent(eventId: Long, instanceMillis: Long, newStartMillis: Long) {
     viewModelScope.launch {
         val detail = eventRepository.fetchEventDetail(eventId)
-        when (val outcome = rescheduleOutcome(detail, newStartMillis)) {
+        when (val outcome = rescheduleOutcome(detail, instanceMillis, newStartMillis)) {
             RescheduleDecision.RevertNoDetail,
             RescheduleDecision.RevertAllDay,
             -> dragRevertSignalBacker.tryEmit(eventId)
@@ -169,13 +170,22 @@ private suspend fun AppViewModel.saveRescheduleNow(
     // ThisInstance writes a one-off exception (no rrule); the other scopes
     // keep the parent rrule so the series continues
     val draftRrule = if (scope == RecurringEditScope.ThisInstance) null else detail.rrule
+    // AllEvents shifts the whole series by the dragged occurrence's delta (so
+    // earlier occurrences survive) instead of pinning the parent anchor to this
+    // occurrence's new time; the per-occurrence scopes write the new time as-is.
+    val (draftStart, draftEnd) =
+        if (scope == RecurringEditScope.AllEvents) {
+            allEventsAnchorRange(detail.startMillis, instanceMillis, newStart, newEnd)
+        } else {
+            newStart to newEnd
+        }
     val draft = EventDraft(
         calendarId = detail.calendarId,
         title = detail.title,
         description = detail.description,
         location = detail.location,
-        startMillis = newStart,
-        endMillis = newEnd,
+        startMillis = draftStart,
+        endMillis = draftEnd,
         allDay = detail.allDay,
         eventTimezone = detail.eventTimezone,
         rrule = draftRrule,

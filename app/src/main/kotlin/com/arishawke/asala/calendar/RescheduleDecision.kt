@@ -33,12 +33,17 @@ sealed interface RescheduleDecision {
 
 // pure decision table behind rescheduleEvent. every abandon path (no detail,
 // all-day) maps to a Revert so the caller emits exactly one revert signal.
-fun rescheduleOutcome(detail: EventDetail?, newStartMillis: Long): RescheduleDecision = when {
-    detail == null -> RescheduleDecision.RevertNoDetail
-    detail.allDay -> RescheduleDecision.RevertAllDay
-    newStartMillis == detail.startMillis -> RescheduleDecision.NoOp
-    else -> {
-        val newEnd = newStartMillis + (detail.endMillis - detail.startMillis)
-        if (detail.rrule == null) RescheduleDecision.Save(newEnd) else RescheduleDecision.AskScope(newEnd)
+// instanceStartMillis is the dragged OCCURRENCE's original start (which for a
+// recurring event differs from the parent series DTSTART in detail.startMillis):
+// the no-op check must compare against it, else dropping the Nth occurrence back
+// where it started looks like a move.
+fun rescheduleOutcome(detail: EventDetail?, instanceStartMillis: Long, newStartMillis: Long): RescheduleDecision =
+    when {
+        detail == null -> RescheduleDecision.RevertNoDetail
+        detail.allDay -> RescheduleDecision.RevertAllDay
+        newStartMillis == instanceStartMillis -> RescheduleDecision.NoOp
+        else -> {
+            val newEnd = newStartMillis + (detail.endMillis - detail.startMillis)
+            if (detail.rrule == null) RescheduleDecision.Save(newEnd) else RescheduleDecision.AskScope(newEnd)
+        }
     }
-}
