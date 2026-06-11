@@ -11,12 +11,6 @@ Nothing in active development right now. See Next.
 
 Planned and near-term. Rough priority order within each group.
 
-**Editor**
-
-- **Natural-language event creation** (`"lunch tomorrow at noon"`).
-  Local rule-based parser first; an on-device model only if the local
-  parser misses too much.
-
 **Sync**
 
 - **Native CalDAV sync inside Asala.** Probably via `ical4j-android`
