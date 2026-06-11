@@ -42,6 +42,12 @@ class DateGrammarTest {
         assertEquals(LocalDate.of(2026, 6, 17), find("retro next wednesday")) // today + 7
     }
 
+    // "this X" is the upcoming occurrence (same as bare), distinct from "next X".
+    @Test fun `this weekday is the upcoming occurrence`() {
+        assertEquals(LocalDate.of(2026, 6, 12), find("retro this friday"))
+        assertEquals(today, find("retro this wednesday"))
+    }
+
     @Test fun `no date returns null`() {
         assertNull(find("call mom"))
     }
