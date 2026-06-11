@@ -13,6 +13,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   saved "Tasks" default-view preference falls back to Month.
 
 ### Added
+- Natural-language quick add in the new-event editor. Type a phrase like "lunch
+  at Cafe Rio tomorrow at noon" and the title, location, date, and time fill in
+  for you to review before saving. It recognizes relative dates (today, tomorrow,
+  weekdays, "next Friday", "the 15th"), times and ranges, durations, and
+  "at <place>" locations; a date with no time becomes an all-day event. Anything
+  it does not recognize is left for you to fill in by hand.
 - Saving a new or edited event now points you to it when it lands off-screen. In
   the day, week, and 3-day views, a tappable indicator appears at the top or
   bottom edge ("New event at 9:00 PM") without moving your place; tapping it
