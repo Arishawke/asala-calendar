@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-06-11
+
 ### Removed
 - The experimental Tasks toggle and its "coming soon" placeholder view. Asala is
   focusing on being a clean calendar; task management is no longer planned. A
@@ -1688,7 +1690,8 @@ notification firing from this app lands in M4.
 - Live updates from the Calendar Provider via ContentObserver.
 - Branding as Asala Calendar; GPL v3 license; README.
 
-[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/Arishawke/asala-calendar/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/Arishawke/asala-calendar/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/Arishawke/asala-calendar/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Arishawke/asala-calendar/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/Arishawke/asala-calendar/compare/v0.17.0...v0.18.0
