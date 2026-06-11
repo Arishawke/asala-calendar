@@ -40,7 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +49,7 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.CalendarItem
 import com.arishawke.asala.calendar.ui.theme.AsalaCalendarTheme
 import com.arishawke.asala.calendar.ui.theme.OkabeItoPalette
+import com.arishawke.asala.calendar.ui.theme.WcagContrast
 
 internal data class AccountGroup(val account: String, val calendars: List<CalendarItem>) {
     val accountType: String get() = calendars.firstOrNull()?.accountType.orEmpty()
@@ -138,8 +139,8 @@ internal fun AccountHeader(
 private fun AccountAvatar(accountType: String, account: String, overrideArgb: Int?) {
     val initial = account.firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?"
     val bg = avatarColor(accountType, account, overrideArgb)
-    // black text on bright swatches for WCAG contrast; same midpoint MultiDayBarRow uses
-    val fg = if (bg.luminance() < AvatarLuminanceMidpoint) Color.White else Color.Black
+    // foreground picked by actual WCAG contrast against the swatch fill.
+    val fg = Color(WcagContrast.onColor(bg.toArgb()))
     Box(
         modifier = Modifier
             .size(32.dp)
@@ -155,8 +156,6 @@ private fun AccountAvatar(accountType: String, account: String, overrideArgb: In
         )
     }
 }
-
-private const val AvatarLuminanceMidpoint = 0.5f
 
 // deterministic avatar color; hash on "$type:$account" so same-name accounts on
 // different types don't collide. override wins.

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,11 +37,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.theme.Spacing
+import com.arishawke.asala.calendar.ui.theme.WcagContrast
 import com.github.skydoves.colorpicker.compose.BrightnessSlider
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
 private const val OPAQUE_ALPHA = 0xFF000000.toInt()
+
+// WCAG AA floor for graphical objects; below it the swatch barely separates
+// from the app background, so the color reads as no distinct calendar identity.
+private const val MIN_SURFACE_CONTRAST = 3.0
 
 // HSV + hex picker. forces opaque colors so event chips stay legible.
 @Composable
@@ -79,7 +85,15 @@ internal fun CustomColorPickerDialog(initialArgb: Int, onConfirm: (Int) -> Unit,
                 ) {
                     Box(
                         modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(currentArgb)),
-                    )
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        // sample text in the contrast-chosen foreground previews legibility
+                        Text(
+                            text = stringResource(R.string.custom_color_sample),
+                            color = Color(WcagContrast.onColor(currentArgb)),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
                         value = hexText,
@@ -92,6 +106,18 @@ internal fun CustomColorPickerDialog(initialArgb: Int, onConfirm: (Int) -> Unit,
                         },
                         singleLine = true,
                         label = { Text(stringResource(R.string.custom_color_hex)) },
+                    )
+                }
+                // warn when the color barely separates from the app background
+                if (WcagContrast.ratio(
+                        currentArgb,
+                        MaterialTheme.colorScheme.surface.toArgb(),
+                    ) < MIN_SURFACE_CONTRAST
+                ) {
+                    Text(
+                        text = stringResource(R.string.custom_color_low_contrast),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             }

@@ -31,6 +31,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Calendar day cells in the month grid, mini-month, and year views now announce
   their full date (for example "Wednesday, June 10, 2026") and a button role to
   TalkBack, instead of reading just the bare day number.
+- The mini-month date-picker cells and the day-view all-day event rows are now at
+  least 48dp tall, meeting the recommended minimum touch-target size.
+- Text on colored fills (multi-day bars, the account avatar, and day-view all-day
+  rows) now picks black or white by actual WCAG contrast rather than a rough
+  brightness midpoint, so labels stay legible across more colors. The custom
+  calendar-color picker now previews sample text on the chosen color and warns
+  when a color is too close to the background to tell apart.
 
 ### Fixed
 - Applying a change to "All events" of a repeating event from a later occurrence

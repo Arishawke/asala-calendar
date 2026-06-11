@@ -204,6 +204,8 @@
     <string name="swatch_custom">Custom color</string>
     <string name="cd_pick_custom_color">Pick a custom color</string>
     <string name="custom_color_hex">Hex</string>
+    <string name="custom_color_sample">Aa</string>
+    <string name="custom_color_low_contrast">This color may be hard to tell apart from the background.</string>
 
     <!-- Color palettes (offered by the recolor pickers) -->
     <string name="palette_okabe_ito">Okabe-Ito (color-blind safe)</string>

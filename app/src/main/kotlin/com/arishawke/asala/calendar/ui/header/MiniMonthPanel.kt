@@ -236,7 +236,7 @@ private fun DateCell(
     }
     Box(
         modifier = modifier
-            .height(40.dp)
+            .height(48.dp)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {
                 contentDescription = dateCd

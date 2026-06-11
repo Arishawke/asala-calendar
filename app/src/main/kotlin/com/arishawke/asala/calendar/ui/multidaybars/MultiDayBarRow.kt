@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -36,9 +35,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.theme.WcagContrast
 
 private const val DaysPerWeek = 7
-private const val LuminanceMidpoint = 0.5f
 private val BarHeight = 16.dp
 private val BarVerticalGap = 2.dp
 private val NaturalCorner = 6.dp
@@ -76,7 +75,7 @@ fun MultiDayBarRow(
                 )
             }
             val bg = Color(s.color)
-            val fg = if (bg.luminance() < LuminanceMidpoint) Color.White else Color.Black
+            val fg = Color(WcagContrast.onColor(s.color))
             Box(
                 modifier = Modifier
                     .offset(

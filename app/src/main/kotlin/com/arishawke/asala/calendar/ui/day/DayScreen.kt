@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -41,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -57,6 +55,7 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
+import com.arishawke.asala.calendar.ui.theme.WcagContrast
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
 import com.arishawke.asala.calendar.ui.timeline.DayClippedEvent
 import com.arishawke.asala.calendar.ui.timeline.HourAxis
@@ -74,7 +73,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
 
-private const val AllDayLuminanceMidpoint = 0.5f
 private const val HighlightClearMs = 2_000L
 
 @Composable
@@ -248,22 +246,16 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(20.dp)
-                    .padding(vertical = 1.dp)
+                    .heightIn(min = 48.dp)
+                    .padding(vertical = 2.dp)
                     .clip(RoundedCornerShape(3.dp))
                     .background(Color(ev.displayColor).copy(alpha = 0.85f))
                     .clickable { onEventClick(ev.eventId, ev.startMillis) }
-                    .padding(horizontal = 6.dp),
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // pale swatches fail WCAG 1.4.3 against white text; flip to
-                // black on bright backgrounds (same midpoint as MultiDayBarRow).
-                val rowFg =
-                    if (Color(ev.displayColor).luminance() < AllDayLuminanceMidpoint) {
-                        Color.White
-                    } else {
-                        Color.Black
-                    }
+                // foreground picked by actual WCAG contrast against the fill.
+                val rowFg = Color(WcagContrast.onColor(ev.displayColor))
                 Text(
                     text = stringResource(R.string.schedule_all_day),
                     style = MaterialTheme.typography.labelSmall,
