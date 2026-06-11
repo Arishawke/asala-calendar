@@ -42,6 +42,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -56,6 +58,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.format.TextStyle
 
 private const val WeekColumns = 7
@@ -226,11 +229,17 @@ private fun DateCell(
     } else {
         null
     }
+    // the cell shows only a bare number; name the full date for TalkBack.
+    val locale = LocalConfiguration.current.locales.get(0)
+    val dateCd = remember(date, locale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(date)
+    }
     Box(
         modifier = modifier
             .height(40.dp)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {
+                contentDescription = dateCd
                 if (eventsLabel != null) stateDescription = eventsLabel
             },
         contentAlignment = Alignment.Center,

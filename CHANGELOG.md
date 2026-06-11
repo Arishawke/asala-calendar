@@ -27,6 +27,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   events show no indicator. The schedule, month, and year views continue to
   jump straight to the date.
 
+### Changed
+- Calendar day cells in the month grid, mini-month, and year views now announce
+  their full date (for example "Wednesday, June 10, 2026") and a button role to
+  TalkBack, instead of reading just the bare day number.
+
 ### Fixed
 - Applying a change to "All events" of a repeating event from a later occurrence
   no longer drops the earlier ones. Dragging an occurrence to a new time (or

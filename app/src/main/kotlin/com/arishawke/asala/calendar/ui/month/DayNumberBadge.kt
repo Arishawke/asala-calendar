@@ -18,12 +18,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +37,8 @@ import com.arishawke.asala.calendar.ui.theme.CalendarTokens
 import com.arishawke.asala.calendar.ui.theme.PastDateAlpha
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 // day-number circle above the all-day bars; tapping jumps to Day view
 @Composable
@@ -56,18 +62,20 @@ internal fun DayNumberBadge(
         isPast -> pastLabel
         else -> null
     }
+    // the cell shows only a bare number; name the full date for TalkBack.
+    val locale = LocalConfiguration.current.locales.get(0)
+    val dateCd = remember(day.date, locale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(day.date)
+    }
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .then(if (isPast) Modifier.alpha(PastDateAlpha) else Modifier)
-            .then(
-                if (cellState != null) {
-                    Modifier.semantics(mergeDescendants = true) { stateDescription = cellState }
-                } else {
-                    Modifier
-                },
-            )
+            .semantics(mergeDescendants = true) {
+                contentDescription = dateCd
+                if (cellState != null) stateDescription = cellState
+            }
             .padding(vertical = 2.dp),
         contentAlignment = Alignment.Center,
     ) {
