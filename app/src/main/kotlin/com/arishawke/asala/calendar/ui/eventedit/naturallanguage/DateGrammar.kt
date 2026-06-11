@@ -31,8 +31,8 @@ internal object DateGrammar {
     }
 
     private fun relative(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
-        Regex("\\b(${alt(vocab.today)})\\b", IC).find(work)?.let { return DateMatch(today, it.range) }
-        Regex("\\b(${alt(vocab.tomorrow)})\\b", IC).find(work)?.let { return DateMatch(today.plusDays(1), it.range) }
+        Regex("\\b(?:${alt(vocab.today)})\\b", IC).find(work)?.let { return DateMatch(today, it.range) }
+        Regex("\\b(?:${alt(vocab.tomorrow)})\\b", IC).find(work)?.let { return DateMatch(today.plusDays(1), it.range) }
         Regex(
             "\\b(?:${alt(vocab.inConnector)})\\s+(\\d+)\\s+(${alt(vocab.dayUnits + vocab.weekUnits)})\\b",
             IC,
