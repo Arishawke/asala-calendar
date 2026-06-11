@@ -127,5 +127,15 @@ object EventTextParser {
         acc.date = m.date
         acc.blank(m.range)
     }
-    private fun extractLocation(acc: Acc) {}
+    private fun extractLocation(acc: Acc) {
+        // time/date are already blanked, so any remaining "at X" is a place.
+        val m = Regex("\\bat\\s+(.+)$", IC).find(acc.work) ?: return
+        var loc = m.groupValues[1].replace(Regex("\\s+"), " ").trim()
+        // drop a connector stranded by a blanked date/time ("... on <blanked>").
+        loc = loc.replace(Regex("\\s+(on|from|at)$", IC), "").trim()
+        if (loc.isNotEmpty()) {
+            acc.location = loc
+            acc.blank(m.range)
+        }
+    }
 }

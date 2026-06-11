@@ -124,4 +124,36 @@ class EventTextParserTest {
         assertEquals(LocalTime.of(9, 0), p.startTime)
         assertEquals(LocalTime.of(10, 0), p.endTime)
     }
+
+    // "at <place>" is a location only when it is not a time. these two share the
+    // word "at" but must split correctly.
+    @Test fun `at a place is a location`() {
+        val p = parse("lunch at the office")
+        assertEquals("lunch", p.title)
+        assertEquals("the office", p.location)
+        assertNull(p.startTime)
+    }
+
+    @Test fun `at a time is not a location`() {
+        val p = parse("lunch at 3pm")
+        assertEquals(LocalTime.of(15, 0), p.startTime)
+        assertNull(p.location)
+        assertEquals("lunch", p.title)
+    }
+
+    // the canonical full phrase: time and date trail the location and are
+    // claimed first, leaving a clean location and title.
+    @Test fun `full phrase splits title location date and time`() {
+        val p = parse("lunch at Cafe Rio tomorrow at noon")
+        assertEquals("lunch", p.title)
+        assertEquals("Cafe Rio", p.location)
+        assertEquals(now.toLocalDate().plusDays(1), p.date)
+        assertEquals(LocalTime.NOON, p.startTime)
+    }
+
+    // a connector left dangling by a blanked date is trimmed off the location.
+    @Test fun `trailing connector is trimmed from location`() {
+        val p = parse("dinner at Nonna's on friday")
+        assertEquals("Nonna's", p.location)
+    }
 }
