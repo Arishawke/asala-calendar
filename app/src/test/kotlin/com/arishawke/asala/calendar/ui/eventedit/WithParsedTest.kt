@@ -73,4 +73,13 @@ class WithParsedTest {
         assertEquals(base.endTime, s.endTime)
         assertFalse(s.allDay)
     }
+
+    // a default-duration end that crosses midnight rolls the end date forward so
+    // the range stays valid (start 23:00 + 60m = 00:00 next day).
+    @Test fun `end crossing midnight rolls to next day`() {
+        val s = form().withParsed(ParsedEvent(title = "late", startTime = LocalTime.of(23, 0)))
+        assertEquals(seededDate, s.startDate)
+        assertEquals(LocalTime.MIDNIGHT, s.endTime)
+        assertEquals(seededDate.plusDays(1), s.endDate)
+    }
 }

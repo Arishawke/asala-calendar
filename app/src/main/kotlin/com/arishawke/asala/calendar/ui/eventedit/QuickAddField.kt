@@ -51,7 +51,10 @@ fun QuickAddField(
     val preview = remember(parsed, is24Hour) { parsed?.let { previewLine(it, is24Hour, locale) } }
 
     fun commit() {
-        parsed?.let { onChange(state.withParsed(it)) }
+        // re-parse at tap time so relative dates resolve to the commit moment,
+        // not the last keystroke (the field may sit, even across midnight).
+        if (text.isBlank()) return
+        onChange(state.withParsed(EventTextParser.parse(text, LocalDateTime.now(), locale)))
     }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
