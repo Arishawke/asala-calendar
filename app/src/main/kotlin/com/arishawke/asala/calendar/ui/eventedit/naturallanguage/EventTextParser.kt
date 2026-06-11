@@ -122,6 +122,10 @@ object EventTextParser {
         }
     }
 
-    private fun extractDate(acc: Acc, today: java.time.LocalDate, locale: Locale) {}
+    private fun extractDate(acc: Acc, today: java.time.LocalDate, locale: Locale) {
+        val m = DateGrammar.find(acc.work, today, locale) ?: return
+        acc.date = m.date
+        acc.blank(m.range)
+    }
     private fun extractLocation(acc: Acc) {}
 }
