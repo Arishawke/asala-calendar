@@ -38,6 +38,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   at app start, so leaving the app open across one or more midnights slowly
   shrank how far ahead the agenda showed events. It now re-anchors as the day
   changes.
+- Natural-language quick add no longer misreads the everyday words "sun", "sat",
+  and "wed" as weekdays, so a phrase like "enjoy the sun" stays a plain title.
+  Spelled-out names ("sunday") and qualified forms ("next sun") still set the
+  date. A parsed zero-length time ("for 0 minutes") now falls back to the
+  default event length instead of creating a 24-hour event.
 - Opening an existing event to edit (or duplicating one) now shows a brief
   loading spinner until its details finish loading, instead of a blank form.
   This prevents an edit made in that first moment, such as changing the time,

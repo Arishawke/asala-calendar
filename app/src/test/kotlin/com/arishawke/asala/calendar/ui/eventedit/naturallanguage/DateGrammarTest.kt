@@ -52,6 +52,27 @@ class DateGrammarTest {
         assertNull(find("call mom"))
     }
 
+    // bare 3-letter homographs of everyday words must not be read as weekdays,
+    // or "enjoy the sun" silently schedules itself for Sunday.
+    @Test fun `bare homograph weekdays are not dates`() {
+        assertNull(find("enjoy the sun"))
+        assertNull(find("we sat down"))
+        assertNull(find("they got wed"))
+    }
+
+    // full names still match bare, and the short forms still resolve when an
+    // explicit "next"/"this" qualifier removes the ambiguity.
+    @Test fun `full names match bare and qualified shorts still resolve`() {
+        assertEquals(LocalDate.of(2026, 6, 13), find("party saturday")) // Wed -> Sat
+        assertEquals(LocalDate.of(2026, 6, 21), find("brunch next sun")) // upcoming Sun 14 + 7
+    }
+
+    // a two-digit year maps to the 2000s: a calendar only schedules forward, so
+    // "12/31/45" is 2045, never 1945.
+    @Test fun `two-digit year maps to the twenty-first century`() {
+        assertEquals(LocalDate.of(2045, 12, 31), DateGrammar.find("trip 12/31/45", today, Locale.US)?.date)
+    }
+
     @Test fun `month name dates both orders`() {
         assertEquals(LocalDate.of(2026, 7, 11), find("party jul 11"))
         assertEquals(LocalDate.of(2026, 7, 11), find("party 11 july"))

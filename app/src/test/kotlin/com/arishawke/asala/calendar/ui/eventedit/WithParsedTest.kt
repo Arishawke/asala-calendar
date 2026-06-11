@@ -82,4 +82,18 @@ class WithParsedTest {
         assertEquals(LocalTime.MIDNIGHT, s.endTime)
         assertEquals(seededDate.plusDays(1), s.endDate)
     }
+
+    // a zero-length parse (end == start, e.g. "for 0 minutes" or "3pm to 3pm")
+    // must not balloon into a 24-hour event; it falls back to the default
+    // duration, same as if no end had been parsed.
+    @Test fun `zero-length parse falls back to default duration`() {
+        val s = form().withParsed(
+            ParsedEvent(title = "ping", startTime = LocalTime.NOON, endTime = LocalTime.NOON),
+        )
+        assertFalse(s.allDay)
+        assertEquals(seededDate, s.startDate)
+        assertEquals(seededDate, s.endDate)
+        assertEquals(LocalTime.NOON, s.startTime)
+        assertEquals(LocalTime.of(13, 0), s.endTime)
+    }
 }

@@ -155,7 +155,10 @@ data class EventEditFormState(
             parsed.startTime != null -> {
                 val date = parsed.date ?: s.startDate
                 val start = parsed.startTime
-                val end = parsed.endTime ?: start.plusMinutes(s.defaultDurationMinutes.toLong())
+                // a zero-length end (end == start) is treated as no end, so it
+                // takes the default duration instead of rolling to a 24h event.
+                val end = parsed.endTime?.takeIf { it != start }
+                    ?: start.plusMinutes(s.defaultDurationMinutes.toLong())
                 val rollsOver = !end.isAfter(start)
                 s.copy(
                     allDay = false,

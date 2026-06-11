@@ -31,6 +31,15 @@ internal object DateGrammar {
     )
     private val dowAlt = DOW.keys.sortedByDescending { it.length }.joinToString("|")
 
+    // 3-letter abbreviations that are also everyday words; matching them as a
+    // bare weekday turns "enjoy the sun" or "we sat down" into a date. they still
+    // resolve when qualified ("next sun") or spelled out ("sunday").
+    private val bareHomographs = setOf("sat", "sun", "wed")
+    private val bareDowAlt = DOW.keys
+        .filterNot { it in bareHomographs }
+        .sortedByDescending { it.length }
+        .joinToString("|")
+
     fun find(work: String, today: LocalDate, locale: Locale): DateMatch? {
         relative(work, today)?.let { return it }
         nextThisWeekday(work, today)?.let { return it }
@@ -64,7 +73,7 @@ internal object DateGrammar {
     }
 
     private fun bareWeekday(work: String, today: LocalDate): DateMatch? {
-        val m = Regex("\\b($dowAlt)\\b", IC).find(work) ?: return null
+        val m = Regex("\\b($bareDowAlt)\\b", IC).find(work) ?: return null
         val target = DOW.getValue(m.groupValues[1].lowercase())
         return DateMatch(today.plusDays(daysUntil(today, target)), m.range)
     }
