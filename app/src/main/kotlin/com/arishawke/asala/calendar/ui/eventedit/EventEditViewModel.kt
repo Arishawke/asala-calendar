@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.CalendarItem
+import com.arishawke.asala.calendar.ui.eventedit.naturallanguage.ParsedEvent
 import com.arishawke.asala.calendar.data.CalendarRepository
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventEditCalendarPicker
@@ -141,6 +142,38 @@ data class EventEditFormState(
             convertedFromAllDay = true,
             reminderMinutesBefore = rebasedReminder,
         )
+    }
+
+    // overlay parsed fields from the Quick add phrase, leaving anything the
+    // parser did not recognize at its seeded default (date, duration, reminder,
+    // calendar). a date without a time means all-day.
+    fun withParsed(parsed: ParsedEvent): EventEditFormState {
+        var s = this
+        if (parsed.title.isNotBlank()) s = s.copy(title = parsed.title)
+        parsed.location?.let { s = s.copy(location = it) }
+        return when {
+            parsed.startTime != null -> {
+                val date = parsed.date ?: s.startDate
+                val start = parsed.startTime
+                val end = parsed.endTime ?: start.plusMinutes(s.defaultDurationMinutes.toLong())
+                val rollsOver = !end.isAfter(start)
+                s.copy(
+                    allDay = false,
+                    startDate = date,
+                    startTime = start,
+                    endDate = if (rollsOver) date.plusDays(1) else date,
+                    endTime = end,
+                )
+            }
+            parsed.date != null -> s.copy(
+                allDay = true,
+                startDate = parsed.date,
+                endDate = parsed.date,
+                startTime = LocalTime.MIDNIGHT,
+                endTime = LocalTime.MIDNIGHT,
+            )
+            else -> s
+        }
     }
 
     companion object {
