@@ -94,7 +94,7 @@ private fun englishVocabulary(): Vocabulary {
         midnight = listOf("midnight"),
         meridiemAm = listOf("am"),
         meridiemPm = listOf("pm"),
-        locationTrimConnectors = listOf("on", "from", "at"),
+        locationTrimConnectors = listOf("on", "from", "at"), // overlap with at/from connectors is intentional: different role
     )
 }
 
@@ -102,5 +102,6 @@ private fun englishVocabulary(): Vocabulary {
 // over a prefix ("monday" before "mon"). tokens are NOT escaped: every current
 // token is plain ascii and escaping would interact with IGNORE_CASE. escaping is
 // a future-language concern (see ADR-0008).
+// same-length tokens keep their iteration order, fine for plain-ascii english.
 internal fun alt(tokens: Collection<String>): String =
     tokens.sortedByDescending { it.length }.joinToString("|")
