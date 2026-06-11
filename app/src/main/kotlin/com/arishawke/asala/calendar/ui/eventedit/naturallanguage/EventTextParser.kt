@@ -102,7 +102,7 @@ object EventTextParser {
 
     private fun extractSingleTime(acc: Acc, vocab: Vocabulary) {
         val at = alt(vocab.atConnector)
-        val named = "${alt(vocab.noon)}|${alt(vocab.midnight)}"
+        val named = alt(vocab.noon + vocab.midnight)
         Regex("(?:\\b(?:$at)\\s+)?\\b($named)\\b", IC).find(acc.work)?.let { m ->
             val word = m.groupValues[1].lowercase()
             acc.startTime = if (word in vocab.noon) LocalTime.NOON else LocalTime.MIDNIGHT
