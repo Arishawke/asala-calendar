@@ -38,6 +38,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   brightness midpoint, so labels stay legible across more colors. The custom
   calendar-color picker now previews sample text on the chosen color and warns
   when a color is too close to the background to tell apart.
+- TalkBack support improvements: the screen title now announces view and date
+  changes, Schedule day headers are exposed as headings for quick navigation, and
+  timeline events offer "Move 15 minutes earlier/later" actions so the drag-to-
+  reschedule gesture is reachable without dragging.
 
 ### Fixed
 - Applying a change to "All events" of a repeating event from a later occurrence

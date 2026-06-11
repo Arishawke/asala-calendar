@@ -13,6 +13,8 @@
     <!-- Header dropdown (mini-month panel) -->
     <string name="cd_mini_month_prev">Previous month</string>
     <string name="cd_mini_month_next">Next month</string>
+    <string name="cd_reschedule_later">Move 15 minutes later</string>
+    <string name="cd_reschedule_earlier">Move 15 minutes earlier</string>
     <plurals name="mini_month_events_count">
         <item quantity="one">%d event</item>
         <item quantity="other">%d events</item>

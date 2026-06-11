@@ -25,13 +25,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.components.EventChipBlock
 import com.arishawke.asala.calendar.ui.theme.AsalaCalendarTheme
@@ -47,6 +51,9 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 private const val PreviewEventDurationMin = 90L
+
+// discrete TalkBack reschedule step, matching the 15-minute drag snap grid.
+private const val RescheduleNudgeMillis = 15 * 60_000L
 private const val DraggingBackgroundAlpha = 0.55f
 
 // low tint so the title wins over the fill; drag bumps to DraggingBackgroundAlpha.
@@ -97,12 +104,28 @@ internal fun EventBlock(
     // pointerInput tap stays for sighted users (clickable would fight the
     // long-press drag). mergeDescendants reads the rendered title + time.
     val openAction = onClick
+    // TalkBack can't perform the long-press drag, so offer the reschedule as
+    // discrete 15-minute nudges, mirroring the mini-month swipe actions.
+    val laterLabel = stringResource(R.string.cd_reschedule_later)
+    val earlierLabel = stringResource(R.string.cd_reschedule_earlier)
     val a11yModifier = if (openAction != null) {
         Modifier.semantics(mergeDescendants = true) {
             role = Role.Button
             onClick {
                 openAction()
                 true
+            }
+            if (onReschedule != null) {
+                customActions = listOf(
+                    CustomAccessibilityAction(laterLabel) {
+                        onReschedule(event.startMillis + RescheduleNudgeMillis)
+                        true
+                    },
+                    CustomAccessibilityAction(earlierLabel) {
+                        onReschedule(event.startMillis - RescheduleNudgeMillis)
+                        true
+                    },
+                )
             }
         }
     } else {

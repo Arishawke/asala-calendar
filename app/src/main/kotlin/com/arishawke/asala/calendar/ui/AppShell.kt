@@ -61,7 +61,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModelStore
@@ -305,7 +308,12 @@ private fun HeaderTitle(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleLarge)
+        // announce view / date changes politely so TalkBack follows navigation.
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
         if (enabled) {
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowDown,
