@@ -25,7 +25,9 @@ class WithParsedTest {
     // a timed parse sets a timed event and derives the end from the default
     // duration when none was given.
     @Test fun `timed parse with no end uses default duration`() {
-        val s = form().withParsed(ParsedEvent(title = "lunch", startTime = LocalTime.NOON, date = LocalDate.of(2026, 6, 11)))
+        val s = form().withParsed(
+            ParsedEvent(title = "lunch", startTime = LocalTime.NOON, date = LocalDate.of(2026, 6, 11)),
+        )
         assertFalse(s.allDay)
         assertEquals("lunch", s.title)
         assertEquals(LocalDate.of(2026, 6, 11), s.startDate)

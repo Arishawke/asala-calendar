@@ -13,7 +13,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.CalendarItem
-import com.arishawke.asala.calendar.ui.eventedit.naturallanguage.ParsedEvent
 import com.arishawke.asala.calendar.data.CalendarRepository
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventEditCalendarPicker
@@ -23,6 +22,7 @@ import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
 import com.arishawke.asala.calendar.data.RemindersRepository
 import com.arishawke.asala.calendar.data.StorageMode
+import com.arishawke.asala.calendar.ui.eventedit.naturallanguage.ParsedEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
