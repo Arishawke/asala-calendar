@@ -23,6 +23,7 @@ import android.content.Intent
 import android.provider.CalendarContract
 import androidx.core.content.getSystemService
 import androidx.glance.appwidget.updateAll
+import com.arishawke.asala.calendar.PendingIntentFlags
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -99,7 +100,7 @@ object WidgetRefreshScheduler {
         context,
         MIDNIGHT_REQUEST_CODE,
         Intent(context, MidnightWidgetRefreshReceiver::class.java),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        PendingIntentFlags.UPDATE_IMMUTABLE,
     )
 }
 

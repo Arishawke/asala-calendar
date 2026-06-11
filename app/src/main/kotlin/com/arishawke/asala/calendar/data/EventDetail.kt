@@ -45,9 +45,13 @@ fun resolveEventDetailColor(
     detail: EventDetail,
     eventOverrides: Map<Long, Int>,
     calendarOverrides: Map<Long, Int>,
-): Int = eventOverrides[detail.eventId]
-    ?: calendarOverrides[detail.calendarId]
-    ?: detail.displayColor
+): Int = resolveOverrideColor(
+    eventId = detail.eventId,
+    calendarId = detail.calendarId,
+    fallback = detail.displayColor,
+    eventOverrides = eventOverrides,
+    calendarOverrides = calendarOverrides,
+)
 
 // true only when the scope removes the event row entirely. other scopes
 // keep the original eventId (this-instance writes an exception on the same

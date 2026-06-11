@@ -14,8 +14,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.arishawke.asala.calendar.MainActivity
+import com.arishawke.asala.calendar.PendingIntentFlags
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventEndMillis
+import com.arishawke.asala.calendar.data.resolveOverrideColor
 import java.text.DateFormat
 import java.util.Date
 
@@ -37,9 +39,7 @@ internal fun resolveReminderColor(
     calendarId: Long,
     eventOverrides: Map<Long, Int>,
     calendarOverrides: Map<Long, Int>,
-): Int = eventOverrides[eventId]
-    ?: calendarOverrides[calendarId]
-    ?: providerColor
+): Int = resolveOverrideColor(eventId, calendarId, providerColor, eventOverrides, calendarOverrides)
 
 // recurring rows write DURATION not DTEND; routing both through EventEndMillis.compute
 // keeps the receiver and the detail sheet on the same end-time fallback.
@@ -124,7 +124,7 @@ private fun openMainActivityPendingIntent(context: Context, eventId: Long, insta
         context,
         PendingIntentRequestCodes.forOpen(eventId, instanceMillis),
         intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        PendingIntentFlags.UPDATE_IMMUTABLE,
     )
 }
 
@@ -145,7 +145,7 @@ private fun snoozeDefaultPendingIntent(
         context,
         PendingIntentRequestCodes.forSnoozeDefault(eventId, instanceMillis),
         intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        PendingIntentFlags.UPDATE_IMMUTABLE,
     )
 }
 
@@ -168,7 +168,7 @@ private fun snoozePickerPendingIntent(
         context,
         PendingIntentRequestCodes.forSnoozePicker(eventId, instanceMillis),
         intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        PendingIntentFlags.UPDATE_IMMUTABLE,
     )
 }
 
@@ -186,6 +186,6 @@ private fun dismissPendingIntent(context: Context, eventId: Long, instanceMillis
         context,
         PendingIntentRequestCodes.forDismiss(eventId, instanceMillis),
         intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        PendingIntentFlags.UPDATE_IMMUTABLE,
     )
 }

@@ -72,8 +72,8 @@ fun List<EventItem>.applyColorOverrides(
 ): List<EventItem> {
     if (calendarOverrides.isEmpty() && eventOverrides.isEmpty()) return this
     return map { e ->
-        val override = eventOverrides[e.eventId] ?: calendarOverrides[e.calendarId]
-        if (override != null) e.copy(displayColor = override) else e
+        val resolved = resolveOverrideColor(e.eventId, e.calendarId, e.displayColor, eventOverrides, calendarOverrides)
+        if (resolved != e.displayColor) e.copy(displayColor = resolved) else e
     }
 }
 

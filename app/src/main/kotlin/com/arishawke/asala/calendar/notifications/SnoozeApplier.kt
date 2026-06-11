@@ -18,6 +18,7 @@ import android.os.Build
 import android.provider.CalendarContract
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
+import com.arishawke.asala.calendar.PendingIntentFlags
 import com.arishawke.asala.calendar.data.TimeUnits
 import timber.log.Timber
 
@@ -108,7 +109,7 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
             context,
             PendingIntentRequestCodes.forAlarm(eventId, instanceMillis, originalMinutes),
             fireIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntentFlags.UPDATE_IMMUTABLE,
         )
     val am = context.getSystemService<AlarmManager>() ?: return
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
