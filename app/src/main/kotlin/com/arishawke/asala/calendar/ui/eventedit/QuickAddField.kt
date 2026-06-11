@@ -37,7 +37,12 @@ import java.time.LocalDateTime
 // line; commits onto the form via onChange on Fill / keyboard Done. the
 // structured fields below stay the source of truth and remain editable.
 @Composable
-fun QuickAddField(state: EventEditFormState, onChange: (EventEditFormState) -> Unit, is24Hour: Boolean) {
+fun QuickAddField(
+    state: EventEditFormState,
+    onChange: (EventEditFormState) -> Unit,
+    is24Hour: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val locale = LocalLocale.current.platformLocale
     var text by rememberSaveable { mutableStateOf("") }
     val parsed = remember(text, locale) {
@@ -49,7 +54,7 @@ fun QuickAddField(state: EventEditFormState, onChange: (EventEditFormState) -> U
         parsed?.let { onChange(state.withParsed(it)) }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         OutlinedTextField(
             value = text,
             onValueChange = { text = it },
