@@ -107,4 +107,21 @@ class EventTextParserTest {
         val p = parse("deep work at 9am for 1.5 hours")
         assertEquals(LocalTime.of(10, 30), p.endTime)
     }
+
+    // a bare "N-M" without a meridiem or from/to is not a time range; it is left
+    // for the date parser / title (prevents "jan 3-15" from becoming 3am-3pm).
+    @Test
+    fun `bare number range is not a time`() {
+        val p = parse("conference 3-15")
+        assertNull(p.startTime)
+        assertNull(p.endTime)
+    }
+
+    // meridiem on the start side carries to the end ("9am-10" is 9am-10am).
+    @Test
+    fun `range inherits meridiem from the start`() {
+        val p = parse("shift 9am-10")
+        assertEquals(LocalTime.of(9, 0), p.startTime)
+        assertEquals(LocalTime.of(10, 0), p.endTime)
+    }
 }
