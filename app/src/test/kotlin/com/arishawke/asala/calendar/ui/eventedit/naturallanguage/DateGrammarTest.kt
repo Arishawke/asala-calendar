@@ -51,4 +51,30 @@ class DateGrammarTest {
     @Test fun `no date returns null`() {
         assertNull(find("call mom"))
     }
+
+    @Test fun `month name dates both orders`() {
+        assertEquals(LocalDate.of(2026, 7, 11), find("party jul 11"))
+        assertEquals(LocalDate.of(2026, 7, 11), find("party 11 july"))
+    }
+
+    // a month-name date already past this year rolls to next year.
+    @Test fun `past month-name date rolls to next year`() {
+        assertEquals(LocalDate.of(2027, 1, 5), find("review jan 5"))
+    }
+
+    @Test fun `explicit year is honored`() {
+        assertEquals(LocalDate.of(2025, 1, 5), find("review jan 5 2025"))
+    }
+
+    // numeric date order follows locale: US is month/day, UK is day/month.
+    @Test fun `numeric date respects locale order`() {
+        assertEquals(LocalDate.of(2026, 7, 11), DateGrammar.find("x 7/11", today, Locale.US)?.date)
+        assertEquals(LocalDate.of(2026, 7, 11), DateGrammar.find("x 11/7", today, Locale.UK)?.date)
+    }
+
+    // ordinal day-of-month: this month if not yet past, else next month.
+    @Test fun `ordinal day rolls within the month`() {
+        assertEquals(LocalDate.of(2026, 6, 15), find("rent the 15th")) // today is the 10th
+        assertEquals(LocalDate.of(2026, 7, 5), find("rent the 5th")) // 5th has passed
+    }
 }

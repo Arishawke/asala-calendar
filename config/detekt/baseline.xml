@@ -3,13 +3,12 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ComplexCondition:EventDraft.kt$EventDraft.Companion$w.isEmpty() &amp;&amp; d.isEmpty() &amp;&amp; h.isEmpty() &amp;&amp; mn.isEmpty() &amp;&amp; s.isEmpty()</ID>
-    <ID>CyclomaticComplexMethod:CalendarDrawer.kt$@Composable fun CalendarDrawerContent( currentView: CalendarView, onSelectView: (CalendarView) -&gt; Unit, calendars: List&lt;CalendarItem&gt;, hiddenCalendarIds: Set&lt;Long&gt;, drawerHiddenAccountKeys: Set&lt;String&gt;, collapsedAccounts: Set&lt;String&gt;, // Lookup function rather than a Map so the @Composable parameter list // stays stable for Compose (Map&lt;String, Int&gt; trips ComposeUnstableCollections). avatarOverrideFor: (accountKey: String) -&gt; Int?, onToggle: (Long) -&gt; Unit, onToggleAccount: (String) -&gt; Unit, onSettingsClick: () -&gt; Unit, onCreateCalendar: () -&gt; Unit, onDeleteCalendar: (Long) -&gt; Unit, onHideAccountFromDrawer: (accountKey: String) -&gt; Unit, onRecolorAccount: (accountKey: String, argb: Int) -&gt; Unit, onRecolorCalendar: (calendarId: Long, argb: Int) -&gt; Unit, palette: PaletteId, modifier: Modifier = Modifier, onRenameCalendar: (Long, String) -&gt; Unit = { _, _ -&gt; }, tasksEnabled: Boolean = false, localOnly: Boolean = false, syncOnly: Boolean = false, )</ID>
     <ID>CyclomaticComplexMethod:EventEditScreen.kt$@SuppressLint("InlinedApi") // POST_NOTIFICATIONS is a compile-time constant; safe to inline on pre-33 (launcher no-ops) @OptIn(ExperimentalMaterial3Api::class) @Composable fun EventEditScreen( eventId: Long? = null, instanceMillis: Long? = null, is24Hour: Boolean = false, appViewModel: AppViewModel, onClose: () -&gt; Unit, onSaved: (Long) -&gt; Unit, )</ID>
     <ID>DestructuringDeclarationWithTooManyEntries:EventDraft.kt$EventDraft.Companion$val (w, d, h, mn, s) = m.destructured</ID>
+    <ID>EmptyFunctionBlock:EventTextParser.kt$EventTextParser${}</ID>
     <ID>LongMethod:AccountSection.kt$@Composable internal fun AccountHeader( group: AccountGroup, collapsed: Boolean, avatarOverrideArgb: Int?, onClick: () -&gt; Unit, onChangeColor: () -&gt; Unit, onHideFromDrawer: () -&gt; Unit, )</ID>
     <ID>LongMethod:AppOverlays.kt$@SuppressLint("InlinedApi") // POST_NOTIFICATIONS is a compile-time constant; safe to inline on pre-33 (launcher no-ops) @Composable internal fun AppOverlays( vm: AppViewModel, showCreateCalendar: Boolean, onDismissCreateCalendar: () -&gt; Unit, notifPermissionLauncher: ActivityResultLauncher&lt;String&gt;, )</ID>
     <ID>LongMethod:AppShell.kt$@SuppressLint("InlinedApi") // POST_NOTIFICATIONS is a compile-time constant; safe to inline on pre-33 (launcher no-ops) @OptIn(ExperimentalMaterial3Api::class) @Composable internal fun AppShell(vm: AppViewModel)</ID>
-    <ID>LongMethod:CalendarDrawer.kt$@Composable fun CalendarDrawerContent( currentView: CalendarView, onSelectView: (CalendarView) -&gt; Unit, calendars: List&lt;CalendarItem&gt;, hiddenCalendarIds: Set&lt;Long&gt;, drawerHiddenAccountKeys: Set&lt;String&gt;, collapsedAccounts: Set&lt;String&gt;, // Lookup function rather than a Map so the @Composable parameter list // stays stable for Compose (Map&lt;String, Int&gt; trips ComposeUnstableCollections). avatarOverrideFor: (accountKey: String) -&gt; Int?, onToggle: (Long) -&gt; Unit, onToggleAccount: (String) -&gt; Unit, onSettingsClick: () -&gt; Unit, onCreateCalendar: () -&gt; Unit, onDeleteCalendar: (Long) -&gt; Unit, onHideAccountFromDrawer: (accountKey: String) -&gt; Unit, onRecolorAccount: (accountKey: String, argb: Int) -&gt; Unit, onRecolorCalendar: (calendarId: Long, argb: Int) -&gt; Unit, palette: PaletteId, modifier: Modifier = Modifier, onRenameCalendar: (Long, String) -&gt; Unit = { _, _ -&gt; }, tasksEnabled: Boolean = false, localOnly: Boolean = false, syncOnly: Boolean = false, )</ID>
     <ID>LongMethod:CalendarPermissionGate.kt$@Composable fun CalendarPermissionGate(modifier: Modifier = Modifier, content: @Composable () -&gt; Unit)</ID>
     <ID>LongMethod:CalendarRow.kt$@Composable internal fun CalendarRow( calendar: CalendarItem, checked: Boolean, onCheckedChange: (() -&gt; Unit)?, onDelete: (() -&gt; Unit)? = null, onRename: (() -&gt; Unit)? = null, onChangeColor: (() -&gt; Unit)? = null, )</ID>
     <ID>LongMethod:CalendarViewSwitcher.kt$@Composable internal fun CalendarViewSwitcher( vm: AppViewModel, currentView: CalendarView, prefs: UserPrefs, animationsEnabled: Boolean, onTitleChange: (String) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
@@ -26,18 +25,12 @@
     <ID>LongMethod:SnoozePickerActivity.kt$@Composable private fun SnoozePickerDialog(initialMinutes: Int, onPicked: (Int) -&gt; Unit, onDismiss: () -&gt; Unit)</ID>
     <ID>LongMethod:StorageModeOnboarding.kt$@Composable fun StorageModeOnboarding( onModeChosen: (StorageMode) -&gt; Unit, modifier: Modifier = Modifier, footer: @Composable (() -&gt; Unit)? = null, )</ID>
     <ID>LongParameterList:AccountSection.kt$( group: AccountGroup, collapsed: Boolean, avatarOverrideArgb: Int?, onClick: () -&gt; Unit, onChangeColor: () -&gt; Unit, onHideFromDrawer: () -&gt; Unit, )</ID>
-    <ID>LongParameterList:AppViewModelSheetState.kt$( eventId: Long, scope: RecurringEditScope = RecurringEditScope.AllEvents, instanceMillis: Long? = null, parentRrule: String? = null, parentCalendarId: Long? = null, parentAllDay: Boolean = false, )</ID>
-    <ID>LongParameterList:CalendarDrawer.kt$( currentView: CalendarView, onSelectView: (CalendarView) -&gt; Unit, calendars: List&lt;CalendarItem&gt;, hiddenCalendarIds: Set&lt;Long&gt;, drawerHiddenAccountKeys: Set&lt;String&gt;, collapsedAccounts: Set&lt;String&gt;, // Lookup function rather than a Map so the @Composable parameter list // stays stable for Compose (Map&lt;String, Int&gt; trips ComposeUnstableCollections). avatarOverrideFor: (accountKey: String) -&gt; Int?, onToggle: (Long) -&gt; Unit, onToggleAccount: (String) -&gt; Unit, onSettingsClick: () -&gt; Unit, onCreateCalendar: () -&gt; Unit, onDeleteCalendar: (Long) -&gt; Unit, onHideAccountFromDrawer: (accountKey: String) -&gt; Unit, onRecolorAccount: (accountKey: String, argb: Int) -&gt; Unit, onRecolorCalendar: (calendarId: Long, argb: Int) -&gt; Unit, palette: PaletteId, modifier: Modifier = Modifier, onRenameCalendar: (Long, String) -&gt; Unit = { _, _ -&gt; }, tasksEnabled: Boolean = false, localOnly: Boolean = false, syncOnly: Boolean = false, )</ID>
     <ID>LongParameterList:CalendarRow.kt$( calendar: CalendarItem, checked: Boolean, onCheckedChange: (() -&gt; Unit)?, onDelete: (() -&gt; Unit)? = null, onRename: (() -&gt; Unit)? = null, onChangeColor: (() -&gt; Unit)? = null, )</ID>
     <ID>LongParameterList:CalendarViewSwitcher.kt$( vm: AppViewModel, currentView: CalendarView, prefs: UserPrefs, animationsEnabled: Boolean, onTitleChange: (String) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:DateTimePickerRow.kt$( label: String, date: LocalDate, time: LocalTime, showTime: Boolean, is24Hour: Boolean = false, onDateChange: (LocalDate) -&gt; Unit, onTimeChange: (LocalTime) -&gt; Unit, )</ID>
-    <ID>LongParameterList:EventDetailSheet.kt$( detail: EventDetail, instanceMillis: Long?, notificationPermissionGranted: Boolean, onRequestNotificationPermission: () -&gt; Unit, onEdit: () -&gt; Unit, onDelete: (RecurringEditScope) -&gt; Unit, onClose: () -&gt; Unit, )</ID>
-    <ID>LongParameterList:EventDetailSheet.kt$( detail: EventDetail?, instanceMillis: Long?, notificationPermissionGranted: Boolean = true, onRequestNotificationPermission: () -&gt; Unit = {}, onDismiss: () -&gt; Unit, onEdit: (Long) -&gt; Unit, onDelete: (Long, RecurringEditScope) -&gt; Unit, )</ID>
     <ID>LongParameterList:EventEditScreen.kt$( eventId: Long? = null, instanceMillis: Long? = null, is24Hour: Boolean = false, appViewModel: AppViewModel, onClose: () -&gt; Unit, onSaved: (Long) -&gt; Unit, )</ID>
     <ID>LongParameterList:EventMutations.kt$( eventId: Long, draft: EventDraft, scope: RecurringEditScope = RecurringEditScope.AllEvents, instanceMillis: Long? = null, parentRrule: String? = null, parentAllDay: Boolean = false, )</ID>
-    <ID>LongParameterList:EventMutations.kt$( eventId: Long, scope: RecurringEditScope = RecurringEditScope.AllEvents, instanceMillis: Long? = null, parentRrule: String? = null, parentCalendarId: Long? = null, parentAllDay: Boolean = false, )</ID>
     <ID>LongParameterList:EventRepository.kt$EventRepository$( eventId: Long, draft: EventDraft, scope: RecurringEditScope = RecurringEditScope.AllEvents, instanceMillis: Long? = null, parentRrule: String? = null, parentAllDay: Boolean = false, )</ID>
-    <ID>LongParameterList:EventRepository.kt$EventRepository$( eventId: Long, scope: RecurringEditScope = RecurringEditScope.AllEvents, instanceMillis: Long? = null, parentRrule: String? = null, parentCalendarId: Long? = null, parentAllDay: Boolean = false, )</ID>
     <ID>LongParameterList:MiniMonthPanel.kt$( date: LocalDate, isInMonth: Boolean, isToday: Boolean, events: List&lt;EventItem&gt;, onClick: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:MiniMonthPanel.kt$( displayedMonth: YearMonth, today: LocalDate, firstDayOfWeek: DayOfWeek, eventsByDate: Map&lt;LocalDate, List&lt;EventItem&gt;&gt;, onSelectDate: (LocalDate) -&gt; Unit, onShiftMonth: (Int) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:RecolorDialog.kt$( title: String, palette: PaletteId, currentArgb: Int, onPick: (Int) -&gt; Unit, onDismiss: () -&gt; Unit, onReset: (() -&gt; Unit)? = null, )</ID>
@@ -45,6 +38,11 @@
     <ID>MagicNumber:AppViewModel.kt$AppViewModel$5_000</ID>
     <ID>MagicNumber:CalendarItem.kt$CalendarItem$500</ID>
     <ID>MagicNumber:ColorSwatchGrid.kt$0xFFFFFF</ID>
+    <ID>MagicNumber:DateGrammar.kt$DateGrammar$100</ID>
+    <ID>MagicNumber:DateGrammar.kt$DateGrammar$2000</ID>
+    <ID>MagicNumber:DateGrammar.kt$DateGrammar$3</ID>
+    <ID>MagicNumber:DateGrammar.kt$DateGrammar$7</ID>
+    <ID>MagicNumber:DateGrammar.kt$DateGrammar$9</ID>
     <ID>MagicNumber:DayCellPreviews.kt$2026</ID>
     <ID>MagicNumber:DayCellPreviews.kt$21</ID>
     <ID>MagicNumber:DayCellPreviews.kt$22</ID>
@@ -73,6 +71,14 @@
     <ID>MagicNumber:EventDraft.kt$EventDraft.Companion$7</ID>
     <ID>MagicNumber:EventDraft.kt$EventDraft.Companion$86_400</ID>
     <ID>MagicNumber:EventEditViewModel.kt$EventEditFormState$60L</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$12</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$23</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$3</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$4</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$5</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$59</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$6</ID>
+    <ID>MagicNumber:EventTextParser.kt$EventTextParser$60</ID>
     <ID>MagicNumber:HourAxis.kt$23</ID>
     <ID>MagicNumber:MiniMonthViewModel.kt$MiniMonthViewModel$5_000</ID>
     <ID>MagicNumber:MonthGrid.kt$42</ID>
@@ -152,15 +158,23 @@
     <ID>MagicNumber:WeekViewModel.kt$WeekViewModel$7</ID>
     <ID>NestedBlockDepth:ReminderScheduler.kt$ReminderScheduler$private fun readUpcomingReminders( cr: ContentResolver, windowStart: Long, windowEnd: Long, ): List&lt;ScheduledReminder&gt;</ID>
     <ID>ReturnCount:AccountSection.kt$internal fun avatarColor(accountType: String, account: String, overrideArgb: Int?): Color</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$fun find(work: String, today: LocalDate, locale: Locale): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun monthNameDate(work: String, today: LocalDate): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun numericDate(work: String, today: LocalDate, locale: Locale): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun ordinalDate(work: String, today: LocalDate): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun relative(work: String, today: LocalDate): DateMatch?</ID>
     <ID>ReturnCount:DayClippedEvent.kt$internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClippedEvent?</ID>
     <ID>ReturnCount:EventDraft.kt$EventDraft.Companion$fun parseIso8601DurationMs(raw: String?): Long?</ID>
+    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractSingleTime(acc: Acc)</ID>
+    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractTimeRange(acc: Acc)</ID>
     <ID>ReturnCount:RecurrenceRule.kt$RecurrenceRule$fun frequencyOf(rrule: String?): RecurrenceFrequency?</ID>
-    <ID>ReturnCount:RecurrenceRule.kt$RecurrenceRule$fun untilDateOf(rrule: String?): LocalDate?</ID>
+    <ID>SwallowedException:DateGrammar.kt$DateGrammar$e: DateTimeException</ID>
     <ID>TooGenericExceptionCaught:NotificationActionReceiver.kt$NotificationActionReceiver$t: Throwable</ID>
     <ID>TooGenericExceptionCaught:SnoozeApplier.kt$t: Throwable</ID>
     <ID>TooManyFunctions:AppViewModel.kt$AppViewModel : ViewModel</ID>
     <ID>TooManyFunctions:SettingsViewModel.kt$SettingsViewModel : ViewModel</ID>
     <ID>TooManyFunctions:UserPreferences.kt$UserPreferences</ID>
+    <ID>UnusedParameter:EventTextParser.kt$EventTextParser$acc: Acc</ID>
     <ID>UnusedPrivateMember:AccountSection.kt$@Preview(name = "AccountHeader, light", widthDp = 320) @Preview(name = "AccountHeader, dark", widthDp = 320, uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun AccountHeaderPreview()</ID>
     <ID>UnusedPrivateMember:CalendarRow.kt$@Preview(name = "CalendarRow, light", widthDp = 320) @Preview(name = "CalendarRow, dark", widthDp = 320, uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun CalendarRowPreview()</ID>
     <ID>UnusedPrivateMember:DayCellPreviews.kt$@Preview(name = "Out of month, light") @Preview(name = "Out of month, dark", uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun DayCellOutOfMonthPreview()</ID>
