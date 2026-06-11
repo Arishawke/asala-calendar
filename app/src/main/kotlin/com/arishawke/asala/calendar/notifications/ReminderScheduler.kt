@@ -16,6 +16,8 @@ import android.content.Intent
 import android.os.Build
 import android.provider.CalendarContract
 import androidx.core.content.getSystemService
+import com.arishawke.asala.calendar.PendingIntentFlags
+import com.arishawke.asala.calendar.data.instancesUriFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,9 +39,14 @@ internal data class AlarmKey(
     val triggerAtMillis: Long,
 )
 
+internal data class ReminderInstance(val eventId: Long, val instanceStartMillis: Long, val allDay: Boolean)
+
 internal object ReminderScheduler {
     private const val WINDOW_DAYS = 30L
     private const val WINDOW_MILLIS = WINDOW_DAYS * 24 * 60 * 60 * 1000L
+
+    // SQLite caps bound args near 999; chunk distinct event ids well under it.
+    private const val REMINDER_QUERY_CHUNK = 900
 
     @Volatile
     private var lastPlan: Set<AlarmKey> = emptySet()
@@ -114,7 +121,7 @@ internal object ReminderScheduler {
                 minutesBefore = key.minutesBefore,
             ),
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntentFlags.UPDATE_IMMUTABLE,
         )
     }
 
@@ -123,50 +130,69 @@ internal object ReminderScheduler {
         windowStart: Long,
         windowEnd: Long,
     ): List<ScheduledReminder> {
-        val out = mutableListOf<ScheduledReminder>()
-        val instancesUri =
-            CalendarContract.Instances.CONTENT_URI
-                .buildUpon()
-                .appendPath(windowStart.toString())
-                .appendPath(windowEnd.toString())
-                .build()
+        val instances = readInstances(cr, windowStart, windowEnd)
+        if (instances.isEmpty()) return emptyList()
+        val minutesByEvent = readReminderMinutes(cr, instances.mapTo(LinkedHashSet()) { it.eventId })
+        return expandReminders(instances, minutesByEvent)
+    }
 
-        val instanceCols =
+    // pure join: one ScheduledReminder per (instance, reminder of its event).
+    // events with no reminders contribute nothing. tested by ReminderExpandTest.
+    internal fun expandReminders(
+        instances: List<ReminderInstance>,
+        minutesByEvent: Map<Long, List<Int>>,
+    ): List<ScheduledReminder> = instances.flatMap { row ->
+        minutesByEvent[row.eventId].orEmpty().map { minutes ->
+            ScheduledReminder(
+                eventId = row.eventId,
+                instanceStartMillis = row.instanceStartMillis,
+                minutesBefore = minutes,
+                allDay = row.allDay,
+                cancelled = false,
+            )
+        }
+    }
+
+    private fun readInstances(cr: ContentResolver, windowStart: Long, windowEnd: Long): List<ReminderInstance> {
+        val out = mutableListOf<ReminderInstance>()
+        val cols =
             arrayOf(
                 CalendarContract.Instances.EVENT_ID,
                 CalendarContract.Instances.BEGIN,
                 CalendarContract.Instances.ALL_DAY,
                 CalendarContract.Instances.STATUS,
             )
-
-        cr.query(instancesUri, instanceCols, null, null, "${CalendarContract.Instances.BEGIN} ASC")?.use { ic ->
+        val uri = instancesUriFor(windowStart, windowEnd)
+        cr.query(uri, cols, null, null, "${CalendarContract.Instances.BEGIN} ASC")?.use { ic ->
             while (ic.moveToNext()) {
-                val eventId = ic.getLong(0)
-                val begin = ic.getLong(1)
-                val allDay = ic.getInt(2) == 1
-                val status = ic.getInt(3)
-                if (status == CalendarContract.Instances.STATUS_CANCELED) continue
+                if (ic.getInt(3) == CalendarContract.Instances.STATUS_CANCELED) continue
+                out += ReminderInstance(
+                    eventId = ic.getLong(0),
+                    instanceStartMillis = ic.getLong(1),
+                    allDay = ic.getInt(2) == 1,
+                )
+            }
+        }
+        return out
+    }
 
-                val reminderCols = arrayOf(CalendarContract.Reminders.MINUTES)
-                cr
-                    .query(
-                        CalendarContract.Reminders.CONTENT_URI,
-                        reminderCols,
-                        "${CalendarContract.Reminders.EVENT_ID} = ?",
-                        arrayOf(eventId.toString()),
-                        null,
-                    )?.use { rc ->
-                        while (rc.moveToNext()) {
-                            out +=
-                                ScheduledReminder(
-                                    eventId = eventId,
-                                    instanceStartMillis = begin,
-                                    minutesBefore = rc.getInt(0),
-                                    allDay = allDay,
-                                    cancelled = false,
-                                )
-                        }
-                    }
+    // one Reminders query per chunk of distinct event ids, replacing the old
+    // one-query-per-instance N+1.
+    private fun readReminderMinutes(cr: ContentResolver, eventIds: Collection<Long>): Map<Long, List<Int>> {
+        val out = mutableMapOf<Long, MutableList<Int>>()
+        val cols = arrayOf(CalendarContract.Reminders.EVENT_ID, CalendarContract.Reminders.MINUTES)
+        eventIds.chunked(REMINDER_QUERY_CHUNK).forEach { chunk ->
+            val placeholders = chunk.joinToString(",") { "?" }
+            cr.query(
+                CalendarContract.Reminders.CONTENT_URI,
+                cols,
+                "${CalendarContract.Reminders.EVENT_ID} IN ($placeholders)",
+                chunk.map { it.toString() }.toTypedArray(),
+                null,
+            )?.use { rc ->
+                while (rc.moveToNext()) {
+                    out.getOrPut(rc.getLong(0)) { mutableListOf() } += rc.getInt(1)
+                }
             }
         }
         return out
