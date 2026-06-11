@@ -8,7 +8,6 @@
  */
 package com.arishawke.asala.calendar.ui.eventedit.naturallanguage
 
-import java.time.DateTimeException
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.Locale
@@ -83,13 +82,11 @@ internal object DateGrammar {
     }
     private val monAlt = MONTHS.keys.sortedByDescending { it.length }.joinToString("|")
 
-    // construct a date, rolling a yearless past date forward a year.
-    private fun build(year: Int?, month: Int, day: Int, today: LocalDate): LocalDate? = try {
-        var d = LocalDate.of(year ?: today.year, month, day)
-        if (year == null && d.isBefore(today)) d = d.plusYears(1)
-        d
-    } catch (e: DateTimeException) {
-        null
+    // construct a date, rolling a yearless past date forward a year. an invalid
+    // day/month (e.g. feb 30) yields null so find() falls through to the title.
+    private fun build(year: Int?, month: Int, day: Int, today: LocalDate): LocalDate? {
+        val d = runCatching { LocalDate.of(year ?: today.year, month, day) }.getOrNull() ?: return null
+        return if (year == null && d.isBefore(today)) d.plusYears(1) else d
     }
 
     private fun monthNameDate(work: String, today: LocalDate): DateMatch? {
