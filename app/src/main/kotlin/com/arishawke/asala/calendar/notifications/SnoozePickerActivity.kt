@@ -88,6 +88,9 @@ class SnoozePickerActivity : ComponentActivity() {
             putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
             putExtra(ReminderConstants.EXTRA_SNOOZE_MINUTES, minutes)
         }
+        // component is already set; the explicit package is belt-and-suspenders
+        // so the rebroadcast can never resolve outside this app.
+        intent.setPackage(packageName)
         sendBroadcast(intent)
     }
 }
