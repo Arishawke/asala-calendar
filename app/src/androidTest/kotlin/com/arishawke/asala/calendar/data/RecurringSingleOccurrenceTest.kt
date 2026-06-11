@@ -26,8 +26,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 // Exercises the scoped delete/edit against the real CalendarProvider on-device.
 // These paths fail only at the provider's instance-expansion layer, which JVM
@@ -258,6 +261,116 @@ class RecurringSingleOccurrenceTest {
         assertTrue("the inserted one-off is rolled back, leaving no orphan", visibleBegins().isEmpty())
     }
 
+    // "this and following" is the riskiest scope: it truncates the parent and
+    // inserts a fresh split, so a wrong COUNT silently over- or under-generates
+    // occurrences in a way only the provider's expansion reveals.
+
+    @Test
+    fun editThisAndFollowing_countSeries_keepsEveryOccurrence() = runBlocking {
+        val parentRrule = "FREQ=DAILY;COUNT=10"
+        val parentId = insertDailySeriesWithRrule(parentRrule)
+        val wideEnd = anchor + 11 * dayMs
+        assertEquals("baseline: ten occurrences", 10, visibleBegins(windowStart, wideEnd).size)
+
+        val splitAt = anchor + 3 * dayMs // occurrence #4
+        val newId =
+            cr.updateEventScoped(
+                eventId = parentId,
+                draft = dailyDraft(title = "Future", startMillis = splitAt, rrule = parentRrule),
+                scope = RecurringEditScope.ThisAndFollowing,
+                instanceMillis = splitAt,
+                parentRrule = parentRrule,
+                parentAllDay = false,
+            )
+        assertTrue("split reported success with a new split row", newId != null && newId > 0 && newId != parentId)
+
+        val begins = visibleBegins(windowStart, wideEnd).sorted()
+        assertEquals(
+            "every original occurrence survives, none duplicated or dropped",
+            (0 until 10).map { anchor + it * dayMs },
+            begins,
+        )
+        assertEquals("the first three stay on the parent", 3, countWithTitle(windowStart, wideEnd, "Series"))
+        assertEquals("the remaining seven carry the edit", 7, countWithTitle(windowStart, wideEnd, "Future"))
+    }
+
+    @Test
+    fun editThisAndFollowing_untilSeries_splitStaysUntilBounded() = runBlocking {
+        // an UNTIL-bounded parent must not have its split rewritten with a COUNT,
+        // or the future series regenerates a fixed number of occurrences and
+        // overruns the original bound.
+        val parentRrule = "FREQ=DAILY;UNTIL=${untilUtc(anchor + 9 * dayMs)}"
+        val parentId = insertDailySeriesWithRrule(parentRrule)
+        val wideEnd = anchor + 11 * dayMs
+        assertEquals(
+            "baseline: ten daily occurrences up to the UNTIL bound",
+            10,
+            visibleBegins(windowStart, wideEnd).size,
+        )
+
+        val splitAt = anchor + 3 * dayMs
+        val newId =
+            cr.updateEventScoped(
+                eventId = parentId,
+                draft = dailyDraft(title = "Future", startMillis = splitAt, rrule = parentRrule),
+                scope = RecurringEditScope.ThisAndFollowing,
+                instanceMillis = splitAt,
+                parentRrule = parentRrule,
+                parentAllDay = false,
+            )
+        assertTrue("split reported success", newId != null && newId > 0)
+
+        val splitRrule = eventRrule(newId!!).orEmpty()
+        assertFalse("the split series must not gain a COUNT", splitRrule.contains("COUNT", ignoreCase = true))
+        assertTrue("the split series stays UNTIL-bounded", splitRrule.contains("UNTIL", ignoreCase = true))
+        assertEquals(
+            "no over-generation past the UNTIL bound",
+            (0 until 10).map { anchor + it * dayMs },
+            visibleBegins(windowStart, wideEnd).sorted(),
+        )
+    }
+
+    @Test
+    fun editThisAndFollowing_atFirstOccurrence_updatesInPlaceWithoutDuplicate() = runBlocking {
+        val parentRrule = "FREQ=DAILY;COUNT=5"
+        val parentId = insertDailySeriesWithRrule(parentRrule)
+        val before = eventRowCount()
+        assertEquals("baseline: five occurrences", 5, visibleBegins().size)
+
+        val resultId =
+            cr.updateEventScoped(
+                eventId = parentId,
+                draft = dailyDraft(title = "Renamed", startMillis = anchor, rrule = parentRrule),
+                scope = RecurringEditScope.ThisAndFollowing,
+                instanceMillis = anchor, // first occurrence covers the whole series
+                parentRrule = parentRrule,
+                parentAllDay = false,
+            )
+        assertEquals("a first-occurrence split updates the parent in place", parentId, resultId)
+        assertEquals("no duplicate split row is inserted", before, eventRowCount())
+        assertEquals("all five occurrences remain", 5, visibleBegins().size)
+        assertEquals("the edit applies to the whole series", 5, countWithTitle(windowStart, windowEnd, "Renamed"))
+    }
+
+    @Test
+    fun editThisAndFollowing_onMissingParent_rollsBackTheSplit() = runBlocking {
+        // parent row gone: the split inserts, then the parent truncation write
+        // fails. the split must roll back so a failed op leaves no orphan series
+        // instead of a silent duplicate.
+        val splitAt = anchor + 2 * dayMs
+        val resultId =
+            cr.updateEventScoped(
+                eventId = nonexistentEventId(),
+                draft = dailyDraft(title = "Orphan", startMillis = splitAt, rrule = "FREQ=DAILY;COUNT=3"),
+                scope = RecurringEditScope.ThisAndFollowing,
+                instanceMillis = splitAt,
+                parentRrule = "FREQ=DAILY;COUNT=5",
+                parentAllDay = false,
+            )
+        assertTrue("a split against a missing parent reports failure", resultId == null)
+        assertTrue("the inserted split is rolled back, leaving no orphan", visibleBegins().isEmpty())
+    }
+
     // visible occurrences in the window for the test calendar, excluding any the
     // provider marks STATUS_CANCELED (those must not reach the calendar views).
     private fun visibleBegins(start: Long = windowStart, end: Long = windowEnd): List<Long> =
@@ -312,6 +425,56 @@ class RecurringSingleOccurrenceTest {
         val uri = cr.insert(CalendarContract.Events.CONTENT_URI, values) ?: error("event insert failed")
         return ContentUris.parseId(uri)
     }
+
+    private fun insertDailySeriesWithRrule(rrule: String): Long {
+        val values =
+            ContentValues().apply {
+                put(CalendarContract.Events.CALENDAR_ID, calendarId)
+                put(CalendarContract.Events.TITLE, "Series")
+                put(CalendarContract.Events.DTSTART, anchor)
+                put(CalendarContract.Events.DURATION, "PT1H")
+                put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
+                put(CalendarContract.Events.RRULE, rrule)
+            }
+        val uri = cr.insert(CalendarContract.Events.CONTENT_URI, values) ?: error("series insert failed")
+        return ContentUris.parseId(uri)
+    }
+
+    private fun dailyDraft(title: String, startMillis: Long, rrule: String): EventDraft = EventDraft(
+        calendarId = calendarId,
+        title = title,
+        description = null,
+        location = null,
+        startMillis = startMillis,
+        endMillis = startMillis + 3_600_000L,
+        allDay = false,
+        eventTimezone = "UTC",
+        rrule = rrule,
+    )
+
+    private fun countWithTitle(start: Long, end: Long, title: String): Int =
+        readInstances(start, end).count { it.status.isVisible() && it.title == title }
+
+    // total Events rows on the test calendar; a split must not leave a duplicate.
+    private fun eventRowCount(): Int = cr.query(
+        CalendarContract.Events.CONTENT_URI,
+        arrayOf(CalendarContract.Events._ID),
+        "${CalendarContract.Events.CALENDAR_ID} = ?",
+        arrayOf(calendarId.toString()),
+        null,
+    )?.use { it.count } ?: 0
+
+    private fun eventRrule(eventId: Long): String? = cr.query(
+        ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId),
+        arrayOf(CalendarContract.Events.RRULE),
+        null,
+        null,
+        null,
+    )?.use { if (it.moveToFirst()) it.getString(0) else null }
+
+    private fun untilUtc(millis: Long): String = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
+        .withZone(ZoneOffset.UTC)
+        .format(Instant.ofEpochMilli(millis))
 
     private fun insertAllDayDailySeries(count: Int): Long {
         val values =
