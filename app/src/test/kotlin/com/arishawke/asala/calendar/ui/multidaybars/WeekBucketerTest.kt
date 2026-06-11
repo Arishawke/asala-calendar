@@ -14,7 +14,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 class WeekBucketerTest {
@@ -52,7 +51,7 @@ class WeekBucketerTest {
         // other day's timed chips shift down. The default skips them.
         val weekStart = LocalDate.of(2026, 5, 24) // Sunday
         val events = listOf(allDay(1L, "Lunch", LocalDate.of(2026, 5, 26), LocalDate.of(2026, 5, 26)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc)
+        val segments = WeekBucketer.bucketize(events, weekStart)
         assertEquals(0, segments.size)
     }
 
@@ -63,7 +62,7 @@ class WeekBucketerTest {
         // Opting in via includeSingleDay = true brings them back.
         val weekStart = LocalDate.of(2026, 5, 24) // Sunday
         val events = listOf(allDay(1L, "Lunch", LocalDate.of(2026, 5, 26), LocalDate.of(2026, 5, 26)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc, includeSingleDay = true)
+        val segments = WeekBucketer.bucketize(events, weekStart, includeSingleDay = true)
         assertEquals(1, segments.size)
         val s = segments[0]
         // Tue May 26 is col 2 of a Sun-start week.
@@ -77,7 +76,7 @@ class WeekBucketerTest {
     fun `outside-week filtering still applies with includeSingleDay = true`() {
         val weekStart = LocalDate.of(2026, 5, 24)
         val events = listOf(allDay(1L, "Next month", LocalDate.of(2026, 6, 15), LocalDate.of(2026, 6, 15)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc, includeSingleDay = true)
+        val segments = WeekBucketer.bucketize(events, weekStart, includeSingleDay = true)
         assertEquals(0, segments.size)
     }
 
@@ -86,7 +85,7 @@ class WeekBucketerTest {
         val weekStart = LocalDate.of(2026, 5, 24) // Sunday
         // Mon 25 - Wed 27 inclusive (cols 1..3)
         val events = listOf(allDay(1L, "Conf", LocalDate.of(2026, 5, 25), LocalDate.of(2026, 5, 27)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc)
+        val segments = WeekBucketer.bucketize(events, weekStart)
         assertEquals(1, segments.size)
         val s = segments[0]
         assertEquals(1, s.startCol)
@@ -100,7 +99,7 @@ class WeekBucketerTest {
         val weekStart = LocalDate.of(2026, 5, 24) // Sunday
         // Fri 29 - Mon Jun 1 inclusive. In this week: Fri (col 5) and Sat (col 6).
         val events = listOf(allDay(1L, "Trip", LocalDate.of(2026, 5, 29), LocalDate.of(2026, 6, 1)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc)
+        val segments = WeekBucketer.bucketize(events, weekStart)
         assertEquals(1, segments.size)
         val s = segments[0]
         assertEquals(5, s.startCol)
@@ -114,7 +113,7 @@ class WeekBucketerTest {
         val weekStart = LocalDate.of(2026, 5, 24) // Sunday
         // Thu 21 - Tue 26 inclusive. In this week: Sun (col 0), Mon (col 1), Tue (col 2).
         val events = listOf(allDay(1L, "Retreat", LocalDate.of(2026, 5, 21), LocalDate.of(2026, 5, 26)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc)
+        val segments = WeekBucketer.bucketize(events, weekStart)
         assertEquals(1, segments.size)
         val s = segments[0]
         assertEquals(0, s.startCol)
@@ -128,7 +127,7 @@ class WeekBucketerTest {
         val weekStart = LocalDate.of(2026, 5, 24) // Sunday; week ends Sat May 30
         // Wed 20 - Mon Jun 1, fully envelops Sun May 24 - Sat May 30
         val events = listOf(allDay(1L, "All", LocalDate.of(2026, 5, 20), LocalDate.of(2026, 6, 1)))
-        val segments = WeekBucketer.bucketize(events, weekStart, utc)
+        val segments = WeekBucketer.bucketize(events, weekStart)
         assertEquals(1, segments.size)
         val s = segments[0]
         assertEquals(0, s.startCol)
@@ -141,21 +140,21 @@ class WeekBucketerTest {
     fun `event outside the requested week produces no segment`() {
         val weekStart = LocalDate.of(2026, 5, 24)
         val events = listOf(allDay(1L, "Next month", LocalDate.of(2026, 6, 15), LocalDate.of(2026, 6, 16)))
-        assertEquals(0, WeekBucketer.bucketize(events, weekStart, utc).size)
+        assertEquals(0, WeekBucketer.bucketize(events, weekStart).size)
     }
 
     @Test
     fun `timed events are excluded`() {
         val weekStart = LocalDate.of(2026, 5, 24)
         val events = listOf(timed(1L, LocalDate.of(2026, 5, 26)))
-        assertEquals(0, WeekBucketer.bucketize(events, weekStart, utc).size)
+        assertEquals(0, WeekBucketer.bucketize(events, weekStart).size)
     }
 
     @Test
     fun `event title and color carry through`() {
         val weekStart = LocalDate.of(2026, 5, 24)
         val events = listOf(allDay(42L, "Vacation", LocalDate.of(2026, 5, 25), LocalDate.of(2026, 5, 27)))
-        val s = WeekBucketer.bucketize(events, weekStart, utc).single()
+        val s = WeekBucketer.bucketize(events, weekStart).single()
         assertEquals(42L, s.eventId)
         assertEquals("Vacation", s.title)
         assertEquals(0xFF1A73E8.toInt(), s.color)
@@ -168,21 +167,18 @@ class WeekBucketerTest {
             allDay(1L, "A", LocalDate.of(2026, 5, 25), LocalDate.of(2026, 5, 27)),
             allDay(2L, "B", LocalDate.of(2026, 5, 26), LocalDate.of(2026, 5, 28)),
         )
-        val segments = WeekBucketer.bucketize(events, weekStart, utc)
+        val segments = WeekBucketer.bucketize(events, weekStart)
         assertEquals(2, segments.size)
     }
 
     @Test
-    fun `all-day events in non-UTC system zone still use UTC for date interpretation`() {
-        // CalendarContract stores all-day in UTC. Even if the device is in
-        // a non-UTC zone, the date interpretation must use UTC or off-by-one
-        // bugs surface near midnight boundaries. Uses a multi-day event since
-        // single-day all-day events are intentionally skipped by the bucketer.
+    fun `all-day events use UTC for date interpretation`() {
+        // CalendarContract stores all-day in UTC. The bucketer interprets all-day
+        // millis in UTC so dates do not shift by the device offset near midnight.
+        // Uses a multi-day event since single-day all-day events are skipped.
         val weekStart = LocalDate.of(2026, 5, 24)
         val event = allDay(1L, "X", LocalDate.of(2026, 5, 26), LocalDate.of(2026, 5, 27))
-        // Pass a non-UTC zone to verify the bucketer ignores it for all-day.
-        val nyc = ZoneId.of("America/New_York")
-        val segments = WeekBucketer.bucketize(listOf(event), weekStart, nyc)
+        val segments = WeekBucketer.bucketize(listOf(event), weekStart)
         assertEquals(1, segments.size)
         assertEquals(2, segments[0].startCol)
         assertEquals(3, segments[0].endCol)

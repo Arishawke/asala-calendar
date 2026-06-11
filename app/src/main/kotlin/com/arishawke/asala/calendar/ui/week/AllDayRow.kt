@@ -36,7 +36,7 @@ internal fun AllDayRow(
     val weekStart = days.first()
     val segments = remember(weekStart, events) {
         LaneAssigner.assignLanes(
-            WeekBucketer.bucketize(events, weekStart, zone, includeSingleDay = true),
+            WeekBucketer.bucketize(events, weekStart, includeSingleDay = true),
         )
     }
     BoxWithConstraints(

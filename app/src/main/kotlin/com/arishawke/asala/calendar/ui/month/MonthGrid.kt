@@ -24,7 +24,6 @@ import com.kizitonwose.calendar.core.DayPosition
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 
 internal const val MaxBarLanesPerWeek = 3
 
@@ -50,7 +49,6 @@ internal fun MonthGrid(
     val days = remember(yearMonth, firstDayOfWeek) {
         buildMonthGrid(yearMonth, firstDayOfWeek)
     }
-    val zone = remember { ZoneId.systemDefault() }
     // paged: fixed 6 rows. self-contained (continuous): only weeks holding this month's days,
     // adjacent-month cells blanked, bars clipped to the month edge.
     val weekCount = if (selfContained) remember(days) { weeksWithMonthDays(days) } else 6
@@ -59,7 +57,7 @@ internal fun MonthGrid(
             val weekDays = remember(days, week) { days.subList(week * 7, week * 7 + 7) }
             val weekStart = weekDays.first().date
             val segments = remember(weekStart, allEvents, selfContained) {
-                val raw = WeekBucketer.bucketize(allEvents, weekStart, zone)
+                val raw = WeekBucketer.bucketize(allEvents, weekStart)
                 val clipped = if (selfContained) {
                     clipSegmentsToColumns(
                         raw,

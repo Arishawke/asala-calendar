@@ -27,9 +27,6 @@ internal fun snapToGrid(minutes: Int, snapMinutes: Int = ScheduleSnapMinutes): I
     return rounded * snapMinutes
 }
 
-internal fun applyMinuteDelta(originalMillis: Long, deltaMinutes: Int): Long =
-    originalMillis + deltaMinutes * TimeUnits.MillisPerMinute
-
 // shifts by N days + M minutes via ZonedDateTime so wall-clock time is
 // preserved across DST; a flat 24h*dayDelta add would absorb/duplicate the
 // DST hour at the spring-forward/fall-back boundaries.

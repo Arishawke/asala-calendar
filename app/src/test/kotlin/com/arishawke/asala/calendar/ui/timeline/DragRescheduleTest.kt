@@ -58,13 +58,6 @@ class DragRescheduleTest {
         assertEquals(-30, snapToGrid(-30))
     }
 
-    @Test fun apply_minute_delta_shifts_start_millis_correctly() {
-        val original = 1_700_000_000_000L
-        assertEquals(original + 15 * 60_000L, applyMinuteDelta(original, 15))
-        assertEquals(original - 30 * 60_000L, applyMinuteDelta(original, -30))
-        assertEquals(original, applyMinuteDelta(original, 0))
-    }
-
     @Test fun snap_with_custom_grid_works() {
         // A 30-minute grid: small drags collapse to zero, mid drags
         // snap to 30.
@@ -167,7 +160,7 @@ class DragRescheduleTest {
         val zone = ZoneId.of("UTC")
         val start = 1_700_000_000_000L
         val combined = applyDayAndMinuteDelta(start, zone, dayDelta = 0, minuteDelta = 45)
-        val simple = applyMinuteDelta(start, 45)
+        val simple = start + 45 * 60_000L
         assertEquals(simple, combined)
     }
 }

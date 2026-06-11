@@ -11,7 +11,6 @@ package com.arishawke.asala.calendar.ui.multidaybars
 import com.arishawke.asala.calendar.data.EventItem
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 private const val DaysPerWeek = 7
@@ -25,23 +24,21 @@ object WeekBucketer {
     fun bucketize(
         events: List<EventItem>,
         weekStart: LocalDate,
-        zone: ZoneId,
         includeSingleDay: Boolean = false,
     ): List<WeekSegment> {
         val weekEnd = weekStart.plusDays((DaysPerWeek - 1).toLong())
         return events
             .filter { it.allDay }
-            .mapNotNull { e -> segmentFor(e, weekStart, weekEnd, zone, includeSingleDay) }
+            .mapNotNull { e -> segmentFor(e, weekStart, weekEnd, includeSingleDay) }
     }
 
-    @Suppress("UnusedParameter") // zone reserved for timed events if support is added later
     private fun segmentFor(
         e: EventItem,
         weekStart: LocalDate,
         weekEnd: LocalDate,
-        zone: ZoneId,
         includeSingleDay: Boolean,
     ): WeekSegment? {
+        // all-day millis are at 00:00 UTC regardless of device zone.
         val effectiveZone = ZoneOffset.UTC
         val firstVisible = Instant.ofEpochMilli(e.startMillis).atZone(effectiveZone).toLocalDate()
         val lastVisible = Instant.ofEpochMilli(e.endMillis).atZone(effectiveZone).toLocalDate().minusDays(1)
