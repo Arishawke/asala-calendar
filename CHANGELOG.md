@@ -7,6 +7,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+- Natural-language quick add no longer crashes if you type an out-of-range
+  relative date such as "in 99999999999 weeks". The unrecognized amount is left
+  in the title instead.
+
 ## [0.21.0] - 2026-06-11
 
 ### Removed

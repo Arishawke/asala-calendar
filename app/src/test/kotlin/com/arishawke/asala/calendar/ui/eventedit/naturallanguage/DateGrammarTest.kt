@@ -28,6 +28,13 @@ class DateGrammarTest {
         assertEquals(today.plusWeeks(2), find("review in 2 weeks"))
     }
 
+    // an absurd relative count must not crash the parser (the quick-add path runs
+    // it on every keystroke); it falls through to no date so the text stays title.
+    @Test fun `absurd relative count does not crash`() {
+        assertNull(find("party in 99999999999 weeks")) // overflows the date
+        assertNull(find("party in 999999999999999999999 days")) // overflows Long
+    }
+
     // a bare weekday is today when it matches, else the next future occurrence,
     // because you cannot schedule into the past.
     @Test fun `bare weekday rolls forward, same-day stays`() {

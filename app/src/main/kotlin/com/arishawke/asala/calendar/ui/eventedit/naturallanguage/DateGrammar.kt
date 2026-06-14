@@ -37,9 +37,12 @@ internal object DateGrammar {
             "\\b(?:${alt(vocab.inConnector)})\\s+(\\d+)\\s+(${alt(vocab.dayUnits + vocab.weekUnits)})\\b",
             IC,
         ).find(work)?.let { m ->
-            val n = m.groupValues[1].toLong()
+            val n = m.groupValues[1].toLongOrNull() ?: return null
             val unit = m.groupValues[2].lowercase()
-            val d = if (unit in vocab.weekUnits) today.plusWeeks(n) else today.plusDays(n)
+            // out-of-range counts overflow the date; fall through to title.
+            val d = runCatching {
+                if (unit in vocab.weekUnits) today.plusWeeks(n) else today.plusDays(n)
+            }.getOrNull() ?: return null
             return DateMatch(d, m.range)
         }
         return null
