@@ -16,3 +16,4 @@ Decision, Consequences.
 - [0005 — GitHub-native dependency scanning](0005-github-native-dependency-scanning.md)
 - [0006 — Single-occurrence recurrence edits use EXDATE](0006-single-occurrence-recurrence-edits-via-exdate.md)
 - [0007 — Release signing stays local; CI scaffolds draft releases](0007-release-signing-stays-local.md)
+- [0008 — Natural-language parser vocabulary seam](0008-nl-parser-vocabulary-seam.md)

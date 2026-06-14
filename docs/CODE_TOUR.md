@@ -180,6 +180,7 @@ notification posted by ReminderAlarmReceiver
 | [DayRangeMathTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/DayRangeMathTest.kt) | Day-range math, including DST 23h / 25h days. |
 | [RecurrenceRuleTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/RecurrenceRuleTest.kt) | RRULE parsing and serialization. |
 | [RecurringExceptionMathTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/RecurringExceptionMathTest.kt) | "This and following" cut math for recurring edits. |
+| [RecurringAnchorTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/RecurringAnchorTest.kt) | "All events" anchor-shift math: editing a later occurrence shifts the whole series by the delta without dropping earlier ones. |
 | [EventDraftTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/EventDraftTest.kt) | Draft serialization. |
 | [EventEndMillisTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/EventEndMillisTest.kt) | DTEND-or-DURATION fallback for recurring detail rows. |
 | [StorageModeFilterTest.kt](../app/src/test/kotlin/com/arishawke/asala/calendar/data/StorageModeFilterTest.kt) | Mode-driven calendar hides (Local only blanks sync). |
@@ -242,6 +243,6 @@ Architectural decisions: [docs/adr/](adr/). Conventions (commit style, lint poli
 ## Where to ask for help
 
 - The codebase first. Open the file, then open the sibling test file. Test names encode the rules.
-- ADRs under [docs/adr/](adr/) answer "why is it this way." [0001](adr/0001-data-layer-is-calendarcontract.md) on `CalendarContract` as the data layer; [0002](adr/0002-calendar-provider-write-conventions.md) on write conventions; [0003](adr/0003-launcher-icon-source-and-density.md) on the launcher icon; [0004](adr/0004-quality-gates.md) on the quality-gates initiative; [0005](adr/0005-github-native-dependency-scanning.md) on the migration to GitHub-native dependency scanning; [0006](adr/0006-single-occurrence-recurrence-edits-via-exdate.md) on EXDATE-based single-occurrence recurrence edits.
+- ADRs under [docs/adr/](adr/) answer "why is it this way." [0001](adr/0001-data-layer-is-calendarcontract.md) on `CalendarContract` as the data layer; [0002](adr/0002-calendar-provider-write-conventions.md) on write conventions; [0003](adr/0003-launcher-icon-source-and-density.md) on the launcher icon; [0004](adr/0004-quality-gates.md) on the quality-gates initiative; [0005](adr/0005-github-native-dependency-scanning.md) on the migration to GitHub-native dependency scanning; [0006](adr/0006-single-occurrence-recurrence-edits-via-exdate.md) on EXDATE-based single-occurrence recurrence edits; [0007](adr/0007-release-signing-stays-local.md) on keeping release signing local; [0008](adr/0008-nl-parser-vocabulary-seam.md) on the natural-language parser vocabulary seam.
 - [CHANGELOG.md](../CHANGELOG.md) records every released change with a one-line reason.
 - File an issue on [GitHub](https://github.com/Arishawke/asala-calendar/issues) if something looks wrong. The README disclaimer is the audit trail; bug reports are how it gets corrected.
