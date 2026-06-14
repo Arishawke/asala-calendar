@@ -26,3 +26,31 @@ internal fun allEventsAnchorRange(
     val shiftedStart = parentStartMillis + (newStartMillis - instanceStartMillis)
     return shiftedStart to shiftedStart + (newEndMillis - newStartMillis)
 }
+
+internal data class RescheduleDraftShape(val rrule: String?, val startMillis: Long, val endMillis: Long)
+
+// the draft shape a drag-reschedule writes for a chosen scope, split out of
+// AppViewModel.saveRescheduleNow so the (historically data-lossy) AllEvents path is
+// unit-testable. ThisInstance drops the rrule (a one-off exception) and writes the
+// dragged time; AllEvents keeps the rrule and shifts the PARENT anchor by the
+// occurrence delta so earlier occurrences survive (identity for a non-recurring
+// event, where instance == parent); the per-occurrence scopes keep the rrule and
+// write the new time as-is.
+@Suppress("LongParameterList") // scope + parent rule/anchor + dragged instance + new range
+internal fun rescheduleDraftShape(
+    scope: RecurringEditScope,
+    parentRrule: String?,
+    parentStartMillis: Long,
+    instanceStartMillis: Long,
+    newStartMillis: Long,
+    newEndMillis: Long,
+): RescheduleDraftShape {
+    val rrule = if (scope == RecurringEditScope.ThisInstance) null else parentRrule
+    val (start, end) =
+        if (scope == RecurringEditScope.AllEvents) {
+            allEventsAnchorRange(parentStartMillis, instanceStartMillis, newStartMillis, newEndMillis)
+        } else {
+            newStartMillis to newEndMillis
+        }
+    return RescheduleDraftShape(rrule = rrule, startMillis = start, endMillis = end)
+}

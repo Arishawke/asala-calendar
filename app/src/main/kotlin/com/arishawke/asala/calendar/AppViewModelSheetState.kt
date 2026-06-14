@@ -15,7 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventDraft
 import com.arishawke.asala.calendar.data.RecurringEditScope
-import com.arishawke.asala.calendar.data.allEventsAnchorRange
+import com.arishawke.asala.calendar.data.rescheduleDraftShape
 import com.arishawke.asala.calendar.data.shouldClearEventOverrideOnDelete
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -167,28 +167,28 @@ private suspend fun AppViewModel.saveRescheduleNow(
     newEnd: Long,
     scope: RecurringEditScope,
 ) {
-    // ThisInstance writes a one-off exception (no rrule); the other scopes
-    // keep the parent rrule so the series continues
-    val draftRrule = if (scope == RecurringEditScope.ThisInstance) null else detail.rrule
-    // AllEvents shifts the whole series by the dragged occurrence's delta (so
-    // earlier occurrences survive) instead of pinning the parent anchor to this
-    // occurrence's new time; the per-occurrence scopes write the new time as-is.
-    val (draftStart, draftEnd) =
-        if (scope == RecurringEditScope.AllEvents) {
-            allEventsAnchorRange(detail.startMillis, instanceMillis, newStart, newEnd)
-        } else {
-            newStart to newEnd
-        }
+    // the scope-driven draft shape (rrule + anchor-shifted range) is a pure,
+    // tested decision: ThisInstance drops the rrule for a one-off, AllEvents shifts
+    // the parent anchor by the occurrence delta so earlier occurrences survive.
+    // see rescheduleDraftShape / RecurringAnchorTest.
+    val shape = rescheduleDraftShape(
+        scope = scope,
+        parentRrule = detail.rrule,
+        parentStartMillis = detail.startMillis,
+        instanceStartMillis = instanceMillis,
+        newStartMillis = newStart,
+        newEndMillis = newEnd,
+    )
     val draft = EventDraft(
         calendarId = detail.calendarId,
         title = detail.title,
         description = detail.description,
         location = detail.location,
-        startMillis = draftStart,
-        endMillis = draftEnd,
+        startMillis = shape.startMillis,
+        endMillis = shape.endMillis,
         allDay = detail.allDay,
         eventTimezone = detail.eventTimezone,
-        rrule = draftRrule,
+        rrule = shape.rrule,
         status = detail.status,
         availability = detail.availability,
     )

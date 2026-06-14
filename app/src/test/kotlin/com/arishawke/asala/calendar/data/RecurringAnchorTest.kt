@@ -73,4 +73,71 @@ class RecurringAnchorTest {
             ),
         )
     }
+
+    // the drag-reschedule draft shape (previously inlined and untested in
+    // saveRescheduleNow). ThisInstance writes a one-off (no rrule) at the dragged
+    // time; ThisAndFollowing keeps the rrule and writes the new time as-is.
+    @Test
+    fun `drag this-instance drops the rrule and writes the dragged time`() {
+        assertEquals(
+            RescheduleDraftShape(rrule = null, startMillis = 9_000L, endMillis = 12_600L),
+            rescheduleDraftShape(
+                scope = RecurringEditScope.ThisInstance,
+                parentRrule = "FREQ=DAILY",
+                parentStartMillis = 1_000L,
+                instanceStartMillis = 8_000L,
+                newStartMillis = 9_000L,
+                newEndMillis = 12_600L,
+            ),
+        )
+    }
+
+    @Test
+    fun `drag this-and-following keeps the rrule and writes the new time as-is`() {
+        assertEquals(
+            RescheduleDraftShape(rrule = "FREQ=DAILY", startMillis = 9_000L, endMillis = 12_600L),
+            rescheduleDraftShape(
+                scope = RecurringEditScope.ThisAndFollowing,
+                parentRrule = "FREQ=DAILY",
+                parentStartMillis = 1_000L,
+                instanceStartMillis = 8_000L,
+                newStartMillis = 9_000L,
+                newEndMillis = 12_600L,
+            ),
+        )
+    }
+
+    // the data-loss guard on the drag path: AllEvents from a later occurrence keeps
+    // the rrule and shifts the PARENT anchor by the delta, not to the occurrence.
+    @Test
+    fun `drag all-events shifts the parent anchor and keeps the rrule`() {
+        assertEquals(
+            RescheduleDraftShape(rrule = "FREQ=DAILY", startMillis = 2_000L, endMillis = 5_600L),
+            rescheduleDraftShape(
+                scope = RecurringEditScope.AllEvents,
+                parentRrule = "FREQ=DAILY",
+                parentStartMillis = 1_000L,
+                instanceStartMillis = 8_000L,
+                newStartMillis = 9_000L,
+                newEndMillis = 12_600L,
+            ),
+        )
+    }
+
+    // AllEvents on a non-recurring drag (the occurrence IS the parent, rrule null):
+    // the anchor shift is the identity, so the new time writes through unchanged.
+    @Test
+    fun `drag all-events on a non-recurring event writes the new time directly`() {
+        assertEquals(
+            RescheduleDraftShape(rrule = null, startMillis = 5_000L, endMillis = 8_600L),
+            rescheduleDraftShape(
+                scope = RecurringEditScope.AllEvents,
+                parentRrule = null,
+                parentStartMillis = 1_000L,
+                instanceStartMillis = 1_000L,
+                newStartMillis = 5_000L,
+                newEndMillis = 8_600L,
+            ),
+        )
+    }
 }
