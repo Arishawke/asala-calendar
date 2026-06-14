@@ -11,7 +11,7 @@ package com.arishawke.asala.calendar.ui.calendars
 // hex <-> ARGB for the color picker. accepts #RRGGBB / #RGB (and without
 // the #), case-insensitive; always forces opaque alpha so chips stay legible.
 object HexColor {
-    private const val OPAQUE_ALPHA = 0xFF000000.toInt()
+    internal const val OPAQUE_ALPHA = 0xFF000000.toInt()
     private const val RGB_MASK = 0xFFFFFF
     private const val HEX_RADIX = 16
     private const val LEN_FULL = 6

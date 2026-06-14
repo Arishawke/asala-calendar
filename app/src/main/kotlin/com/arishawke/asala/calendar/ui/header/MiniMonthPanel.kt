@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.accessibility.rememberAnimationsEnabled
+import com.arishawke.asala.calendar.ui.components.distinctCalendarDotColors
 import com.arishawke.asala.calendar.ui.theme.CalendarTokens
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -63,7 +64,6 @@ import java.time.format.TextStyle
 
 private const val WeekColumns = 7
 private const val WeekRows = 6
-private const val MaxDotsPerCell = 3
 
 // horizontal travel before a swipe flips the month
 private val SwipeThreshold = 48.dp
@@ -273,16 +273,7 @@ private fun DateCell(
 private fun DotRow(events: List<EventItem>) {
     // one dot per calendar, first three in insertion order, so a busy day
     // on a single calendar stays single-dot. overflow shows in the view.
-    val dotColors = remember(events) {
-        events
-            .groupBy { it.calendarId }
-            .keys
-            .toList()
-            .take(MaxDotsPerCell)
-            .mapNotNull { calId ->
-                events.firstOrNull { it.calendarId == calId }?.displayColor
-            }
-    }
+    val dotColors = remember(events) { distinctCalendarDotColors(events) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),

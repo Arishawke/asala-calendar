@@ -42,8 +42,6 @@ import com.github.skydoves.colorpicker.compose.BrightnessSlider
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
-private const val OPAQUE_ALPHA = 0xFF000000.toInt()
-
 // WCAG AA floor for graphical objects; below it the swatch barely separates
 // from the app background, so the color reads as no distinct calendar identity.
 private const val MIN_SURFACE_CONTRAST = 3.0
@@ -53,7 +51,7 @@ private const val MIN_SURFACE_CONTRAST = 3.0
 @Suppress("LongMethod")
 internal fun CustomColorPickerDialog(initialArgb: Int, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
     val controller = rememberColorPickerController()
-    val opaqueInitial = initialArgb or OPAQUE_ALPHA
+    val opaqueInitial = initialArgb or HexColor.OPAQUE_ALPHA
     var currentArgb by remember { mutableIntStateOf(opaqueInitial) }
     var hexText by remember { mutableStateOf(HexColor.format(opaqueInitial)) }
 
@@ -67,7 +65,7 @@ internal fun CustomColorPickerDialog(initialArgb: Int, onConfirm: (Int) -> Unit,
                     controller = controller,
                     initialColor = Color(opaqueInitial),
                     onColorChanged = { envelope ->
-                        val argb = envelope.color.toArgb() or OPAQUE_ALPHA
+                        val argb = envelope.color.toArgb() or HexColor.OPAQUE_ALPHA
                         currentArgb = argb
                         // only a wheel/slider drag overwrites the field, so a
                         // hex-driven change keeps the user's in-progress text.

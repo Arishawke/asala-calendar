@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.data
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
+import android.net.Uri
 import android.provider.CalendarContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -43,9 +44,7 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
         val uri =
             CalendarContract.Calendars.CONTENT_URI
                 .buildUpon()
-                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, account)
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                .asLocalSyncAdapter(account)
                 .build()
         providerCall("createLocalCalendar", onError = null) {
             contentResolver.insert(uri, values)?.lastPathSegment?.toLongOrNull()
@@ -59,9 +58,7 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
                     CalendarContract.Calendars.CONTENT_URI,
                     calendarId,
                 ).buildUpon()
-                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, LocalCalendar.AccountName)
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                .asLocalSyncAdapter()
                 .build()
         providerCall("deleteLocalCalendar", onError = false) {
             contentResolver.delete(uri, null, null) > 0
@@ -76,9 +73,7 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
             ContentUris
                 .withAppendedId(CalendarContract.Calendars.CONTENT_URI, calendarId)
                 .buildUpon()
-                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, LocalCalendar.AccountName)
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                .asLocalSyncAdapter()
                 .build()
         val values = ContentValues().apply { put(CalendarContract.Calendars.CALENDAR_COLOR, color) }
         providerCall("updateLocalCalendarColor", onError = false) {
@@ -157,3 +152,10 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
             )
     }
 }
+
+// local-calendar writes go through the sync-adapter URI so the provider permits
+// the sync-adapter-scoped columns and targets the local account.
+private fun Uri.Builder.asLocalSyncAdapter(accountName: String = LocalCalendar.AccountName): Uri.Builder =
+    appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)

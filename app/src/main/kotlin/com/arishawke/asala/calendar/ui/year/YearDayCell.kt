@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.components.distinctCalendarDotColors
 import com.arishawke.asala.calendar.ui.theme.CalendarTokens
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
@@ -45,8 +46,6 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-
-private const val MaxDotsPerCell = 3
 
 @Composable
 internal fun YearDayCell(
@@ -113,11 +112,7 @@ internal fun YearDayCell(
 private fun YearDotRow(events: List<EventItem>) {
     // one dot per distinct calendar, up to three, matching the mini-month
     // header look. reserve the row height even when empty so cells align.
-    val dotColors = remember(events) {
-        events.groupBy { it.calendarId }.keys.toList()
-            .take(MaxDotsPerCell)
-            .mapNotNull { calId -> events.firstOrNull { it.calendarId == calId }?.displayColor }
-    }
+    val dotColors = remember(events) { distinctCalendarDotColors(events) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
