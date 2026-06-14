@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Changed
+- TalkBack now reads the search field, the Settings switches (dim past dates,
+  working hours, working days, week numbers, and the translucent-widget toggle),
+  and the event editor's "All day" toggle with their proper name and on/off
+  state, and the whole row is tappable rather than just the switch.
+
 ### Fixed
 - Natural-language quick add no longer crashes if you type an out-of-range
   relative date such as "in 99999999999 weeks". The unrecognized amount is left

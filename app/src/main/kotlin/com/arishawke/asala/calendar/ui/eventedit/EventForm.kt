@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.calendars.RecolorDialog
@@ -66,12 +68,18 @@ fun EventForm(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = state.allDay,
+                    role = Role.Switch,
+                    onValueChange = { onChange(state.withAllDay(it)) },
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(stringResource(R.string.field_all_day), modifier = Modifier.weight(1f))
-            Switch(
-                checked = state.allDay,
-                onCheckedChange = { onChange(state.withAllDay(it)) },
-            )
+            Switch(checked = state.allDay, onCheckedChange = null)
         }
 
         DateTimePickerRow(

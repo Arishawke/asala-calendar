@@ -40,6 +40,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -88,6 +90,7 @@ fun SearchScreen(
                     }
                 },
                 title = {
+                    val searchCd = stringResource(R.string.cd_search)
                     OutlinedTextField(
                         value = state.query,
                         onValueChange = { vm.setQuery(it) },
@@ -95,7 +98,8 @@ fun SearchScreen(
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester),
+                            .focusRequester(focusRequester)
+                            .semantics { contentDescription = searchCd },
                     )
                 },
             )
