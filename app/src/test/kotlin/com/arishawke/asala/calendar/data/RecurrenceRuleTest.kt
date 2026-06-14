@@ -76,6 +76,20 @@ class RecurrenceRuleTest {
         assertEquals(null, RecurrenceRule.countOf(null))
     }
 
+    // malformed imported / CalDAV rules: a non-positive interval is meaningless,
+    // so fall back to 1 rather than handing 0 or a negative to the provider.
+    @Test fun interval_non_positive_falls_back_to_one() {
+        assertEquals(1, RecurrenceRule.intervalOf("FREQ=DAILY;INTERVAL=0"))
+        assertEquals(1, RecurrenceRule.intervalOf("FREQ=DAILY;INTERVAL=-2"))
+    }
+
+    // a non-positive COUNT is treated as no count (open-ended), never a
+    // zero-occurrence series.
+    @Test fun count_non_positive_is_null() {
+        assertNull(RecurrenceRule.countOf("FREQ=DAILY;COUNT=0"))
+        assertNull(RecurrenceRule.countOf("FREQ=DAILY;COUNT=-3"))
+    }
+
     @Test fun until_date_parses_timed_utc_form() {
         assertEquals(
             LocalDate.of(2026, 12, 31),

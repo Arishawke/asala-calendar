@@ -120,4 +120,22 @@ class ReminderTimeMathTest {
                 .toEpochMilli()
         assertEquals(expected, ReminderTimeMath.computeAlarmTime(start, allDay = true, minutesBefore = 1440, zone = ny))
     }
+
+    // all-day lead time floors to whole days: 2000 minutes (1.39 days) offsets
+    // one day, firing 9am the day before, not part-way. Pins the integer-division
+    // (minutesBefore / 1440) contract for the 1-to-2-day range.
+    @Test
+    fun `all-day lead time between one and two days floors to one day`() {
+        val start = atZone(2026, 6, 1, 0, 0)
+        val expected = atZone(2026, 5, 31, 9, 0)
+        assertEquals(expected, ReminderTimeMath.computeAlarmTime(start, allDay = true, minutesBefore = 2000, zone = ny))
+    }
+
+    // a 2880-minute (exactly 2-day) lead time offsets two whole days.
+    @Test
+    fun `all-day lead time of two days offsets two days`() {
+        val start = atZone(2026, 6, 1, 0, 0)
+        val expected = atZone(2026, 5, 30, 9, 0)
+        assertEquals(expected, ReminderTimeMath.computeAlarmTime(start, allDay = true, minutesBefore = 2880, zone = ny))
+    }
 }

@@ -125,4 +125,20 @@ class ReminderSchedulerDiffTest {
         assertTrue(toCancel.isEmpty())
         assertTrue(toArm.isEmpty())
     }
+
+    // moving an event's start time must cancel the alarm at the old time and arm
+    // one at the new time. computePlan(old) -> diff -> computePlan(new) yields
+    // exactly one cancel and one arm, with the new trigger rebased to the new
+    // start. Guards the "edited the time, stale alarm still fires" regression.
+    @Test
+    fun `editing an event time rebases its alarm`() {
+        val oldStart = now + 60 * 60_000L
+        val newStart = oldStart + 2 * 60 * 60_000L
+        val previous = ReminderScheduler.computePlan(now, ny, listOf(reminder(8L, oldStart, 10)))
+        val current = ReminderScheduler.computePlan(now, ny, listOf(reminder(8L, newStart, 10)))
+        val (toCancel, toArm) = ReminderScheduler.diff(previous, current)
+        assertEquals(previous, toCancel)
+        assertEquals(current, toArm)
+        assertEquals(newStart - 10 * 60_000L, toArm.first().triggerAtMillis)
+    }
 }

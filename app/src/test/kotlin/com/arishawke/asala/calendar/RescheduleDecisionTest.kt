@@ -80,4 +80,12 @@ class RescheduleDecisionTest {
         val d = detail(startMillis = 1_000L, endMillis = 3_601_000L, rrule = "FREQ=DAILY")
         assertEquals(RescheduleDecision.AskScope(10_800_000L), rescheduleOutcome(d, 1_000L, 7_200_000L))
     }
+
+    // allDay is checked before rrule, so an all-day RECURRING drag reverts rather
+    // than opening the scope picker. Reordering the branches would surface here.
+    @Test
+    fun `all-day recurring drag reverts rather than asking scope`() {
+        val d = detail(startMillis = 0L, endMillis = 86_400_000L, allDay = true, rrule = "FREQ=DAILY")
+        assertEquals(RescheduleDecision.RevertAllDay, rescheduleOutcome(d, 0L, 3_600_000L))
+    }
 }

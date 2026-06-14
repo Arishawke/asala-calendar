@@ -110,6 +110,16 @@ class RecurringExceptionMathTest {
         )
     }
 
+    // kept exactly equals the original count: the split keeps only its own edited
+    // instance, so COUNT floors to 1 (the coerce boundary, distinct from the
+    // already-tested kept > count overflow).
+    @Test fun reduceSplitCount_kept_equals_count_floors_to_one() {
+        assertEquals(
+            "FREQ=DAILY;COUNT=1",
+            RecurrenceExceptionMath.reduceSplitCount("FREQ=DAILY;COUNT=5", keptInstances = 5),
+        )
+    }
+
     // "delete/edit this occurrence" excludes the slot on the parent via EXDATE
     // (a provider exception row drops the whole series from instance expansion).
     // Timed occurrences exclude by UTC datetime; the format and zone must be
