@@ -48,12 +48,9 @@ object ReminderReArmScheduler {
         val am = context.getSystemService<AlarmManager>() ?: return
         val at = nextReArmTime(System.currentTimeMillis(), ZoneId.systemDefault())
         // inexact on purpose: a daily window-slide does not need exact timing and
-        // must not consume the exact-alarm budget.
+        // must not consume the exact-alarm budget. wakeup so the slide still runs
+        // with the screen off, else an early-morning reminder could re-arm too late.
         am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pendingIntent(context))
-    }
-
-    fun cancel(context: Context) {
-        context.getSystemService<AlarmManager>()?.cancel(pendingIntent(context))
     }
 
     private fun pendingIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
