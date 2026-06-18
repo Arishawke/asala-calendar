@@ -48,6 +48,10 @@ class BootRescheduler : BroadcastReceiver() {
                         runCatching {
                             WidgetRefreshScheduler.rearmIfPresent(context.applicationContext)
                         }.onFailure { Timber.e(it, "boot widget re-arm threw") }
+                        // reboot/update clears the daily re-arm tick too; re-arm it.
+                        runCatching {
+                            ReminderReArmScheduler.scheduleNext(context.applicationContext)
+                        }.onFailure { Timber.e(it, "boot reminder re-arm tick failed") }
                     } finally {
                         pending.finish()
                     }
