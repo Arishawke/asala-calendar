@@ -254,9 +254,7 @@ internal fun DayColumn(
                 onClick = onEventClick?.let { cb ->
                     { cb(originalEvent.eventId, originalEvent.startMillis) }
                 },
-                // only the first piece of a clipped event is draggable: a
-                // continuation piece clamps against its own column, not the event's
-                // real start, so dragging it could push the start off the visible week.
+                // continuation pieces aren't drag anchors (see isRescheduleAnchor).
                 onReschedule = onReschedule?.takeIf { laid.clipped.isRescheduleAnchor() }?.let { cb ->
                     { newStart -> cb(originalEvent.eventId, originalEvent.startMillis, newStart) }
                 },
