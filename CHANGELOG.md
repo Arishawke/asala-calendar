@@ -14,6 +14,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Snoozing a reminder no longer occasionally loses the snooze. The snoozed alarm
+  shared a scheduling slot with the original reminder, so reopening the app (or a
+  calendar change) could cancel the pending snooze before it fired. Snoozes now
+  keep their own slot.
 - Natural-language quick add no longer crashes if you type an out-of-range
   relative date such as "in 99999999999 weeks". The unrecognized amount is left
   in the title instead.

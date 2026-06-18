@@ -102,12 +102,13 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
             putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
             putExtra(ReminderConstants.EXTRA_REMINDER_MINUTES, originalMinutes)
         }
-    // same request-code shape as ReminderScheduler so re-snoozing the same
-    // (event, instance, minutes) updates the alarm in place.
+    // a dedicated snooze slot (not the reminder's forAlarm slot): re-snoozing the
+    // same (event, instance) updates in place, while a routine rescheduleAll
+    // cancelling the original reminder slot can no longer drop this snooze.
     val pi =
         PendingIntent.getBroadcast(
             context,
-            PendingIntentRequestCodes.forAlarm(eventId, instanceMillis, originalMinutes),
+            PendingIntentRequestCodes.forSnoozeAlarm(eventId, instanceMillis),
             fireIntent,
             PendingIntentFlags.UPDATE_IMMUTABLE,
         )
