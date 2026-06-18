@@ -50,6 +50,11 @@ internal object ReminderScheduler {
 
     @Volatile
     private var lastPlan: Set<AlarmKey> = emptySet()
+
+    // false until the persisted plan is loaded once per process, so a cold start
+    // diffs against what was actually armed before death, not an empty set.
+    @Volatile
+    private var planLoaded = false
     private val planMutex = Mutex()
 
     // pure; tested by ReminderSchedulerDiffTest
@@ -86,7 +91,9 @@ internal object ReminderScheduler {
             val newPlan = computePlan(now, zone, reminders)
 
             val am = context.getSystemService<AlarmManager>() ?: return@withLock
-            val previousPlan = lastPlan
+            // seed from disk on the first run this process; thereafter the warm
+            // in-memory cache is authoritative and equals the last persisted plan.
+            val previousPlan = if (planLoaded) lastPlan else ArmedAlarmStore.load(context).also { planLoaded = true }
 
             (previousPlan - newPlan).forEach { key ->
                 am.cancel(buildAlarmPendingIntent(context, key))
@@ -102,6 +109,7 @@ internal object ReminderScheduler {
             }
 
             lastPlan = newPlan
+            ArmedAlarmStore.save(context, newPlan)
         }
     }
 
