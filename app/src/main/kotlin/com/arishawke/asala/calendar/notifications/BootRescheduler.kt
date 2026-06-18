@@ -27,6 +27,9 @@ class BootRescheduler : BroadcastReceiver() {
             Intent.ACTION_LOCKED_BOOT_COMPLETED,
             Intent.ACTION_MY_PACKAGE_REPLACED,
             Intent.ACTION_TIMEZONE_CHANGED,
+            // RTC reminder alarms are wall-clock anchored, so a manual clock
+            // change (TIME_SET) must re-arm them against the new wall time.
+            Intent.ACTION_TIME_CHANGED,
             -> {
                 // reinstalls fire MY_PACKAGE_REPLACED before READ_CALENDAR is
                 // granted; querying the provider would throw SecurityException.

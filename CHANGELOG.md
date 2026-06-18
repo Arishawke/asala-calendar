@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Reminders re-arm after you set the device clock by hand. Previously only a
+  time-zone change re-armed them, so a manual clock change could leave a
+  reminder anchored to the old time.
 - All-day events with no stored time zone now read their dates in UTC, matching
   how all-day dates are stored. Reading them in the device zone could shift the
   dates if you opened such an event and turned the all-day toggle off.
