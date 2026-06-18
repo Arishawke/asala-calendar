@@ -64,7 +64,8 @@ data class EventDraft(
         val days = totalSeconds / 86_400
         val hours = (totalSeconds % 86_400) / 3600
         val minutes = (totalSeconds % 3600) / 60
-        return "P${days}DT${hours}H${minutes}M0S"
+        val seconds = totalSeconds % 60
+        return "P${days}DT${hours}H${minutes}M${seconds}S"
     }
 
     companion object {

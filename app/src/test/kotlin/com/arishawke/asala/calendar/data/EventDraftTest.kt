@@ -59,6 +59,25 @@ class EventDraftTest {
         assertNull(m[CalendarContract.Events.DTEND])
     }
 
+    @Test fun recurring_event_preserves_seconds_remainder_in_duration() {
+        // recurring rows store DURATION; the seconds remainder must survive so a
+        // sub-minute occurrence length is not silently rounded down to the minute.
+        val draft =
+            EventDraft(
+                calendarId = 1L,
+                title = "Standup",
+                description = null,
+                location = null,
+                startMillis = 1_700_000_000_000L,
+                endMillis = 1_700_000_000_000L + (30 * 60 + 45) * 1000L, // 30m45s
+                allDay = false,
+                eventTimezone = "America/New_York",
+                rrule = "FREQ=DAILY",
+            )
+
+        assertEquals("P0DT0H30M45S", draft.toMap()[CalendarContract.Events.DURATION])
+    }
+
     @Test fun all_day_recurring_event_writes_day_form_duration() {
         // The provider's fixAllDayTime treats an all-day duration ending in 'S'
         // as the pure-seconds form and does Integer.parseInt on the P..S body;

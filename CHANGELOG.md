@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Recurring events keep their exact length down to the second. The repeating-
+  event duration was rounded down to the whole minute when saved, so a length
+  carrying extra seconds (for example from an imported calendar) lost them.
 - Drag-to-reschedule now works in the Week, Day, and 3-Day timelines. Holding a
   timed event lifted it but it would not move, because a competing tap gesture
   swallowed the drag movement. You can now pick up a timed event and drop it at a
