@@ -100,6 +100,40 @@ class ReminderSchedulerDiffTest {
         assertEquals(expected, plan.first().triggerAtMillis)
     }
 
+    // all-day instances are stored at 00:00 UTC but fire at 9am local. once `now`
+    // passes 00:00 UTC, the instance start is in the past while the 9am trigger is
+    // still in the future, and the reminder must still arm. regression guard: a
+    // premature `instanceStartMillis > now` pre-filter dropped the row before the
+    // 9am math ran, so a same-day all-day reminder silently never fired in any zone
+    // once `now` passed the instance's 00:00 UTC start.
+    @Test
+    fun `same-day all-day reminder still arms after UTC midnight passes`() {
+        val instanceStart =
+            java.time.LocalDate
+                .of(2026, 6, 1)
+                .atStartOfDay(java.time.ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        val nineAmLocal =
+            java.time.LocalDateTime
+                .of(2026, 6, 1, 9, 0)
+                .atZone(ny)
+                .toInstant()
+                .toEpochMilli()
+        val nowAfterUtcMidnight = instanceStart + 7 * 60 * 60_000L // 07:00 UTC, before the 13:00 UTC (9am EDT) trigger
+        assertTrue("precondition: now is past the UTC-midnight instance start", nowAfterUtcMidnight > instanceStart)
+        assertTrue("precondition: now is before the 9am-local trigger", nowAfterUtcMidnight < nineAmLocal)
+
+        val plan =
+            ReminderScheduler.computePlan(
+                now = nowAfterUtcMidnight,
+                zone = ny,
+                reminders = listOf(reminder(9L, instanceStart, 0, allDay = true)),
+            )
+        assertEquals(1, plan.size)
+        assertEquals(nineAmLocal, plan.first().triggerAtMillis)
+    }
+
     @Test
     fun `diff identifies keys removed from previous plan`() {
         val a = AlarmKey(eventId = 1L, instanceStartMillis = now + 60_000L, minutesBefore = 10, triggerAtMillis = now)

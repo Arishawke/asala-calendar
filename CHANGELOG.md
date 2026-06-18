@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- All-day reminders for the current day now fire reliably. A reminder for an
+  all-day event happening today could be skipped and silently never fire,
+  depending on the time of day the app last refreshed its reminders.
 - Weeks crowded with overlapping all-day events no longer hide some of them
   without a trace. When more all-day events overlap than the row can show, a
   "+N more" chip now appears and opens a list of the hidden ones.
