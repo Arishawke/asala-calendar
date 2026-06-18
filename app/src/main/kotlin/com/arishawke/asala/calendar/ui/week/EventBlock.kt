@@ -158,8 +158,13 @@ internal fun EventBlock(
             .height(sizing.heightDp)
             .zIndex(draggingZ)
             .padding(horizontal = 1.dp, vertical = 1.dp)
-            .then(drag.dragModifier)
+            // ORDER MATTERS: the drag detector must be inner (last pointerInput)
+            // so it wins the main pass and receives the post-long-press moves.
+            // with the tap detector inner, its onLongPress consume-until-up
+            // swallowed every move, so the chip lifted but never moved. do not
+            // reorder these two without verifying drag still moves on-device.
             .then(drag.tapModifier)
+            .then(drag.dragModifier)
             .then(a11yModifier)
             .border(width = 2.dp, color = highlightColor.copy(alpha = highlightAlpha), shape = shape),
     )
