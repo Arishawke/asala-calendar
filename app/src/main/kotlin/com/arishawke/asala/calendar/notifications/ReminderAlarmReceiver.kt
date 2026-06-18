@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class ReminderAlarmReceiver : BroadcastReceiver() {
-    @SuppressLint("MissingPermission") // POST_NOTIFICATIONS checked before scheduling; receiver only fires when granted
+    @SuppressLint("MissingPermission") // notify() is gated on areNotificationsEnabled() at fire time below
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ReminderConstants.ACTION_FIRE) return
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
@@ -70,8 +70,15 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
                             defaultSnoozeMinutes = defaultSnoozeMinutes,
                         )
                     val notificationId = PendingIntentRequestCodes.forNotification(eventId, instanceMillis)
-                    NotificationManagerCompat.from(context).notify(notificationId, notification)
-                    Timber.d("posted notification event=%d alertId=%d", eventId, alertId)
+                    val manager = NotificationManagerCompat.from(context)
+                    // recheck at fire time: notifications can be revoked after the
+                    // alarm was armed, in which case notify() silently no-ops.
+                    if (manager.areNotificationsEnabled()) {
+                        manager.notify(notificationId, notification)
+                        Timber.d("posted notification event=%d alertId=%d", eventId, alertId)
+                    } else {
+                        Timber.w("notifications disabled at fire time; reminder for event %d not shown", eventId)
+                    }
                 }.onFailure { Timber.e(it, "alarm receiver body threw") }
             } finally {
                 pending.finish()
