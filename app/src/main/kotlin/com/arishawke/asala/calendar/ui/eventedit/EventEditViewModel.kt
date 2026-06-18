@@ -430,6 +430,7 @@ class EventEditViewModel(
                 loadedStatus = loadedDetail?.status,
                 loadedAvailability = loadedDetail?.availability,
                 loadedTimezone = loadedDetail?.eventTimezone,
+                loadedReminderMinutes = loadedDetail?.reminderMinutesBefore,
                 insertEvent = eventRepo::insertEvent,
                 updateEvent = eventRepo::updateEvent,
                 setReminder = remindersRepo::setReminder,

@@ -14,6 +14,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Editing an event no longer drops its other reminders. An event with more than
+  one reminder (for example one synced from another calendar app) kept only one
+  after you edited any of its details. Your reminders are now preserved when you
+  save an unrelated change.
 - All-day reminders for the current day now fire reliably. A reminder for an
   all-day event happening today could be skipped and silently never fire,
   depending on the time of day the app last refreshed its reminders.
