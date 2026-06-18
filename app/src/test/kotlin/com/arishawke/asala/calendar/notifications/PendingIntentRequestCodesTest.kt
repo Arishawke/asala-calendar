@@ -35,9 +35,9 @@ class PendingIntentRequestCodesTest {
         )
     }
 
-    // the documented collision: a Long.toInt() request code drops the upper 32
-    // bits, so two instances of one recurring event 1<<32 ms (~49.7 days) apart
-    // mapped to the same code and one silently overwrote the other.
+    // guards against regressing to a Long.toInt() request code, which dropped the
+    // upper 32 bits so two instances of one recurring event 1<<32 ms (~49.7 days)
+    // apart collided and one silently overwrote the other.
     @Test
     fun `forAlarm distinguishes instances ~49 days apart for the same event and offset`() {
         assertNotEquals(
