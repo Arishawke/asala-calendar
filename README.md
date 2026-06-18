@@ -21,7 +21,7 @@ A private, offline-first calendar for Android, dressed in Material 3.
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.arishawke.asala.calendar"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="200" /></a>
-  <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="200" /></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="185" /></a>
 </p>
 
 > [!WARNING]
@@ -71,11 +71,12 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 
 ## Install
 
-Asala ships through GitHub Releases, with a Google Play release in preparation.
+Asala is on Google Play, and also ships through GitHub Releases.
 
+- **Google Play.** Install from [Google Play](https://play.google.com/store/apps/details?id=com.arishawke.asala.calendar); updates arrive automatically.
 - **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
 - **Auto-update via Obtainium.** Tap the Obtainium button at the top of this page, or point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository, and it notifies you when a new version ships.
-- **No in-app updater.** Asala never checks for or downloads updates itself. Updates arrive through your install source (GitHub via Obtainium, or Google Play once published), which is what keeps the app free of any internet or install permission.
+- **No in-app updater.** Asala never checks for or downloads updates itself. Updates arrive through your install source (Google Play, or GitHub via Obtainium), which is what keeps the app free of any internet or install permission.
 
 ## Build from source
 
