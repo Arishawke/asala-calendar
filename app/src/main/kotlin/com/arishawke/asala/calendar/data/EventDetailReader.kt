@@ -15,6 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.TimeZone
 
+// all-day rows carry their wall-clock dates in UTC by provider convention, so a
+// missing EVENT_TIMEZONE on an all-day row resolves to UTC, not the device zone.
+internal fun resolveEventTimezone(stored: String?, allDay: Boolean): String =
+    stored ?: if (allDay) "UTC" else TimeZone.getDefault().id
+
 // reads one Events row plus its first reminder. recurring rows store DURATION
 // not DTEND, so end millis is reconstructed via EventEndMillis.compute.
 internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail? = withContext(Dispatchers.IO) {
@@ -83,7 +88,10 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
                 startMillis = dtStart,
                 endMillis = endMillis,
                 allDay = c.getInt(allDayIdx) == 1,
-                eventTimezone = c.getString(timezoneIdx) ?: TimeZone.getDefault().id,
+                eventTimezone = resolveEventTimezone(
+                    stored = c.getString(timezoneIdx),
+                    allDay = c.getInt(allDayIdx) == 1,
+                ),
                 rrule = c.getString(rruleIdx).takeUnless { it.isNullOrBlank() },
                 displayColor = c.getInt(colorIdx),
                 calendarDisplayName = calendarName,

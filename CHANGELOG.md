@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- All-day events with no stored time zone now read their dates in UTC, matching
+  how all-day dates are stored. Reading them in the device zone could shift the
+  dates if you opened such an event and turned the all-day toggle off.
 - Recurring events keep their exact length down to the second. The repeating-
   event duration was rounded down to the whole minute when saved, so a length
   carrying extra seconds (for example from an imported calendar) lost them.
