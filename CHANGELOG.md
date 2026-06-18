@@ -14,6 +14,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Reminders set far in the future now fire reliably. The app kept reminders armed
+  only for the next 30 days and slid that window forward only when you opened it
+  or your calendar changed, so a reminder for an event more than a month out could
+  be missed if the app stayed closed. A daily background tick now keeps the window
+  moving forward on its own.
+- Snoozing a reminder no longer occasionally loses the snooze. The snoozed alarm
+  shared a scheduling slot with the original reminder, so reopening the app (or a
+  calendar change) could cancel the pending snooze before it fired. Snoozes now
+  keep their own slot.
+- A reminder you delete or reschedule while the app is closed no longer fires at
+  its old time. The app now remembers which reminders it has scheduled across
+  restarts, so a stale one is cancelled instead of surviving in the background.
 - Natural-language quick add no longer crashes if you type an out-of-range
   relative date such as "in 99999999999 weeks". The unrecognized amount is left
   in the title instead.

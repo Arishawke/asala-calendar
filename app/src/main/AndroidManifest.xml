@@ -45,6 +45,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".notifications.ReminderReArmReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".notifications.BootRescheduler"
             android:exported="true">
             <intent-filter>

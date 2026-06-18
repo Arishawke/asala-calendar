@@ -16,6 +16,11 @@ internal object PendingIntentRequestCodes {
     fun forAlarm(eventId: Long, instanceMillis: Long, minutesBefore: Int): Int =
         "$eventId:$instanceMillis:$minutesBefore".hashCode()
 
+    // a snooze keeps its own slot, independent of the reminder offset, so a
+    // routine rescheduleAll cancelling the original forAlarm slot cannot drop a
+    // pending snooze, and the "0 minutes before" reminder cannot collide with it.
+    fun forSnoozeAlarm(eventId: Long, instanceMillis: Long): Int = "snoozeAlarm:$eventId:$instanceMillis".hashCode()
+
     fun forOpen(eventId: Long, instanceMillis: Long): Int = "open:$eventId:$instanceMillis".hashCode()
 
     fun forSnoozeDefault(eventId: Long, instanceMillis: Long): Int = "snoozeDefault:$eventId:$instanceMillis".hashCode()

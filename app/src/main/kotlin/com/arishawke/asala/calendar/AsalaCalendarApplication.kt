@@ -20,6 +20,7 @@ import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
 import com.arishawke.asala.calendar.data.TodayProvider
 import com.arishawke.asala.calendar.notifications.NotificationChannelInitializer
+import com.arishawke.asala.calendar.notifications.ReminderReArmScheduler
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +59,8 @@ class AsalaCalendarApplication : Application() {
             providerObserverRegistered = true
         }
         appScope.launch { ReminderScheduler.rescheduleAll(this@AsalaCalendarApplication) }
+        // start the daily window-slide tick; idempotent on the single alarm slot.
+        ReminderReArmScheduler.scheduleNext(this)
     }
 
     private fun registerProviderObserver() {
