@@ -14,6 +14,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Drag-to-reschedule now works in the Week, Day, and 3-Day timelines. Holding a
+  timed event lifted it but it would not move, because a competing tap gesture
+  swallowed the drag movement. You can now pick up a timed event and drop it at a
+  new time.
 - Drag-to-reschedule on a timed event that crosses midnight is steadier. The
   continuation piece shown on the next day shared the event's real start, so
   dragging it could miscompute the day shift and push the event outside the
