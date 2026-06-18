@@ -109,7 +109,11 @@ internal object ReminderScheduler {
             }
 
             lastPlan = newPlan
-            ArmedAlarmStore.save(context, newPlan)
+            // arming above stays unconditional: a reboot clears the system alarms
+            // while the persisted set still lists them, so a diff-gated arm would
+            // skip re-arming them. only the disk write is skipped when nothing
+            // changed, to avoid churning DataStore on every no-op observer fire.
+            if (newPlan != previousPlan) ArmedAlarmStore.save(context, newPlan)
         }
     }
 
