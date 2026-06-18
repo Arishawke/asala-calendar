@@ -40,6 +40,11 @@ internal object EventSave {
         // preserve the authored EVENT_TIMEZONE on edit; only new events fall back
         // to the device zone. clobbering it shifts the intended-zone occurrences.
         loadedTimezone: String? = null,
+        // the event's loaded reminder (its first reminder row). setReminder deletes
+        // every reminder row then inserts one, so on an in-place edit whose reminder
+        // is unchanged we must NOT call it, or a multi-reminder event loses all but
+        // one. null for new events (no prior reminder).
+        loadedReminderMinutes: Int? = null,
         insertEvent: suspend (EventDraft) -> Long?,
         // returns the id reminders attach to: original for AllEvents, or the
         // new exception/split id for the recurring scopes. null on failure.
@@ -182,7 +187,16 @@ internal object EventSave {
             // reminder rewrites the parent series and the exception ships none.
             val effectiveId = updateEvent(editingEventId, draft, scope, instanceMillis, parentRrule, parentAllDay)
                 ?: return SaveResult.Failure
-            if (!setReminder(effectiveId, form.reminderMinutesBefore)) return SaveResult.Failure
+            // setReminder deletes every reminder row then inserts one, so an
+            // in-place edit with an untouched reminder would drop a multi-reminder
+            // event's extras. skip the write only when the target is the original
+            // row AND the reminder is unchanged; a new exception/split row has no
+            // reminders yet and must always be written.
+            val reminderUnchanged = effectiveId == editingEventId &&
+                form.reminderMinutesBefore == loadedReminderMinutes
+            if (!reminderUnchanged && !setReminder(effectiveId, form.reminderMinutesBefore)) {
+                return SaveResult.Failure
+            }
             SaveResult.Success(effectiveId)
         }
     }

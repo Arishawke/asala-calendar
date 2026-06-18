@@ -244,18 +244,21 @@ class EventSaveTest {
     }
 
     // Edit path: updateEvent runs against the editing id, then setReminder
-    // runs against the same id. Insert must not be called.
+    // runs against the same id. Insert must not be called. The reminder is
+    // changed (30 vs loaded 10) so the write runs; an unchanged reminder is
+    // intentionally skipped (see the unchanged-reminder test below).
     @Test
     fun `edit path succeeds when both writes succeed`() = runBlocking {
         var updateId: Long? = null
         var reminderId: Long? = null
         val result =
             EventSave.attempt(
-                form = form(),
+                form = form().copy(reminderMinutesBefore = 30),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
+                loadedReminderMinutes = 10,
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ ->
                     updateId = id
@@ -658,16 +661,18 @@ class EventSaveTest {
 
     // Edit path reminder rejection: same partial-failure contract as the
     // create path. Event row was updated; reminder write rejected; user
-    // sees Failure.
+    // sees Failure. The reminder is changed (30 vs loaded 10) so the write
+    // actually runs and can reject.
     @Test
     fun `edit path with reminder rejection returns Failure`() = runBlocking {
         val result =
             EventSave.attempt(
-                form = form(),
+                form = form().copy(reminderMinutesBefore = 30),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
+                loadedReminderMinutes = 10,
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
                 setReminder = { _, _ -> false },

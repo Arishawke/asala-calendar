@@ -61,7 +61,9 @@ internal object ReminderScheduler {
     fun computePlan(now: Long, zone: ZoneId, reminders: List<ScheduledReminder>): Set<AlarmKey> = reminders
         .asSequence()
         .filterNot { it.cancelled }
-        .filter { it.instanceStartMillis > now }
+        // no instance-start pre-filter: all-day instances are at 00:00 UTC but fire
+        // at 9am local, so a same-day all-day reminder has a past instance start and
+        // a future trigger. the trailing triggerAtMillis > now is the real guard.
         .map { r ->
             AlarmKey(
                 eventId = r.eventId,
