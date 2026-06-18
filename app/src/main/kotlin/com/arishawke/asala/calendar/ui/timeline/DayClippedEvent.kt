@@ -53,6 +53,12 @@ internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClip
     )
 }
 
+// only the first piece is a drag-reschedule anchor. a continuation piece shares
+// the event's real start on an earlier column, so dragging it would clamp the
+// day-delta against the wrong column (pushing the start off the visible week) and
+// hold its offset against the wrong row; reschedule is wired to the first piece.
+internal fun DayClippedEvent.isRescheduleAnchor(): Boolean = !continuedFromPrev
+
 // time to show on a multi-day piece: real start on the first, real end on the
 // last, null for single-day or middle pieces (which show only the badge).
 internal fun segmentAnchorMillis(clip: DayClippedEvent): Long? = when {

@@ -18,6 +18,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   timed event lifted it but it would not move, because a competing tap gesture
   swallowed the drag movement. You can now pick up a timed event and drop it at a
   new time.
+- Drag-to-reschedule on a timed event that crosses midnight is steadier. The
+  continuation piece shown on the next day shared the event's real start, so
+  dragging it could miscompute the day shift and push the event outside the
+  visible week. Reschedule now works from the event's first piece, on the day it
+  starts.
 - Reminders set far in the future now fire reliably. The app kept reminders armed
   only for the next 30 days and slid that window forward only when you opened it
   or your calendar changed, so a reminder for an event more than a month out could

@@ -9,6 +9,7 @@
 package com.arishawke.asala.calendar.ui.timeline
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
@@ -117,6 +118,25 @@ class DragRescheduleTest {
         assertEquals(4, clampDayDelta(10, 2, 7))
         assertEquals(-2, clampDayDelta(-10, 2, 7))
         assertEquals(3, clampDayDelta(3, 2, 7))
+    }
+
+    // D1: why only a crosser's first piece is a drag anchor. A continuation piece
+    // sits one column right of the event's real start, so clamping the day-delta
+    // against the continuation column permits a leftward shift that, applied to the
+    // real start, lands off the visible week; clamping against the start column
+    // (the first piece) blocks it. See DayClippedEvent.isRescheduleAnchor.
+    @Test fun clamp_against_continuation_column_would_push_start_off_week() {
+        val startColumn = 0 // event starts Monday
+        val continuationColumn = 1 // its Tuesday slice
+        val draggedLeftOneColumn = -1
+        val total = 7
+
+        val viaContinuation = clampDayDelta(draggedLeftOneColumn, continuationColumn, total)
+        assertEquals(-1, viaContinuation) // the wrong column lets the shift through...
+        assertTrue(startColumn + viaContinuation < 0) // ...pushing the real start off-week
+
+        // clamping against the real start column correctly pins it in place.
+        assertEquals(0, clampDayDelta(draggedLeftOneColumn, startColumn, total))
     }
 
     @Test fun apply_day_and_minute_delta_shifts_correctly() {

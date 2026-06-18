@@ -51,6 +51,7 @@ import com.arishawke.asala.calendar.ui.timeline.NowLineRow
 import com.arishawke.asala.calendar.ui.timeline.RevealOverlay
 import com.arishawke.asala.calendar.ui.timeline.clipEventsByDay
 import com.arishawke.asala.calendar.ui.timeline.crowdedLayout
+import com.arishawke.asala.calendar.ui.timeline.isRescheduleAnchor
 import com.arishawke.asala.calendar.ui.timeline.rememberNowMinutes
 import com.arishawke.asala.calendar.ui.timeline.revealTargetPx
 import kotlinx.coroutines.delay
@@ -253,7 +254,8 @@ internal fun DayColumn(
                 onClick = onEventClick?.let { cb ->
                     { cb(originalEvent.eventId, originalEvent.startMillis) }
                 },
-                onReschedule = onReschedule?.let { cb ->
+                // continuation pieces aren't drag anchors (see isRescheduleAnchor).
+                onReschedule = onReschedule?.takeIf { laid.clipped.isRescheduleAnchor() }?.let { cb ->
                     { newStart -> cb(originalEvent.eventId, originalEvent.startMillis, newStart) }
                 },
                 modifier = Modifier

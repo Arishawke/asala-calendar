@@ -185,4 +185,32 @@ class DayClippedEventTest {
         val ev = timed(atLocal(tue, 10), atLocal(thu, 20))
         assertNull(segmentAnchorMillis(clipToDay(ev, wed, zone)!!))
     }
+
+    // Only the first piece is a drag-reschedule anchor. A continuation piece shares
+    // the event's real start on an earlier column, so dragging it would clamp the
+    // day-delta against the wrong column and could shove the start off the visible
+    // week; reschedule is wired only to the first piece.
+    @Test fun reschedule_anchor_true_for_single_day_event() {
+        val day = LocalDate.of(2026, 6, 1)
+        val ev = timed(atLocal(day, 9), atLocal(day, 10))
+        assertTrue(clipToDay(ev, day, zone)!!.isRescheduleAnchor())
+    }
+
+    @Test fun reschedule_anchor_true_on_first_piece_only_of_a_crosser() {
+        val tue = LocalDate.of(2026, 6, 2)
+        val wed = LocalDate.of(2026, 6, 3)
+        val ev = timed(atLocal(tue, 23, 30), atLocal(wed, 0, 30))
+        assertTrue(clipToDay(ev, tue, zone)!!.isRescheduleAnchor())
+        assertFalse(clipToDay(ev, wed, zone)!!.isRescheduleAnchor())
+    }
+
+    @Test fun reschedule_anchor_false_on_continuation_pieces_of_a_three_day_event() {
+        val tue = LocalDate.of(2026, 6, 2)
+        val wed = LocalDate.of(2026, 6, 3)
+        val thu = LocalDate.of(2026, 6, 4)
+        val ev = timed(atLocal(tue, 10), atLocal(thu, 20))
+        assertTrue(clipToDay(ev, tue, zone)!!.isRescheduleAnchor())
+        assertFalse(clipToDay(ev, wed, zone)!!.isRescheduleAnchor())
+        assertFalse(clipToDay(ev, thu, zone)!!.isRescheduleAnchor())
+    }
 }
