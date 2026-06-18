@@ -9,17 +9,23 @@
 package com.arishawke.asala.calendar.ui.week
 
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.month.DayOverflowSheet
 import com.arishawke.asala.calendar.ui.multidaybars.LaneAssigner
 import com.arishawke.asala.calendar.ui.multidaybars.MultiDayBarRow
 import com.arishawke.asala.calendar.ui.multidaybars.WeekBucketer
+import com.arishawke.asala.calendar.ui.multidaybars.overflowEventIds
 import com.arishawke.asala.calendar.ui.timeline.HourAxisWidth
 import java.time.LocalDate
 import java.time.ZoneId
@@ -39,20 +45,54 @@ internal fun AllDayRow(
             WeekBucketer.bucketize(events, weekStart, includeSingleDay = true),
         )
     }
-    BoxWithConstraints(
+    // MultiDayBarRow drops segments past the lane cap; collect those events so a
+    // "+N more" chip can reveal them instead of letting them vanish silently.
+    val hiddenEvents = remember(events, segments) {
+        val hidden = overflowEventIds(segments, MaxAllDayLanes)
+        events.filter { it.eventId in hidden }
+    }
+    var showOverflow by remember { mutableStateOf(false) }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 24.dp)
             .padding(start = HourAxisWidth, top = 4.dp, bottom = 4.dp),
     ) {
-        MultiDayBarRow(
-            segments = segments,
-            rowWidth = maxWidth,
-            maxLanes = MaxAllDayLanes,
-            onSegmentClick = { eventId ->
-                val startMillis = events.firstOrNull { it.eventId == eventId }?.startMillis
-                    ?: weekStart.atStartOfDay(zone).toInstant().toEpochMilli()
-                onEventClick?.invoke(eventId, startMillis)
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 24.dp),
+        ) {
+            MultiDayBarRow(
+                segments = segments,
+                rowWidth = maxWidth,
+                maxLanes = MaxAllDayLanes,
+                onSegmentClick = { eventId ->
+                    val startMillis = events.firstOrNull { it.eventId == eventId }?.startMillis
+                        ?: weekStart.atStartOfDay(zone).toInstant().toEpochMilli()
+                    onEventClick?.invoke(eventId, startMillis)
+                },
+            )
+        }
+        if (hiddenEvents.isNotEmpty()) {
+            OverflowChip(
+                count = hiddenEvents.size,
+                onClick = { showOverflow = true },
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+    }
+
+    if (showOverflow) {
+        DayOverflowSheet(
+            // the all-day band spans the whole week, so anchor the sheet on the
+            // week's first day; the hidden-event list is the useful content.
+            date = weekStart,
+            events = hiddenEvents,
+            onDismiss = { showOverflow = false },
+            onEventClick = { eventId, instanceMillis ->
+                showOverflow = false
+                onEventClick?.invoke(eventId, instanceMillis)
             },
         )
     }

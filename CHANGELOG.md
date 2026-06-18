@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- Weeks crowded with overlapping all-day events no longer hide some of them
+  without a trace. When more all-day events overlap than the row can show, a
+  "+N more" chip now appears and opens a list of the hidden ones.
 - Reminders re-arm after you set the device clock by hand. Previously only a
   time-zone change re-armed them, so a manual clock change could leave a
   reminder anchored to the old time.
