@@ -89,10 +89,10 @@ internal fun DayOverflowSheet(
                         event = ev,
                         timeFmt = timeFmt,
                         zone = zone,
-                        onEventClick = { eventId, instanceMillis ->
+                        onEventClick = { _, _ ->
                             if (!isDismissing) {
                                 isDismissing = true
-                                dismissThenOpen(scope, sheetState, eventId, instanceMillis, onDismiss, onEventClick)
+                                dismissThenOpen(scope, sheetState, ev, onDismiss, onEventClick)
                             }
                         },
                     )
@@ -107,8 +107,7 @@ internal fun DayOverflowSheet(
 private fun dismissThenOpen(
     scope: CoroutineScope,
     sheetState: SheetState,
-    eventId: Long,
-    instanceMillis: Long,
+    event: EventItem,
     onDismiss: () -> Unit,
     onEventClick: (Long, Long) -> Unit,
 ) {
@@ -116,6 +115,6 @@ private fun dismissThenOpen(
         // await slide-down so two sheets never overlap
         sheetState.hide()
         onDismiss()
-        onEventClick(eventId, instanceMillis)
+        onEventClick(event.eventId, event.startMillis)
     }
 }

@@ -13,6 +13,9 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.arishawke.asala.calendar.R
 
+private const val MinutesPerHour = 60
+private const val MinutesPerDay = 24 * 60
+
 // single source of truth for a reminder's "N before" label, shared by the editor
 // picker and the detail sheet. snaps exact presets, else formats with the largest
 // unit that divides cleanly (180 -> "3 hours before", 2880 -> "2 days before").
@@ -21,15 +24,15 @@ import com.arishawke.asala.calendar.R
 internal fun reminderLabel(m: Int?): String = when (m) {
     null -> stringResource(R.string.reminder_none)
     0 -> stringResource(R.string.reminder_at_time)
-    60 -> stringResource(R.string.reminder_one_hour)
-    24 * 60 -> stringResource(R.string.reminder_one_day)
+    MinutesPerHour -> stringResource(R.string.reminder_one_hour)
+    MinutesPerDay -> stringResource(R.string.reminder_one_day)
     else -> when {
-        m % (24 * 60) == 0 -> {
-            val days = m / (24 * 60)
+        m % MinutesPerDay == 0 -> {
+            val days = m / MinutesPerDay
             pluralStringResource(R.plurals.reminder_days_before, days, days)
         }
-        m % 60 == 0 -> {
-            val hours = m / 60
+        m % MinutesPerHour == 0 -> {
+            val hours = m / MinutesPerHour
             pluralStringResource(R.plurals.reminder_hours_before, hours, hours)
         }
         else -> stringResource(R.string.reminder_minutes_before, m)

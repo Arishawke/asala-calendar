@@ -17,6 +17,7 @@ import com.arishawke.asala.calendar.data.rescheduleDraftShape
 // is unit-testable without an AppViewModel or a ContentResolver (mirrors how
 // EventSave.attempt takes injected lambdas). the draft shaping is the pure,
 // separately-tested rescheduleDraftShape (RecurringAnchorTest).
+@Suppress("LongParameterList") // the inputs + injected update/revert seams
 internal suspend fun rescheduleWrite(
     detail: EventDetail,
     instanceMillis: Long,

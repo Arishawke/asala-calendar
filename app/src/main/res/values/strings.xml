@@ -67,8 +67,6 @@
     <string name="schedule_all_day">all-day</string>
     <string name="schedule_day_of_total">Day %1$d/%2$d</string>
 
-    <!-- Time range separator (translators may swap the en dash for their locale). -->
-    <string name="time_range_format">%1$s - %2$s</string>
 
     <!-- Event display -->
     <string name="event_no_title">(no title)</string>
