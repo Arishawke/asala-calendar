@@ -168,6 +168,19 @@ class EventEditFormStateTest {
         assertEquals(15, s.withAllDay(true).reminderMinutesBefore)
     }
 
+    // the reverse direction: toggling all-day -> timed swaps the all-day default
+    // back to the timed default (the re-seed gate is symmetric).
+    @Test
+    fun `withAllDay swaps a new event's default reminder from all-day to timed`() {
+        val s = allDay().copy(
+            isNewEvent = true,
+            defaultTimedReminderMinutes = 15,
+            defaultAllDayReminderMinutes = 540,
+            reminderMinutesBefore = 540, // matches the all-day default
+        )
+        assertEquals(15, s.withAllDay(false).reminderMinutesBefore)
+    }
+
     private fun utc(y: Int, mo: Int, d: Int, h: Int, mi: Int): Long =
         LocalDateTime.of(y, mo, d, h, mi).toInstant(ZoneOffset.UTC).toEpochMilli()
 
