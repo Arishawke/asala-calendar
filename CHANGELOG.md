@@ -8,6 +8,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Changed
+- The color picker now works with TalkBack: each color swatch announces its hex
+  value and whether it is the selected one, instead of reading as an unlabeled
+  button.
 - TalkBack now reads the search field, the Settings switches (dim past dates,
   working hours, working days, week numbers, and the translucent-widget toggle),
   and the event editor's "All day" toggle with their proper name and on/off

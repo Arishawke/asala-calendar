@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
@@ -87,6 +88,7 @@ internal fun ColorSwatchGrid(
 private fun Swatch(color: Color, argb: Int, selected: Boolean, onSelect: (Int) -> Unit) {
     // visual 28dp, tap region 48dp via minimumInteractiveComponentSize to
     // meet the touch-target floor without enlarging the swatch.
+    val desc = stringResource(R.string.cd_color_swatch, "#%06X".format(argb and 0xFFFFFF))
     Box(
         modifier = Modifier
             .minimumInteractiveComponentSize()
@@ -104,7 +106,13 @@ private fun Swatch(color: Color, argb: Int, selected: Boolean, onSelect: (Int) -
                     Modifier
                 },
             )
-            .clickable { onSelect(argb) },
+            .clickable { onSelect(argb) }
+            // name the color and expose the selected state; the ring alone is
+            // invisible to a screen reader (mirrors the labelled CustomSwatch).
+            .semantics {
+                contentDescription = desc
+                this.selected = selected
+            },
     )
 }
 
