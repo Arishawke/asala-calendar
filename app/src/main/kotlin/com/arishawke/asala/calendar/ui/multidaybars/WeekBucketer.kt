@@ -9,7 +9,6 @@
 package com.arishawke.asala.calendar.ui.multidaybars
 
 import com.arishawke.asala.calendar.data.EventItem
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 
@@ -38,10 +37,9 @@ object WeekBucketer {
         weekEnd: LocalDate,
         includeSingleDay: Boolean,
     ): WeekSegment? {
-        // all-day millis are at 00:00 UTC regardless of device zone.
-        val effectiveZone = ZoneOffset.UTC
-        val firstVisible = Instant.ofEpochMilli(e.startMillis).atZone(effectiveZone).toLocalDate()
-        val lastVisible = Instant.ofEpochMilli(e.endMillis).atZone(effectiveZone).toLocalDate().minusDays(1)
+        // all-day dates are UTC; EventItem owns the span math (incl. the malformed-row clamp).
+        val firstVisible = e.startDate(ZoneOffset.UTC)
+        val lastVisible = e.lastDate(ZoneOffset.UTC)
         // drop events outside the week, and single-day ones unless opted in
         val skip = (!includeSingleDay && firstVisible == lastVisible) ||
             lastVisible.isBefore(weekStart) ||
