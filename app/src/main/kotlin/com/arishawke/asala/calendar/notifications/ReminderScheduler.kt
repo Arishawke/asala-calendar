@@ -84,6 +84,12 @@ internal object ReminderScheduler {
     internal fun diff(previous: Set<AlarmKey>, current: Set<AlarmKey>): Pair<Set<AlarmKey>, Set<AlarmKey>> =
         (previous - current) to (current - previous)
 
+    // pure; tested by ReminderSchedulerDiffTest. one occurrence can carry several
+    // reminder rows (different lead times) but a single snooze slot, so dedupe the
+    // cancelled keys down to their (eventId, instance) pair.
+    internal fun snoozeKeysToCancel(cancelled: Set<AlarmKey>): Set<Pair<Long, Long>> =
+        cancelled.mapTo(mutableSetOf()) { it.eventId to it.instanceStartMillis }
+
     // idempotent; planMutex serializes the observer/boot/foreground callers against races
     suspend fun rescheduleAll(context: Context) = withContext(Dispatchers.IO) {
         planMutex.withLock {
@@ -97,8 +103,16 @@ internal object ReminderScheduler {
             // in-memory cache is authoritative and equals the last persisted plan.
             val previousPlan = if (planLoaded) lastPlan else ArmedAlarmStore.load(context).also { planLoaded = true }
 
-            (previousPlan - newPlan).forEach { key ->
+            val toCancel = previousPlan - newPlan
+            toCancel.forEach { key ->
                 am.cancel(buildAlarmPendingIntent(context, key))
+            }
+            // an occurrence leaving the plan (event deleted or rescheduled away) must
+            // also drop any pending snooze keyed on its old (eventId, instance): the
+            // fire-time receiver already guards a deleted event, but a reschedule would
+            // otherwise ring the orphaned snooze at the stale time.
+            snoozeKeysToCancel(toCancel).forEach { (eventId, instance) ->
+                am.cancel(buildSnoozePendingIntent(context, eventId, instance))
             }
 
             newPlan.forEach { key ->
@@ -134,6 +148,21 @@ internal object ReminderScheduler {
                 instanceMillis = key.instanceStartMillis,
                 minutesBefore = key.minutesBefore,
             ),
+            intent,
+            PendingIntentFlags.UPDATE_IMMUTABLE,
+        )
+    }
+
+    // matches the slot SnoozeApplier arms (same component, action, request code);
+    // extras are ignored by PendingIntent matching, so a bare intent cancels it.
+    private fun buildSnoozePendingIntent(context: Context, eventId: Long, instanceMillis: Long): PendingIntent {
+        val intent =
+            Intent(context, ReminderAlarmReceiver::class.java).apply {
+                action = ReminderConstants.ACTION_FIRE
+            }
+        return PendingIntent.getBroadcast(
+            context,
+            PendingIntentRequestCodes.forSnoozeAlarm(eventId, instanceMillis),
             intent,
             PendingIntentFlags.UPDATE_IMMUTABLE,
         )

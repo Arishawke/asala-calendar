@@ -175,4 +175,23 @@ class ReminderSchedulerDiffTest {
         assertEquals(current, toArm)
         assertEquals(newStart - 10 * 60_000L, toArm.first().triggerAtMillis)
     }
+
+    // an occurrence leaving the plan must drop its pending snooze too, deduped to a
+    // single (eventId, instance) even when that occurrence carried several reminder
+    // rows. Guards the "snoozed, then rescheduled or deleted, snooze still rings"
+    // regression: the cancel pass feeds these keys to a forSnoozeAlarm cancel.
+    @Test
+    fun `snooze cancel keys cover only occurrences leaving the plan`() {
+        val survives =
+            AlarmKey(eventId = 1L, instanceStartMillis = now + 60_000L, minutesBefore = 10, triggerAtMillis = now)
+        val leaving10 =
+            AlarmKey(eventId = 2L, instanceStartMillis = now + 120_000L, minutesBefore = 10, triggerAtMillis = now)
+        val leaving30 =
+            AlarmKey(eventId = 2L, instanceStartMillis = now + 120_000L, minutesBefore = 30, triggerAtMillis = now)
+        val (toCancel, _) =
+            ReminderScheduler.diff(previous = setOf(survives, leaving10, leaving30), current = setOf(survives))
+        val snoozeKeys = ReminderScheduler.snoozeKeysToCancel(toCancel)
+        assertEquals(setOf(2L to (now + 120_000L)), snoozeKeys)
+        assertTrue((1L to (now + 60_000L)) !in snoozeKeys)
+    }
 }
