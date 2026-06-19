@@ -129,6 +129,45 @@ class EventEditFormStateTest {
         assertEquals(false, s.convertedFromAllDay)
     }
 
+    // The reminder re-seed: toggling a NEW event between timed and all-day swaps
+    // the reminder only when it still matches the OLD default (a custom pick is
+    // left alone), and an EXISTING event's reminder is never touched. The default
+    // helpers leave all reminder fields null, so they never exercise this branch.
+    @Test
+    fun `withAllDay swaps a new event's default reminder from timed to all-day`() {
+        val s = timed().copy(
+            isNewEvent = true,
+            defaultTimedReminderMinutes = 15,
+            defaultAllDayReminderMinutes = 540,
+            reminderMinutesBefore = 15, // matches the timed default
+        )
+        assertEquals(540, s.withAllDay(true).reminderMinutesBefore)
+    }
+
+    @Test
+    fun `withAllDay leaves a custom reminder alone when toggling a new event`() {
+        val s = timed().copy(
+            isNewEvent = true,
+            defaultTimedReminderMinutes = 15,
+            defaultAllDayReminderMinutes = 540,
+            reminderMinutesBefore = 5, // a custom pick, not the timed default
+        )
+        assertEquals(5, s.withAllDay(true).reminderMinutesBefore)
+    }
+
+    @Test
+    fun `withAllDay never re-seeds an existing event's reminder`() {
+        // isNewEvent = false: a reminder equal to the timed default must still
+        // survive the toggle unchanged (a saved/server-set reminder is sacred).
+        val s = timed().copy(
+            isNewEvent = false,
+            defaultTimedReminderMinutes = 15,
+            defaultAllDayReminderMinutes = 540,
+            reminderMinutesBefore = 15,
+        )
+        assertEquals(15, s.withAllDay(true).reminderMinutesBefore)
+    }
+
     private fun utc(y: Int, mo: Int, d: Int, h: Int, mi: Int): Long =
         LocalDateTime.of(y, mo, d, h, mi).toInstant(ZoneOffset.UTC).toEpochMilli()
 
