@@ -37,7 +37,6 @@ import java.time.YearMonth
 
 private const val YearsEitherSide = 5
 private const val YearMonthColumns = 3
-private const val YearWindowRadius = 1
 
 @Suppress("LongParameterList", "LongMethod")
 @Composable
@@ -64,7 +63,6 @@ fun YearScreen(
             calendarColorOverridesFlow,
             eventColorOverridesFlow,
             todayFlow,
-            YearWindowRadius,
         ),
     )
     val state by vm.uiState.collectAsStateWithLifecycle()

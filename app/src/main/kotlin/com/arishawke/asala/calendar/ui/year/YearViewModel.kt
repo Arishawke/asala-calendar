@@ -39,7 +39,6 @@ class YearViewModel(
     private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
     private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
     private val todayFlow: StateFlow<LocalDate>,
-    private val yearWindowRadius: Int = 1,
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
     private val initialToday: LocalDate = todayFlow.value
@@ -48,7 +47,7 @@ class YearViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val eventsForWindow =
         visibleYear.flatMapLatest { year ->
-            val (startDate, endExclusive) = yearFetchWindow(year, yearWindowRadius)
+            val (startDate, endExclusive) = yearFetchWindow(year, YearWindowRadius)
             eventRepo.observeEvents(startDate = startDate, endExclusive = endExclusive, zone = zone)
         }
 
@@ -82,7 +81,6 @@ class YearViewModel(
         private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
         private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
         private val todayFlow: StateFlow<LocalDate>,
-        private val yearWindowRadius: Int = 1,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -93,14 +91,16 @@ class YearViewModel(
                 calendarColorOverridesFlow = calendarColorOverridesFlow,
                 eventColorOverridesFlow = eventColorOverridesFlow,
                 todayFlow = todayFlow,
-                yearWindowRadius = yearWindowRadius,
             ) as T
         }
     }
 
     companion object {
-        // visible year +/- radius so scrolling within a year doesn't reload
-        // dots. half-open [start, endExclusive).
+        // visible year +/- this radius is prefetched so scrolling within a year
+        // doesn't reload dots. the sole caller; the pure helper keeps its param.
+        private const val YearWindowRadius = 1
+
+        // half-open [start, endExclusive).
         fun yearFetchWindow(center: Year, radiusYears: Int): Pair<LocalDate, LocalDate> {
             val start = center.minusYears(radiusYears.toLong()).atDay(1)
             val endExclusive = center.plusYears(radiusYears.toLong() + 1).atDay(1)
