@@ -17,6 +17,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   state, and the whole row is tappable rather than just the switch.
 - The app launcher icon was refreshed to a darker, earthier teal-and-rust
   design that matches the rest of the app's palette.
+- The "+N more" overflow lists now show each event's start time, matching the
+  schedule and search views.
 
 ### Fixed
 - A custom reminder reads the same everywhere. A reminder such as "3 hours
@@ -26,6 +28,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   one reminder (for example one synced from another calendar app) kept only one
   after you edited any of its details. Your reminders are now preserved when you
   save an unrelated change.
+- A reminder you snoozed no longer rings again after you reschedule or delete
+  that event. The pending snooze is now cancelled when the event leaves the
+  schedule.
 - All-day reminders for the current day now fire reliably. A reminder for an
   all-day event happening today could be skipped and silently never fire,
   depending on the time of day the app last refreshed its reminders.
