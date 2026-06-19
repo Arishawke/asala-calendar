@@ -9,12 +9,9 @@
 package com.arishawke.asala.calendar.ui.eventdetail
 
 import android.icu.text.DateIntervalFormat
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.RecurrenceFrequency
-import com.arishawke.asala.calendar.data.TimeUnits
 import java.text.FieldPosition
 import java.time.ZoneId
 import java.util.Locale
@@ -22,7 +19,6 @@ import android.icu.text.DateFormat as IcuDateFormat
 import android.icu.util.Calendar as IcuCalendar
 import android.icu.util.TimeZone as IcuTimeZone
 
-private const val MinutesPerDay = 24 * 60
 private const val DateSkeleton = "yMMMMEEEEd"
 
 internal fun recurrenceSummaryRes(freq: RecurrenceFrequency): Int = when (freq) {
@@ -30,14 +26,6 @@ internal fun recurrenceSummaryRes(freq: RecurrenceFrequency): Int = when (freq) 
     RecurrenceFrequency.Weekly -> R.string.repeats_weekly
     RecurrenceFrequency.Monthly -> R.string.repeats_monthly
     RecurrenceFrequency.Yearly -> R.string.repeats_yearly
-}
-
-@Composable
-internal fun reminderLabel(minutesBefore: Int): String = when (minutesBefore) {
-    0 -> stringResource(R.string.reminder_at_time)
-    TimeUnits.MinutesPerHour -> stringResource(R.string.reminder_one_hour)
-    MinutesPerDay -> stringResource(R.string.reminder_one_day)
-    else -> stringResource(R.string.reminder_minutes_before, minutesBefore)
 }
 
 internal fun formatWhen(d: EventDetail, instanceMillis: Long?, is24Hour: Boolean): String {

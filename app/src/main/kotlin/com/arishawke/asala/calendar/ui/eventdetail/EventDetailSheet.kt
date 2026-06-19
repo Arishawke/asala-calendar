@@ -39,14 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.reminderLabel
+import com.arishawke.asala.calendar.ui.components.statusStyling
 import com.arishawke.asala.calendar.ui.notifications.NotificationsOffBanner
 import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
 import com.arishawke.asala.calendar.ui.theme.Spacing
@@ -145,16 +145,9 @@ private fun EventDetailContent(
         modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.xl, vertical = Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
-        // header. title mirrors the chip italic / strikethrough so status
-        // reads at a glance, with a badge below for explicit naming.
-        val titleFontStyle = when (detail.status) {
-            CalendarContract.Events.STATUS_TENTATIVE -> FontStyle.Italic
-            else -> null
-        }
-        val titleDecoration = when (detail.status) {
-            CalendarContract.Events.STATUS_CANCELED -> TextDecoration.LineThrough
-            else -> null
-        }
+        // header. title mirrors the chip italic / strikethrough so status reads at
+        // a glance (shared with the chips via statusStyling), badge below names it.
+        val styling = statusStyling(detail.status)
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (detail.isBirthday) {
                 BirthdayLeadingIcon(size = 24.dp)
@@ -163,8 +156,8 @@ private fun EventDetailContent(
             Text(
                 text = detail.title.ifBlank { stringResource(R.string.event_no_title) },
                 style = MaterialTheme.typography.headlineSmall,
-                fontStyle = titleFontStyle,
-                textDecoration = titleDecoration,
+                fontStyle = styling.titleFontStyle,
+                textDecoration = styling.titleDecoration,
             )
         }
         statusLabel?.let {
@@ -219,12 +212,11 @@ private fun EventDetailContent(
             if (!notificationPermissionGranted) {
                 NotificationsOffBanner(onTurnOn = onRequestNotificationPermission)
             }
-            detail.reminderMinutesBefore?.let {
-                Text(
-                    text = reminderLabel(it),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            Text(
+                // hasReminder already guards a non-null reminder here.
+                text = reminderLabel(detail.reminderMinutesBefore),
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         if (deleteFailed) {

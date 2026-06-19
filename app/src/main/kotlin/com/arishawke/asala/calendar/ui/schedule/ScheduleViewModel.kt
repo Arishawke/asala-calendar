@@ -43,8 +43,9 @@ internal fun expandToScheduleRows(
 }
 
 private fun expandAllDay(e: EventItem, windowStart: LocalDate, windowEndExclusive: LocalDate): List<ScheduleRow> {
-    val first = Instant.ofEpochMilli(e.startMillis).atZone(ZoneOffset.UTC).toLocalDate()
-    val last = Instant.ofEpochMilli(e.endMillis).atZone(ZoneOffset.UTC).toLocalDate().minusDays(1)
+    // all-day dates are UTC; EventItem owns the span math (incl. the malformed-row clamp).
+    val first = e.startDate(ZoneOffset.UTC)
+    val last = e.lastDate(ZoneOffset.UTC)
     val total = (last.toEpochDay() - first.toEpochDay()).toInt() + 1
     return (0 until total)
         .map { i -> i + 1 to first.plusDays(i.toLong()) }
@@ -77,8 +78,7 @@ private fun expandTimed(
 }
 
 internal fun rowDate(row: ScheduleRow, zone: ZoneId): LocalDate = if (row.event.allDay) {
-    val first = Instant.ofEpochMilli(row.event.startMillis).atZone(ZoneOffset.UTC).toLocalDate()
-    first.plusDays((row.dayIndex - 1).toLong())
+    row.event.startDate(ZoneOffset.UTC).plusDays((row.dayIndex - 1).toLong())
 } else {
     Instant.ofEpochMilli(row.displayStartMillis).atZone(zone).toLocalDate()
 }

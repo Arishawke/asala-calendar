@@ -67,8 +67,6 @@
     <string name="schedule_all_day">all-day</string>
     <string name="schedule_day_of_total">Day %1$d/%2$d</string>
 
-    <!-- Time range separator (translators may swap the en dash for their locale). -->
-    <string name="time_range_format">%1$s - %2$s</string>
 
     <!-- Event display -->
     <string name="event_no_title">(no title)</string>
@@ -204,6 +202,7 @@
     <string name="dialog_recolor_account">Account color</string>
     <string name="action_reset_to_calendar_color">Reset to calendar color</string>
     <string name="swatch_custom">Custom color</string>
+    <string name="cd_color_swatch">Color %1$s</string>
     <string name="cd_pick_custom_color">Pick a custom color</string>
     <string name="custom_color_hex">Hex</string>
     <string name="custom_color_sample">Aa</string>

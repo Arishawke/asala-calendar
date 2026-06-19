@@ -69,7 +69,7 @@ data class AppUiState(
 
 // drawer-hidden account with display metadata so Settings can render it
 // without joining the calendar list at the UI layer
-data class DrawerHiddenAccount(val accountKey: String, val accountName: String, val accountType: String)
+data class DrawerHiddenAccount(val accountKey: String, val accountName: String)
 
 // cross-view jump payload. `view` lets each screen's handler ignore jumps
 // not meant for it, so the source screen can't consume a jump intended for
@@ -245,7 +245,6 @@ class AppViewModel(
                 DrawerHiddenAccount(
                     accountKey = key,
                     accountName = match.accountName,
-                    accountType = match.accountType,
                 )
             }.sortedBy { it.accountName }
         }.stateIn(

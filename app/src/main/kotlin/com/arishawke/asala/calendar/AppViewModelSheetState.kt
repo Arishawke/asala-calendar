@@ -13,9 +13,7 @@ package com.arishawke.asala.calendar
 
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventDetail
-import com.arishawke.asala.calendar.data.EventDraft
 import com.arishawke.asala.calendar.data.RecurringEditScope
-import com.arishawke.asala.calendar.data.rescheduleDraftShape
 import com.arishawke.asala.calendar.data.shouldClearEventOverrideOnDelete
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -160,47 +158,21 @@ fun AppViewModel.cancelPendingReschedule() {
     pending?.let { dragRevertSignalBacker.tryEmit(it.detail.eventId) }
 }
 
+// thin AppViewModel binding over the testable rescheduleWrite: injects the repo's
+// update and the chip-revert signal. the null-update -> revert contract lives in
+// rescheduleWrite (RescheduleWriteTest).
 private suspend fun AppViewModel.saveRescheduleNow(
     detail: EventDetail,
     instanceMillis: Long,
     newStart: Long,
     newEnd: Long,
     scope: RecurringEditScope,
-) {
-    // the scope-driven draft shape (rrule + anchor-shifted range) is a pure,
-    // tested decision: ThisInstance drops the rrule for a one-off, AllEvents shifts
-    // the parent anchor by the occurrence delta so earlier occurrences survive.
-    // see rescheduleDraftShape / RecurringAnchorTest.
-    val shape = rescheduleDraftShape(
-        scope = scope,
-        parentRrule = detail.rrule,
-        parentStartMillis = detail.startMillis,
-        instanceStartMillis = instanceMillis,
-        newStartMillis = newStart,
-        newEndMillis = newEnd,
-    )
-    val draft = EventDraft(
-        calendarId = detail.calendarId,
-        title = detail.title,
-        description = detail.description,
-        location = detail.location,
-        startMillis = shape.startMillis,
-        endMillis = shape.endMillis,
-        allDay = detail.allDay,
-        eventTimezone = detail.eventTimezone,
-        rrule = shape.rrule,
-        status = detail.status,
-        availability = detail.availability,
-    )
-    val updated = eventRepository.updateEvent(
-        eventId = detail.eventId,
-        draft = draft,
-        scope = scope,
-        instanceMillis = instanceMillis,
-        parentRrule = detail.rrule,
-        parentAllDay = detail.allDay,
-    )
-    // provider rejected the move: snap the optimistic chip back instead of
-    // leaving it stranded at a time nothing was written to.
-    if (updated == null) dragRevertSignalBacker.tryEmit(detail.eventId)
-}
+) = rescheduleWrite(
+    detail = detail,
+    instanceMillis = instanceMillis,
+    newStart = newStart,
+    newEnd = newEnd,
+    scope = scope,
+    updateEvent = eventRepository::updateEvent,
+    onRevert = { dragRevertSignalBacker.tryEmit(it) },
+)

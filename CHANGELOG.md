@@ -8,12 +8,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Changed
+- The color picker now works with TalkBack: each color swatch announces its hex
+  value and whether it is the selected one, instead of reading as an unlabeled
+  button.
 - TalkBack now reads the search field, the Settings switches (dim past dates,
   working hours, working days, week numbers, and the translucent-widget toggle),
   and the event editor's "All day" toggle with their proper name and on/off
   state, and the whole row is tappable rather than just the switch.
 
 ### Fixed
+- A custom reminder reads the same everywhere. A reminder such as "3 hours
+  before" showed as "180 min before" on the event details while reading "3 hours
+  before" in the editor; both now use the same wording.
 - Editing an event no longer drops its other reminders. An event with more than
   one reminder (for example one synced from another calendar app) kept only one
   after you edited any of its details. Your reminders are now preserved when you
