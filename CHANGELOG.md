@@ -15,6 +15,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   working hours, working days, week numbers, and the translucent-widget toggle),
   and the event editor's "All day" toggle with their proper name and on/off
   state, and the whole row is tappable rather than just the switch.
+- The app launcher icon was refreshed to a darker, earthier teal-and-rust
+  design that matches the rest of the app's palette.
 
 ### Fixed
 - A custom reminder reads the same everywhere. A reminder such as "3 hours
