@@ -47,6 +47,7 @@ import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.reminderLabel
 import com.arishawke.asala.calendar.ui.notifications.NotificationsOffBanner
 import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
 import com.arishawke.asala.calendar.ui.theme.Spacing
@@ -219,12 +220,11 @@ private fun EventDetailContent(
             if (!notificationPermissionGranted) {
                 NotificationsOffBanner(onTurnOn = onRequestNotificationPermission)
             }
-            detail.reminderMinutesBefore?.let {
-                Text(
-                    text = reminderLabel(it),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            Text(
+                // hasReminder already guards a non-null reminder here.
+                text = reminderLabel(detail.reminderMinutesBefore),
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         if (deleteFailed) {
