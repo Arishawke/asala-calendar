@@ -12,7 +12,6 @@ captures/
 *.keystore
 *.jks
 keystore.properties
-.superpowers/
 
 # Personal research notes, journals, and other non-public working files
 notes/
@@ -20,15 +19,6 @@ logos/
 
 # WSL/Windows alternate-data-stream metadata
 *:Zone.Identifier
-
-# Claude Code per-machine state (never commit)
-.claude/settings.local.json
-.claude/*.lock
-/CLAUDE.md
-
-# Design docs kept local: the spec/plan workflow runs locally, not published
-/docs/plans/
-/docs/specs/
 
 # Play Store listing copy and store screenshots kept local until publish
 /docs/play-store-listing.md
@@ -49,9 +39,3 @@ gradle/verification-*.deferred-bootstrap
 # avoid forcing a daemon-JVM download in CI. Adopting daemon-JVM-21 project-wide
 # would be a deliberate change (bump CI + docs), not an IDE side effect.
 gradle/gradle-daemon-jvm.properties
-
-# Private working docs (handoffs, session notes, agent continuity). Never
-# committed or published; point contributors at CONTRIBUTING / SECURITY instead.
-docs/private/
-HANDOFF.md
-*.handoff.md
