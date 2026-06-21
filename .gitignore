@@ -44,6 +44,12 @@ gradle/verification-keyring.gpg
 gradle/verification-keyring.keys
 gradle/verification-*.deferred-bootstrap
 
+# Android Studio "Gradle JVM criteria" artifact: pins the Gradle daemon JVM
+# (locally JBR 21). CI and contributors build on JDK 17, so keep this local to
+# avoid forcing a daemon-JVM download in CI. Adopting daemon-JVM-21 project-wide
+# would be a deliberate change (bump CI + docs), not an IDE side effect.
+gradle/gradle-daemon-jvm.properties
+
 # Private working docs (handoffs, session notes, agent continuity). Never
 # committed or published; point contributors at CONTRIBUTING / SECURITY instead.
 docs/private/
