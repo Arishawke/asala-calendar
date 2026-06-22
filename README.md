@@ -1,7 +1,7 @@
 # Asala Calendar
 
 <p align="center">
-  <img alt="Asala Calendar" src="docs/brand/asala-icon.png" width="120" />
+  <img alt="Asala Calendar" src="docs/brand/readme-banner.png" width="720" />
 </p>
 
 <p align="center">
@@ -34,14 +34,14 @@ Asala keeps no database of its own. Every event lives in the Android Calendar Pr
 <div align="center">
 <table>
   <tr>
-    <td align="center"><img src="screenshots/Month.png" alt="Month view" width="200"><br><sub>Month</sub></td>
-    <td align="center"><img src="screenshots/Week.png" alt="Week view" width="200"><br><sub>Week</sub></td>
-    <td align="center"><img src="screenshots/Day.png" alt="Day view" width="200"><br><sub>Day</sub></td>
+    <td><img src="screenshots/01-private.png" alt="Private and offline: the month view" width="220"></td>
+    <td><img src="screenshots/02-continuous-scroll.png" alt="Months in one continuous scroll" width="220"></td>
+    <td><img src="screenshots/03-natural-language.png" alt="Natural-language event input" width="220"></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/3-day.png" alt="3-Day view" width="200"><br><sub>3-Day</sub></td>
-    <td align="center"><img src="screenshots/Schedule.png" alt="Schedule view" width="200"><br><sub>Schedule</sub></td>
-    <td align="center"><img src="screenshots/Event.png" alt="Event editor with calendar selector" width="200"><br><sub>Event editor</sub></td>
+    <td><img src="screenshots/04-month-above-day.png" alt="A compact month above the agenda" width="220"></td>
+    <td><img src="screenshots/05-search.png" alt="Search across every saved event" width="220"></td>
+    <td><img src="screenshots/06-themes.png" alt="Light, dark, and AMOLED themes" width="220"></td>
   </tr>
 </table>
 </div>
