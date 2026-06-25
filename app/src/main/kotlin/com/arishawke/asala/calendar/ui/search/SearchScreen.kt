@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -48,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.BarScaffold
 import com.arishawke.asala.calendar.ui.components.EventChipRow
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
 import kotlinx.coroutines.flow.StateFlow
@@ -78,8 +78,8 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-    Scaffold(
-        topBar = {
+    BarScaffold(
+        bar = { insets ->
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -102,6 +102,7 @@ fun SearchScreen(
                             .semantics { contentDescription = searchCd },
                     )
                 },
+                windowInsets = insets,
             )
         },
     ) { padding ->

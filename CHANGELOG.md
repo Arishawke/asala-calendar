@@ -7,6 +7,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- A "Toolbar position" setting (Settings, Appearance) moves the app bar to the
+  bottom of the screen for one-handed reach. It applies across the calendar,
+  search, event editor, and settings screens. Defaults to top.
+
 ## [0.22.0] - 2026-06-19
 
 ### Changed

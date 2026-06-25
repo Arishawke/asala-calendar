@@ -26,7 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -43,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AppViewModel
 import com.arishawke.asala.calendar.R
+import com.arishawke.asala.calendar.ui.BarScaffold
 import com.arishawke.asala.calendar.ui.notifications.ReminderRationaleDialog
 import com.arishawke.asala.calendar.ui.theme.Spacing
 import kotlinx.coroutines.launch
@@ -152,8 +152,8 @@ fun EventEditScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
+    BarScaffold(
+        bar = { insets ->
             TopAppBar(
                 title = { Text(stringResource(if (eventId == null) R.string.event_new else R.string.event_edit)) },
                 navigationIcon = {
@@ -172,6 +172,7 @@ fun EventEditScreen(
                         Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_save))
                     }
                 },
+                windowInsets = insets,
             )
         },
     ) { padding ->

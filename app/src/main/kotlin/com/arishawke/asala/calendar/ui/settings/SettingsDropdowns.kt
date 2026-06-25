@@ -73,6 +73,41 @@ internal fun PaletteRow(current: PaletteId, onChange: (PaletteId) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+internal fun ToolbarPositionRow(current: ToolbarPosition, onChange: (ToolbarPosition) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }) {
+        OutlinedTextField(
+            value = stringResource(toolbarPositionLabel(current)),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.settings_toolbar_position)) },
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.lg, vertical = Spacing.xs),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
+        )
+        ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            ToolbarPosition.entries.forEach { pos ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(toolbarPositionLabel(pos))) },
+                    onClick = {
+                        onChange(pos)
+                        open = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+private fun toolbarPositionLabel(pos: ToolbarPosition): Int = when (pos) {
+    ToolbarPosition.Top -> R.string.settings_toolbar_position_top
+    ToolbarPosition.Bottom -> R.string.settings_toolbar_position_bottom
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 internal fun DefaultDurationDropdown(current: Int, onChange: (Int) -> Unit) {
     val options = DefaultDurationOptionsMinutes
     var open by remember { mutableStateOf(false) }

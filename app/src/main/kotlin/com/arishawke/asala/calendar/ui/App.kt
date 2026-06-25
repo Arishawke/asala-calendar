@@ -64,7 +64,10 @@ internal fun App() {
     val resolvedIs24Hour = prefs.is24HourOverride ?: systemIs24Hour
 
     AsalaCalendarTheme(darkTheme = darkTheme, amoled = amoled) {
-        CompositionLocalProvider(LocalIs24Hour provides resolvedIs24Hour) {
+        CompositionLocalProvider(
+            LocalIs24Hour provides resolvedIs24Hour,
+            LocalToolbarPosition provides prefs.toolbarPosition,
+        ) {
             CalendarPermissionGate {
                 AppShell(vm = vm)
             }
