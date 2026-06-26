@@ -27,7 +27,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -44,6 +48,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -84,6 +89,7 @@ import com.arishawke.asala.calendar.ui.accessibility.rememberAnimationsEnabled
 import com.arishawke.asala.calendar.ui.header.HeaderDropdownPanel
 import com.arishawke.asala.calendar.ui.header.ViewSwitcherMenu
 import com.arishawke.asala.calendar.ui.month.CalendarDrawerContent
+import com.arishawke.asala.calendar.ui.settings.ToolbarPosition
 import com.arishawke.asala.calendar.ui.theme.Spacing
 import kotlinx.coroutines.launch
 
@@ -177,6 +183,110 @@ internal fun AppShell(vm: AppViewModel) {
                 )
             },
         ) {
+            val toolbarAtBottom = LocalToolbarPosition.current == ToolbarPosition.Bottom
+            // bottom bar clears the system nav; top keeps the status-bar default.
+            val barInsets = if (toolbarAtBottom) {
+                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+            } else {
+                TopAppBarDefaults.windowInsets
+            }
+            // bar + expandable header panel as one composable so both modes share
+            // identical content, differing only in stacking order and slot.
+            val barWithPanel: @Composable () -> Unit = {
+                val bar = @Composable {
+                    TopAppBar(
+                        title = {
+                            HeaderTitle(
+                                title = title,
+                                expanded = headerExpanded,
+                                enabled = canExpandHeader,
+                                animationsEnabled = animationsEnabled,
+                                onClick = { headerExpanded = !headerExpanded },
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(
+                                    Icons.Filled.Menu,
+                                    contentDescription = stringResource(R.string.cd_open_calendars),
+                                )
+                            }
+                        },
+                        actions = {
+                            ViewSwitcherMenu(
+                                currentView = state.currentView,
+                                onSelectView = vm::selectView,
+                            )
+                            IconButton(onClick = { vm.openSearch() }) {
+                                Icon(
+                                    Icons.Filled.Search,
+                                    contentDescription = stringResource(R.string.cd_search),
+                                )
+                            }
+                            IconButton(onClick = { vm.jumpToToday() }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_today),
+                                    contentDescription = stringResource(R.string.cd_jump_to_today),
+                                )
+                            }
+                        },
+                        windowInsets = barInsets,
+                    )
+                }
+                val panel = @Composable {
+                    AnimatedVisibility(
+                        visible = headerExpanded && canExpandHeader,
+                        // 180ms (down from ~250ms default): the chip strip's
+                        // small height delta felt sluggish at the default
+                        enter = if (animationsEnabled) {
+                            expandVertically(animationSpec = tween(durationMillis = 180)) +
+                                fadeIn(animationSpec = tween(durationMillis = 180))
+                        } else {
+                            EnterTransition.None
+                        },
+                        exit = if (animationsEnabled) {
+                            shrinkVertically(animationSpec = tween(durationMillis = 180)) +
+                                fadeOut(animationSpec = tween(durationMillis = 180))
+                        } else {
+                            ExitTransition.None
+                        },
+                    ) {
+                        HeaderDropdownPanel(
+                            currentView = state.currentView,
+                            viewedMonth = viewedMonth,
+                            today = today,
+                            firstDayOfWeekOverride = prefs.weekStartsOn,
+                            hiddenCalendarIdsFlow = vm.hiddenCalendarIdsFlow,
+                            calendarColorOverridesFlow = vm.calendarColorOverridesFlow,
+                            eventColorOverridesFlow = vm.eventColorOverridesFlow,
+                            onSelectMonth = { ym ->
+                                headerExpanded = false
+                                vm.requestJumpTo(ym.atDay(1), CalendarView.Month)
+                            },
+                            onSelectDate = { date ->
+                                headerExpanded = false
+                                vm.requestJumpTo(date, state.currentView)
+                            },
+                            // swiping the mini-month keeps the panel open and
+                            // moves the view to the first of that month.
+                            onNavigateMonth = { ym ->
+                                vm.requestJumpTo(ym.atDay(1), state.currentView)
+                            },
+                        )
+                    }
+                }
+                Column {
+                    // bottom mode stacks the panel above the bar so it grows
+                    // upward from it; top keeps the panel below the bar.
+                    if (toolbarAtBottom) {
+                        panel()
+                        bar()
+                    } else {
+                        bar()
+                        panel()
+                    }
+                }
+            }
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 floatingActionButton = {
@@ -184,87 +294,8 @@ internal fun AppShell(vm: AppViewModel) {
                         Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.fab_new_event))
                     }
                 },
-                topBar = {
-                    Column {
-                        TopAppBar(
-                            title = {
-                                HeaderTitle(
-                                    title = title,
-                                    expanded = headerExpanded,
-                                    enabled = canExpandHeader,
-                                    animationsEnabled = animationsEnabled,
-                                    onClick = { headerExpanded = !headerExpanded },
-                                )
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                    Icon(
-                                        Icons.Filled.Menu,
-                                        contentDescription = stringResource(R.string.cd_open_calendars),
-                                    )
-                                }
-                            },
-                            actions = {
-                                ViewSwitcherMenu(
-                                    currentView = state.currentView,
-                                    onSelectView = vm::selectView,
-                                )
-                                IconButton(onClick = { vm.openSearch() }) {
-                                    Icon(
-                                        Icons.Filled.Search,
-                                        contentDescription = stringResource(R.string.cd_search),
-                                    )
-                                }
-                                IconButton(onClick = { vm.jumpToToday() }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_today),
-                                        contentDescription = stringResource(R.string.cd_jump_to_today),
-                                    )
-                                }
-                            },
-                        )
-                        AnimatedVisibility(
-                            visible = headerExpanded && canExpandHeader,
-                            // 180ms (down from ~250ms default): the chip strip's
-                            // small height delta felt sluggish at the default
-                            enter = if (animationsEnabled) {
-                                expandVertically(animationSpec = tween(durationMillis = 180)) +
-                                    fadeIn(animationSpec = tween(durationMillis = 180))
-                            } else {
-                                EnterTransition.None
-                            },
-                            exit = if (animationsEnabled) {
-                                shrinkVertically(animationSpec = tween(durationMillis = 180)) +
-                                    fadeOut(animationSpec = tween(durationMillis = 180))
-                            } else {
-                                ExitTransition.None
-                            },
-                        ) {
-                            HeaderDropdownPanel(
-                                currentView = state.currentView,
-                                viewedMonth = viewedMonth,
-                                today = today,
-                                firstDayOfWeekOverride = prefs.weekStartsOn,
-                                hiddenCalendarIdsFlow = vm.hiddenCalendarIdsFlow,
-                                calendarColorOverridesFlow = vm.calendarColorOverridesFlow,
-                                eventColorOverridesFlow = vm.eventColorOverridesFlow,
-                                onSelectMonth = { ym ->
-                                    headerExpanded = false
-                                    vm.requestJumpTo(ym.atDay(1), CalendarView.Month)
-                                },
-                                onSelectDate = { date ->
-                                    headerExpanded = false
-                                    vm.requestJumpTo(date, state.currentView)
-                                },
-                                // swiping the mini-month keeps the panel open and
-                                // moves the view to the first of that month.
-                                onNavigateMonth = { ym ->
-                                    vm.requestJumpTo(ym.atDay(1), state.currentView)
-                                },
-                            )
-                        }
-                    }
-                },
+                topBar = { if (!toolbarAtBottom) barWithPanel() },
+                bottomBar = { if (toolbarAtBottom) barWithPanel() },
             ) { innerPadding ->
                 CalendarViewSwitcher(
                     vm = vm,
@@ -298,8 +329,11 @@ private fun HeaderTitle(
     animationsEnabled: Boolean,
     onClick: () -> Unit,
 ) {
+    // chevron points toward where the panel opens: down when the bar is on top,
+    // up when it's at the bottom. it flips on expand, so xor the two.
+    val atBottom = LocalToolbarPosition.current == ToolbarPosition.Bottom
     val rotation by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
+        targetValue = if (expanded != atBottom) 180f else 0f,
         animationSpec = if (animationsEnabled) spring() else snap(),
         label = "header-chevron-rotation",
     )

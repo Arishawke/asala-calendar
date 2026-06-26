@@ -51,6 +51,10 @@ class SettingsViewModel(
         viewModelScope.launch { prefs.setMonthScrollStyle(style) }
     }
 
+    fun setToolbarPosition(pos: ToolbarPosition) {
+        viewModelScope.launch { prefs.setToolbarPosition(pos) }
+    }
+
     fun setWidgetThemeMode(mode: WidgetThemeMode) {
         viewModelScope.launch {
             prefs.setWidgetThemeMode(mode)

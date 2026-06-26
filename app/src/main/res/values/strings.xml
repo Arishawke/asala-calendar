@@ -255,6 +255,9 @@
     <string name="settings_month_scroll_style">Month scroll style</string>
     <string name="settings_month_scroll_style_paged">Paged</string>
     <string name="settings_month_scroll_style_continuous">Continuous</string>
+    <string name="settings_toolbar_position">Toolbar position</string>
+    <string name="settings_toolbar_position_top">Top</string>
+    <string name="settings_toolbar_position_bottom">Bottom</string>
     <string name="settings_section_widgets">Widgets</string>
     <string name="settings_widget_theme">Widget theme</string>
     <string name="settings_widget_theme_follow_app">Follow app theme</string>

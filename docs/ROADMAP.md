@@ -57,6 +57,10 @@ Ideas and opportunities. May not happen. Kept for reference.
   server. Large effort (full ical4j parse / serialize).
 - **In-app font-size control.** A text-size preference inside Asala,
   independent of the OS font-scale support above.
+- **Bottom-aligned header / navigation toggle.** Optional setting to
+  move the top bar (title, nav buttons, controls) to the bottom of the
+  screen for one-handed reach on tall phones. Affects the screens with a
+  top app bar; needs a layout pass per view plus a settings switch.
 - **Multiple timezones per event** (second timezone in editor and
   detail sheet; optional pinned secondary timezone in the Day / Week
   rail), and travel-aware display when the device timezone differs from

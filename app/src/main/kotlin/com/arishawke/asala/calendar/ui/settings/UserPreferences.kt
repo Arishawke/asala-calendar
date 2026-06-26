@@ -104,6 +104,8 @@ data class UserPrefs(
     val showWeekNumber: Boolean,
     // see [[MonthScrollStyle]].
     val monthScrollStyle: MonthScrollStyle,
+    // where the app bar sits across every screen. see [[ToolbarPosition]].
+    val toolbarPosition: ToolbarPosition,
     // home-screen widget appearance, independent of the app theme. FollowApp
     // reproduces the prior behavior (widgets track themeMode).
     val widgetThemeMode: WidgetThemeMode,
@@ -138,6 +140,7 @@ data class UserPrefs(
             workingDays = WorkingDaysDefault,
             showWeekNumber = false,
             monthScrollStyle = MonthScrollStyle.Continuous,
+            toolbarPosition = ToolbarPosition.Top,
             widgetThemeMode = WidgetThemeMode.FollowApp,
             widgetTranslucent = false,
         )
@@ -180,6 +183,9 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                 showWeekNumber = p[KEY_SHOW_WEEK_NUMBER] ?: d.showWeekNumber,
                 monthScrollStyle = parseEnum(p[KEY_MONTH_SCROLL_STYLE], d.monthScrollStyle) {
                     MonthScrollStyle.valueOf(it)
+                },
+                toolbarPosition = parseEnum(p[KEY_TOOLBAR_POSITION], d.toolbarPosition) {
+                    ToolbarPosition.valueOf(it)
                 },
                 widgetThemeMode = parseEnum(p[KEY_WIDGET_THEME_MODE], d.widgetThemeMode) {
                     WidgetThemeMode.valueOf(it)
@@ -358,6 +364,10 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[KEY_MONTH_SCROLL_STYLE] = style.name }
     }
 
+    suspend fun setToolbarPosition(pos: ToolbarPosition) {
+        dataStore.edit { it[KEY_TOOLBAR_POSITION] = pos.name }
+    }
+
     suspend fun setWidgetThemeMode(mode: WidgetThemeMode) {
         dataStore.edit { it[KEY_WIDGET_THEME_MODE] = mode.name }
     }
@@ -399,6 +409,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val KEY_WORKING_DAYS = stringSetPreferencesKey("working_days")
         val KEY_SHOW_WEEK_NUMBER = booleanPreferencesKey("show_week_number")
         val KEY_MONTH_SCROLL_STYLE = stringPreferencesKey("month_scroll_style")
+        val KEY_TOOLBAR_POSITION = stringPreferencesKey("toolbar_position")
         val KEY_WIDGET_THEME_MODE = stringPreferencesKey("widget_theme_mode")
         val KEY_WIDGET_TRANSLUCENT = booleanPreferencesKey("widget_translucent")
 
