@@ -329,8 +329,11 @@ private fun HeaderTitle(
     animationsEnabled: Boolean,
     onClick: () -> Unit,
 ) {
+    // chevron points toward where the panel opens: down when the bar is on top,
+    // up when it's at the bottom. it flips on expand, so xor the two.
+    val atBottom = LocalToolbarPosition.current == ToolbarPosition.Bottom
     val rotation by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
+        targetValue = if (expanded != atBottom) 180f else 0f,
         animationSpec = if (animationsEnabled) spring() else snap(),
         label = "header-chevron-rotation",
     )

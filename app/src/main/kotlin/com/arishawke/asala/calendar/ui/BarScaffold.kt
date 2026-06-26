@@ -11,9 +11,11 @@ package com.arishawke.asala.calendar.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
@@ -23,9 +25,11 @@ import com.arishawke.asala.calendar.ui.settings.ToolbarPosition
 
 // shared scaffold for the secondary screens (Search, Event edit, Settings).
 // places the single bar at the top or bottom per the toolbar-position setting
-// and hands it the right window insets: status bar on top; nav bar on bottom
-// so a bottom bar clears the system nav. imePadding on the bottom branch lifts
-// the whole scaffold (bar included) above the keyboard when a field is focused.
+// and keeps content clear of the keyboard. the app is edge-to-edge with
+// adjustResize, so the ime arrives as an inset that content must consume:
+// the top branch lifts the whole scaffold with imePadding; the bottom branch
+// folds ime into the bar's own inset (union with nav bar) so the bar sits
+// flush above the keyboard and Scaffold reserves that height for content.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BarScaffold(
@@ -35,14 +39,19 @@ internal fun BarScaffold(
 ) {
     when (LocalToolbarPosition.current) {
         ToolbarPosition.Top -> Scaffold(
-            modifier = modifier,
+            modifier = modifier.imePadding(),
             topBar = { bar(TopAppBarDefaults.windowInsets) },
             content = content,
         )
-        ToolbarPosition.Bottom -> Scaffold(
-            modifier = modifier.imePadding(),
-            bottomBar = { bar(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)) },
-            content = content,
-        )
+        ToolbarPosition.Bottom -> {
+            val barInsets = WindowInsets.navigationBars
+                .union(WindowInsets.ime)
+                .only(WindowInsetsSides.Bottom)
+            Scaffold(
+                modifier = modifier,
+                bottomBar = { bar(barInsets) },
+                content = content,
+            )
+        }
     }
 }
