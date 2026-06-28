@@ -11,6 +11,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - A "Toolbar position" setting (Settings, Appearance) moves the app bar to the
   bottom of the screen for one-handed reach. It applies across the calendar,
   search, event editor, and settings screens. Defaults to top.
+- Quick add understands times of day. "tonight" and "this evening" set an evening
+  time, "this afternoon" an afternoon one, and "tomorrow morning" a morning one,
+  instead of leaving the word in the title or creating an all-day event.
+
+### Fixed
+- Quick add reads a plain time range like "9 to 5" as a daytime span (9am to 5pm)
+  instead of a 20-hour event running past midnight. Ranges written with a single
+  am/pm, such as "9-5pm", and afternoon ranges like "3 to 4", now land in the
+  expected half of the day.
+- Quick add no longer turns "every Monday" into a single one-off event on the next
+  Monday. It cannot create a repeat, so it leaves the phrase in place for you to
+  finish setting up in the editor.
 
 ## [0.22.0] - 2026-06-19
 

@@ -105,4 +105,18 @@ class DateGrammarTest {
         assertEquals(LocalDate.of(2026, 6, 15), find("rent the 15th")) // today is the 10th
         assertEquals(LocalDate.of(2026, 7, 5), find("rent the 5th")) // 5th has passed
     }
+
+    // "every <weekday>" is a recurrence the quick-add cannot express; it must not
+    // resolve to a one-off date, or the word "every" is left stranded in the title.
+    @Test fun `every weekday is declined`() {
+        assertNull(find("standup every monday"))
+    }
+
+    // the decline holds for the other recurrence phrasings, including a weekday not
+    // directly after "every" and a punctuation-joined form.
+    @Test fun `every recurrence forms are declined`() {
+        assertNull(find("standup every monday and tuesday"))
+        assertNull(find("standup every other monday"))
+        assertNull(find("standup every-monday"))
+    }
 }

@@ -61,10 +61,15 @@ internal object DateGrammar {
     }
 
     private fun bareWeekday(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
+        // "every monday" (also "every other monday", "every monday and tuesday") is
+        // recurrence the quick-add cannot express; if an "every" qualifier appears
+        // at all, decline a bare weekday rather than schedule a misleading one-off.
+        if (Regex("\\b(?:${alt(vocab.everyQualifier)})\\b", IC).containsMatchIn(work)) return null
         val bare = alt(vocab.weekdays.keys - vocab.bareHomographs)
-        val m = Regex("\\b($bare)\\b", IC).find(work) ?: return null
-        val target = vocab.weekdays.getValue(m.groupValues[1].lowercase())
-        return DateMatch(today.plusDays(daysUntil(today, target)), m.range)
+        return Regex("\\b($bare)\\b", IC).find(work)?.let { m ->
+            val target = vocab.weekdays.getValue(m.groupValues[1].lowercase())
+            DateMatch(today.plusDays(daysUntil(today, target)), m.range)
+        }
     }
 
     // construct a date, rolling a yearless past date forward a year. an invalid

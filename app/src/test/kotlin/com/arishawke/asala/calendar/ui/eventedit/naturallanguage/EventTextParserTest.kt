@@ -156,4 +156,86 @@ class EventTextParserTest {
         val p = parse("dinner at Nonna's on friday")
         assertEquals("Nonna's", p.location)
     }
+
+    // a meridiem-less range introduced by from/to is a daytime range, not a
+    // literal 24-hour reading that rolls "9 to 5" into a 20-hour overnight event.
+    @Test fun `nine to five is a daytime range`() {
+        val p = parse("work 9 to 5")
+        assertEquals(LocalTime.of(9, 0), p.startTime)
+        assertEquals(LocalTime.of(17, 0), p.endTime)
+    }
+
+    // a bare daytime range biases the start to the afternoon when AM would be odd.
+    @Test fun `bare afternoon range biases to pm`() {
+        val p = parse("lunch 3 to 4")
+        assertEquals(LocalTime.of(15, 0), p.startTime)
+        assertEquals(LocalTime.of(16, 0), p.endTime)
+    }
+
+    // a meridiem on the side that would invert the range flips the bare side
+    // instead of producing an overnight event ("9-5pm" is 9am-5pm).
+    @Test fun `range with end pm crossing noon keeps start in am`() {
+        val p = parse("meeting 9-5pm")
+        assertEquals(LocalTime.of(9, 0), p.startTime)
+        assertEquals(LocalTime.of(17, 0), p.endTime)
+    }
+
+    @Test fun `range with start am crossing noon pushes end to pm`() {
+        val p = parse("meeting 9am-5")
+        assertEquals(LocalTime.of(9, 0), p.startTime)
+        assertEquals(LocalTime.of(17, 0), p.endTime)
+    }
+
+    // "tonight" is an evening time today, not an all-day event.
+    @Test fun `tonight is an evening time on today`() {
+        val p = parse("call tonight")
+        assertEquals(now.toLocalDate(), p.date)
+        assertEquals(LocalTime.of(18, 0), p.startTime)
+        assertEquals("call", p.title) // "tonight" is consumed by the date grammar, not left in the title
+    }
+
+    // time-of-day words set a default hour and are not left in the title.
+    @Test fun `this afternoon sets a default time without leaking`() {
+        val p = parse("lunch this afternoon")
+        assertEquals(LocalTime.of(14, 0), p.startTime)
+        assertEquals("lunch", p.title)
+    }
+
+    @Test fun `tomorrow morning is tomorrow at nine`() {
+        val p = parse("gym tomorrow morning")
+        assertEquals(now.toLocalDate().plusDays(1), p.date)
+        assertEquals(LocalTime.of(9, 0), p.startTime)
+        assertEquals("gym", p.title)
+    }
+
+    // "every <weekday>" is recurrence the quick-add cannot express, so it is not
+    // silently scheduled as a one-off; the phrase is left for the editor.
+    @Test fun `every weekday is not parsed as a one-off date`() {
+        val p = parse("standup every monday")
+        assertNull(p.date)
+        assertEquals("standup every monday", p.title)
+    }
+
+    // a bare time-of-day noun with no temporal lead is an ordinary title word, not
+    // a time: "movie night" must stay its full title, not become an 8pm "movie".
+    @Test fun `bare time-of-day noun stays in the title`() {
+        val p = parse("movie night")
+        assertNull(p.startTime)
+        assertEquals("movie night", p.title)
+    }
+
+    // a meridiem-less from/to range whose end is 12 still resolves to a daytime
+    // span instead of silently dropping the time.
+    @Test fun `from-to range ending at twelve resolves`() {
+        val p = parse("brunch from 6 to 12")
+        assertEquals(LocalTime.of(6, 0), p.startTime)
+        assertEquals(LocalTime.of(12, 0), p.endTime)
+    }
+
+    // an out-of-range end hour is rejected, not laundered into a plausible time.
+    @Test fun `out of range end hour is not a range`() {
+        val p = parse("meeting from 9 to 25")
+        assertNull(p.startTime)
+        assertNull(p.endTime)
+    }
 }

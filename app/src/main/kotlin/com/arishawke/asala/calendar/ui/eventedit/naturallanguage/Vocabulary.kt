@@ -9,6 +9,7 @@
 package com.arishawke.asala.calendar.ui.eventedit.naturallanguage
 
 import java.time.DayOfWeek
+import java.time.LocalTime
 import java.util.Locale
 
 // language-specific words for the rule-based parser, grouped by grammatical role
@@ -39,6 +40,9 @@ internal data class Vocabulary(
     val meridiemAm: List<String>,
     val meridiemPm: List<String>,
     val locationTrimConnectors: List<String>,
+    val timeOfDay: Map<String, LocalTime>,
+    val tonight: List<String>,
+    val everyQualifier: List<String>,
 ) {
     companion object {
         val English: Vocabulary = englishVocabulary()
@@ -50,6 +54,11 @@ internal data class Vocabulary(
         fun forLocale(locale: Locale): Vocabulary = English
     }
 }
+
+private const val MORNING_HOUR = 9
+private const val AFTERNOON_HOUR = 14
+private const val EVENING_HOUR = 18
+private const val NIGHT_HOUR = 20
 
 private fun englishVocabulary(): Vocabulary {
     val weekdays = mapOf(
@@ -98,6 +107,16 @@ private fun englishVocabulary(): Vocabulary {
         meridiemPm = listOf("pm"),
         // overlap with at/from connectors is intentional: different role
         locationTrimConnectors = listOf("on", "from", "at"),
+        // default hour for a vague time-of-day word; "tonight" reads as evening.
+        timeOfDay = mapOf(
+            "morning" to LocalTime.of(MORNING_HOUR, 0),
+            "afternoon" to LocalTime.of(AFTERNOON_HOUR, 0),
+            "evening" to LocalTime.of(EVENING_HOUR, 0),
+            "night" to LocalTime.of(NIGHT_HOUR, 0),
+            "tonight" to LocalTime.of(EVENING_HOUR, 0),
+        ),
+        tonight = listOf("tonight"),
+        everyQualifier = listOf("every"),
     )
 }
 

@@ -37,6 +37,7 @@ object EventTextParser {
         extractDuration(acc, vocab)
         extractTimeRange(acc, vocab)
         if (acc.startTime == null) extractSingleTime(acc, vocab)
+        if (acc.startTime == null) extractTimeOfDay(acc, vocab)
         extractDate(acc, now.toLocalDate(), locale, vocab)
         extractLocation(acc, vocab)
 
@@ -86,18 +87,61 @@ object EventTextParser {
                 "(?:-|${alt(vocab.toConnector)})\\s*(\\d{1,2})(?::(\\d{2}))?\\s*($mer)?\\b",
             IC,
         ).find(acc.work) ?: return
-        var sMer = m.groupValues[3].ifBlank { null }
-        var eMer = m.groupValues[6].ifBlank { null }
-        // a bare "N-M" with no meridiem and no from/to keyword is a number/date
-        // range (e.g. "jan 3-15"), not a time; require a real time cue.
-        if (sMer == null && eMer == null && !m.value.contains(Regex("\\b($fromTo)\\b", IC))) return
-        if (sMer == null && eMer != null) sMer = eMer
-        if (eMer == null && sMer != null) eMer = sMer
-        val s = clock(m.groupValues[1].toInt(), m.groupValues[2].ifBlank { "0" }.toInt(), sMer) ?: return
-        val e = clock(m.groupValues[4].toInt(), m.groupValues[5].ifBlank { "0" }.toInt(), eMer) ?: return
-        acc.startTime = s
-        acc.endTime = e
-        acc.blank(m.range)
+        val sMer = m.groupValues[3].ifBlank { null }
+        val eMer = m.groupValues[6].ifBlank { null }
+        val times = if (sMer == null && eMer == null) {
+            // a bare "N-M" is a number/date range ("jan 3-15") unless a from/to cue
+            // signals time intent ("9 to 5"), then it reads as a daytime range.
+            if (m.value.contains(Regex("\\b($fromTo)\\b", IC))) {
+                daytimeRange(
+                    m.groupValues[1].toInt(),
+                    m.groupValues[2].ifBlank { "0" }.toInt(),
+                    m.groupValues[4].toInt(),
+                    m.groupValues[5].ifBlank { "0" }.toInt(),
+                )
+            } else {
+                null
+            }
+        } else {
+            inheritedRange(m, sMer, eMer)
+        }
+        times?.let {
+            acc.startTime = it.first
+            acc.endTime = it.second
+            acc.blank(m.range)
+        }
+    }
+
+    // a meridiem-less range read as daytime: the start biased to working hours
+    // (early hours are afternoon, late morning stays morning, 12 is noon), the end
+    // the first reading strictly after it. null if no sane reading fits.
+    private fun daytimeRange(sh: Int, sm: Int, eh: Int, em: Int): Pair<LocalTime, LocalTime>? = runCatching {
+        val ends = if (eh in 0..23) listOf(eh % 12, eh % 12 + 12).map { LocalTime.of(it, em) } else emptyList()
+        // bias an early start hour into the afternoon, but fall back to the literal
+        // hour when nothing reads after it (so "6 to 12" is 06:00-12:00, not blank).
+        val biased = LocalTime.of(if (sh in 1..6) sh + 12 else sh, sm)
+        val start = if (ends.any { it.isAfter(biased) }) biased else LocalTime.of(sh, sm)
+        ends.firstOrNull { it.isAfter(start) }?.let { start to it }
+    }.getOrNull()
+
+    // inherit the present meridiem onto the bare side; if that inverts the range,
+    // flip the originally-bare side to the other half of the day ("9-5pm" is
+    // 9am-5pm). an explicit both-sided overnight ("10pm to 2am") is left alone.
+    private fun inheritedRange(m: MatchResult, sMer: String?, eMer: String?): Pair<LocalTime, LocalTime>? {
+        fun flip(mer: String?) = if (mer.equals("pm", ignoreCase = true)) "am" else "pm"
+        val sh = m.groupValues[1].toInt()
+        val sm = m.groupValues[2].ifBlank { "0" }.toInt()
+        val eh = m.groupValues[4].toInt()
+        val em = m.groupValues[5].ifBlank { "0" }.toInt()
+        val s0 = clock(sh, sm, sMer ?: eMer)
+        val e0 = clock(eh, em, eMer ?: sMer)
+        return when {
+            s0 == null || e0 == null -> null
+            e0.isAfter(s0) -> s0 to e0
+            sMer == null -> (clock(sh, sm, flip(eMer)) ?: s0) to e0
+            eMer == null -> s0 to (clock(eh, em, flip(sMer)) ?: e0)
+            else -> s0 to e0
+        }
     }
 
     private fun extractSingleTime(acc: Acc, vocab: Vocabulary) {
@@ -130,6 +174,29 @@ object EventTextParser {
                 acc.blank(m.range)
                 return
             }
+        }
+    }
+
+    private fun extractTimeOfDay(acc: Acc, vocab: Vocabulary) {
+        if (vocab.timeOfDay.isEmpty()) return
+        // "tonight" reads as evening and stays in the text so the date grammar
+        // resolves it to today.
+        val tonight = Regex("\\b(${alt(vocab.tonight)})\\b", IC).find(acc.work)
+        // the other words set a time only after a temporal lead (this/the or a day
+        // word), so a plain title like "movie night" keeps its word untouched.
+        val lead = alt(vocab.thisQualifier + vocab.theArticle + vocab.today + vocab.tomorrow + vocab.weekdays.keys)
+        val words = alt(vocab.timeOfDay.keys - vocab.tonight.toSet())
+        val led = Regex("\\b($lead)\\s+($words)\\b", IC).find(acc.work)
+        if (tonight != null) {
+            acc.startTime = vocab.timeOfDay[tonight.groupValues[1].lowercase()]
+        } else if (led != null) {
+            acc.startTime = vocab.timeOfDay[led.groupValues[2].lowercase()]
+            // keep a day-word lead for the date grammar; blank a this/the qualifier
+            // together with the time word so neither leaks into the title.
+            val leadWord = led.groupValues[1].lowercase()
+            val dayLead = leadWord in vocab.today || leadWord in vocab.tomorrow || leadWord in vocab.weekdays
+            val from = if (dayLead) led.range.last - led.groupValues[2].length + 1 else led.range.first
+            acc.blank(from..led.range.last)
         }
     }
 
