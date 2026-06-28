@@ -113,7 +113,7 @@ internal fun DefaultDurationDropdown(current: Int, onChange: (Int) -> Unit) {
     var open by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }) {
         OutlinedTextField(
-            value = "$current min",
+            value = stringResource(R.string.minutes_short, current),
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.settings_default_duration)) },
@@ -126,7 +126,7 @@ internal fun DefaultDurationDropdown(current: Int, onChange: (Int) -> Unit) {
         ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { min ->
                 DropdownMenuItem(
-                    text = { Text("$min min") },
+                    text = { Text(stringResource(R.string.minutes_short, min)) },
                     onClick = {
                         onChange(min)
                         open = false
@@ -144,7 +144,7 @@ internal fun DefaultSnoozeDropdown(current: Int, onChange: (Int) -> Unit) {
     var open by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }) {
         OutlinedTextField(
-            value = "$current min",
+            value = stringResource(R.string.minutes_short, current),
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.settings_default_snooze)) },
@@ -157,7 +157,7 @@ internal fun DefaultSnoozeDropdown(current: Int, onChange: (Int) -> Unit) {
         ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { min ->
                 DropdownMenuItem(
-                    text = { Text("$min min") },
+                    text = { Text(stringResource(R.string.minutes_short, min)) },
                     onClick = {
                         onChange(min)
                         open = false

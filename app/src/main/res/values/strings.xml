@@ -45,10 +45,10 @@
     <!-- Drawer -->
     <string name="drawer_header_calendars">Calendars</string>
     <string name="drawer_hidden_section">Hidden in system settings</string>
-    <string name="account_type_google">Google</string>
+    <string name="account_type_google" translatable="false">Google</string>
     <string name="account_type_local">On this device</string>
-    <string name="account_type_exchange">Exchange</string>
-    <string name="account_type_caldav">CalDAV</string>
+    <string name="account_type_exchange" translatable="false">Exchange</string>
+    <string name="account_type_caldav" translatable="false">CalDAV</string>
     <string name="cd_collapse_account">Collapse %1$s</string>
     <string name="cd_expand_account">Expand %1$s</string>
 
@@ -70,6 +70,8 @@
 
     <!-- Event display -->
     <string name="event_no_title">(no title)</string>
+    <!-- Start/end time range on event chips, the reminder, and settings, e.g. "9:00 – 10:30". -->
+    <string name="time_range_format">%1$s – %2$s</string>
     <!-- Continuation badge on a timed event that spans more than one day, e.g. "1/2". -->
     <string name="event_segment_badge">%1$d/%2$d</string>
     <!-- Pill pointing to a just-saved event that is off-screen; %1$s is its start time. -->
@@ -87,6 +89,10 @@
     <plurals name="event_overflow_more">
         <item quantity="one">+%1$d more</item>
         <item quantity="other">+%1$d more</item>
+    </plurals>
+    <plurals name="reminder_minutes_before">
+        <item quantity="one">%1$d minute before</item>
+        <item quantity="other">%1$d minutes before</item>
     </plurals>
     <plurals name="reminder_hours_before">
         <item quantity="one">%1$d hour before</item>
@@ -141,7 +147,7 @@
     <string name="repeats_does_not">Does not repeat</string>
     <string name="ends_never">Forever</string>
     <string name="ends_on_date">On date</string>
-    <string name="ends_after_count">After N occurrences</string>
+    <string name="ends_after_count">After a number of times</string>
 
     <!-- Recurring scope dialog -->
     <string name="scope_title_edit">Change recurring event</string>
@@ -157,7 +163,6 @@
     <string name="reminder_at_time">At time of event</string>
     <string name="reminder_one_hour">1 hour before</string>
     <string name="reminder_one_day">1 day before</string>
-    <string name="reminder_minutes_before">%1$d min before</string>
     <string name="reminder_custom">Custom…</string>
     <string name="custom_reminder_dialog_title">Custom reminder</string>
     <string name="custom_reminder_unit_minutes">Minutes</string>
@@ -210,7 +215,7 @@
 
     <!-- Color palettes (offered by the recolor pickers) -->
     <string name="palette_okabe_ito">Okabe-Ito (color-blind safe)</string>
-    <string name="palette_radix">Radix</string>
+    <string name="palette_radix" translatable="false">Radix</string>
 
     <!-- Event editor: Color row (per-event color override) -->
     <string name="field_color">Color</string>
@@ -322,6 +327,8 @@
 
     <!-- Settings: General default duration -->
     <string name="settings_default_duration">Default event duration</string>
+    <!-- Compact minutes value for the duration and snooze dropdowns, e.g. "30 min". -->
+    <string name="minutes_short">%1$d min</string>
 
     <!-- Notification action labels (Snooze two-tier) -->
     <string name="notif_action_snooze_default_format">Snooze %1$dm</string>
@@ -333,7 +340,7 @@
 
     <!-- Settings: About section -->
     <string name="settings_section_about">About</string>
-    <string name="settings_about_license_value">GPL-3.0-or-later</string>
+    <string name="settings_about_license_value" translatable="false">GPL-3.0-or-later</string>
     <string name="settings_about_source">Source code</string>
     <string name="settings_about_source_url" translatable="false">https://github.com/Arishawke/asala-calendar</string>
     <string name="settings_about_licenses">Open source licenses</string>

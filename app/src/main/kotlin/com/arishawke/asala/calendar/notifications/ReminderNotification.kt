@@ -78,7 +78,11 @@ internal fun buildReminderNotification(
             context.getString(R.string.field_all_day)
         } else {
             val df = DateFormat.getTimeInstance(DateFormat.SHORT)
-            "${df.format(Date(event.startMillis))} - ${df.format(Date(event.endMillis))}"
+            context.getString(
+                R.string.time_range_format,
+                df.format(Date(event.startMillis)),
+                df.format(Date(event.endMillis)),
+            )
         }
 
     val openPi = openMainActivityPendingIntent(context, eventId, instanceMillis)

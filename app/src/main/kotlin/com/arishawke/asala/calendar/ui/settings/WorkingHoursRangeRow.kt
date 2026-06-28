@@ -52,7 +52,11 @@ internal fun WorkingHoursRangeRow(
     val label = stringResource(R.string.settings_working_hours_range)
     val locale = LocalLocale.current.platformLocale
     val value =
-        "${formatHourOfDay(startHour, is24Hour, locale)} - ${formatHourOfDay(endHour, is24Hour, locale)}"
+        stringResource(
+            R.string.time_range_format,
+            formatHourOfDay(startHour, is24Hour, locale),
+            formatHourOfDay(endHour, is24Hour, locale),
+        )
     Column(
         modifier = Modifier
             .fillMaxWidth()

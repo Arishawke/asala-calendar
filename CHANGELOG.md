@@ -15,6 +15,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   time, "this afternoon" an afternoon one, and "tomorrow morning" a morning one,
   instead of leaving the word in the title or creating an all-day event.
 
+### Changed
+- Reminder offsets read in full words ("30 minutes before"), matching the hour
+  and day wording, and the recurrence end option reads "After a number of times"
+  instead of "After N occurrences".
+
 ### Fixed
 - Quick add reads a plain time range like "9 to 5" as a daytime span (9am to 5pm)
   instead of a 20-hour event running past midnight. Ranges written with a single

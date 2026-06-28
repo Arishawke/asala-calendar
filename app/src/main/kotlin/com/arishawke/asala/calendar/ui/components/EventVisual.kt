@@ -239,7 +239,7 @@ private fun EventBlockLabels(
         val originalStart = Instant.ofEpochMilli(event.startMillis).atZone(zone)
         if (showEndTime) {
             val displayEnd = Instant.ofEpochMilli(displayEndMillis).atZone(zone)
-            "${timeFmt.format(originalStart)} - ${timeFmt.format(displayEnd)}"
+            stringResource(R.string.time_range_format, timeFmt.format(originalStart), timeFmt.format(displayEnd))
         } else {
             timeFmt.format(originalStart)
         }

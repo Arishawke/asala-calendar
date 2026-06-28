@@ -35,6 +35,6 @@ internal fun reminderLabel(m: Int?): String = when (m) {
             val hours = m / MinutesPerHour
             pluralStringResource(R.plurals.reminder_hours_before, hours, hours)
         }
-        else -> stringResource(R.string.reminder_minutes_before, m)
+        else -> pluralStringResource(R.plurals.reminder_minutes_before, m, m)
     }
 }

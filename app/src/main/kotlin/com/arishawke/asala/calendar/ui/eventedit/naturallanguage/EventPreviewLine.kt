@@ -20,7 +20,8 @@ internal fun previewLine(parsed: ParsedEvent, is24Hour: Boolean, locale: Locale)
     parsed.date?.let { parts += it.format(DateTimeFormatter.ofPattern("EEE, MMM d", locale)) }
     if (parsed.startTime != null) {
         val tf = timeFormatter(is24Hour, locale)
-        parts += parsed.startTime.format(tf) + (parsed.endTime?.let { " - ${it.format(tf)}" }.orEmpty())
+        // en-dash matches the time_range_format resource used elsewhere.
+        parts += parsed.startTime.format(tf) + (parsed.endTime?.let { " – ${it.format(tf)}" }.orEmpty())
     }
     parsed.location?.let { parts += it }
     return parts.joinToString("  ·  ") // interpunct separator
