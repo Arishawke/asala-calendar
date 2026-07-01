@@ -35,6 +35,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   that merely has "Birthdays" or "Anniversaries" in its name.
 - A contact birthday or anniversary detail no longer repeats the person's name as a
   redundant "Notes" line.
+- If you delete a generated birthdays or anniversaries calendar outside the app, it
+  is now re-created on the next refresh (or when you turn the feature on again)
+  instead of silently staying empty. Turning the feature on again no longer creates
+  a duplicate calendar pair.
 - A synced calendar's "default" reminder no longer schedules a timed reminder a
   minute after the event has already started; such reminders are skipped instead.
 - Quick add reads a plain time range like "9 to 5" as a daytime span (9am to 5pm)
