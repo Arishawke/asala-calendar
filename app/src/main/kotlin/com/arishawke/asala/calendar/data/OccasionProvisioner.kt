@@ -36,8 +36,15 @@ class OccasionProvisioner(
         reminderMinutes: Int?,
         titleFor: (Occasion) -> String,
     ): Boolean {
-        val ids = ensureCalendars(birthdaysName, anniversariesName) ?: return false
+        // mark intent before ensureCalendars so its in-lock enabled check passes for
+        // the enable path (a background heal reads the same flag and must see it on);
+        // roll back if provisioning fails so we don't leave the feature half-enabled.
         prefs.setContactOccasionsEnabled(true)
+        val ids = ensureCalendars(birthdaysName, anniversariesName)
+        if (ids == null) {
+            prefs.setContactOccasionsEnabled(false)
+            return false
+        }
         sync.sync(ids.birthdays, ids.anniversaries, reminderMinutes, titleFor)
         return true
     }
@@ -52,6 +59,10 @@ class OccasionProvisioner(
     internal suspend fun ensureCalendars(birthdaysName: String, anniversariesName: String): OccasionCalendarIds? =
         provisionMutex.withLock {
             val current = prefs.prefs.first()
+            // re-check under the lock: the feature may have been disabled between the
+            // caller's gate and here, in which case a background heal must create
+            // nothing (disable() also holds this lock, so the two can't interleave).
+            if (!current.contactOccasionsEnabled) return@withLock null
             val existing = calendars.calendars().mapTo(HashSet()) { it.id }
             val birthdaysId = resolveOccasionCalendarId(current.birthdaysCalendarId, existing)
                 ?: calendars.createLocalCalendar(birthdaysName, BIRTHDAYS_DEFAULT_COLOR)
@@ -71,7 +82,9 @@ class OccasionProvisioner(
             OccasionCalendarIds(birthdaysId, anniversariesId)
         }
 
-    suspend fun disable(birthdaysCalendarId: Long?, anniversariesCalendarId: Long?) {
+    // under provisionMutex so a concurrent background heal can't re-create the pair
+    // mid-teardown (it re-reads the now-disabled flag and bails).
+    suspend fun disable(birthdaysCalendarId: Long?, anniversariesCalendarId: Long?) = provisionMutex.withLock {
         if (birthdaysCalendarId != null && anniversariesCalendarId != null) {
             // drop reminder rows first so no orphan alarm survives the calendar delete
             sync.reapplyReminders(birthdaysCalendarId, anniversariesCalendarId, reminderMinutes = null)
