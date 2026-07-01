@@ -1,0 +1,44 @@
+/*
+ * Copyright (C) 2026 Arishawke
+ * GPL v3.
+ */
+package com.arishawke.asala.calendar.data
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class OccasionReconcileTest {
+    private fun title(o: Occasion) = "${o.displayName}'s ${o.type.name.lowercase()}"
+    private fun existing(id: Long, o: Occasion) =
+        ExistingOccasionEvent(id, o.stableId, title(o), occasionDtStartMillis(o.month, o.day, o.year))
+
+    @Test fun `inserts unseen, deletes vanished, leaves unchanged`() {
+        val alice = Occasion(1, "Alice", OccasionType.Birthday, 6, 15, 1990)
+        val bob = Occasion(2, "Bob", OccasionType.Birthday, 1, 2, null)
+        val d = OccasionReconcile.diff(listOf(alice), listOf(existing(50, bob)), ::title)
+        assertEquals(listOf(alice), d.toInsert)
+        assertEquals(listOf(50L), d.toDelete)
+        assertTrue(d.toUpdate.isEmpty())
+    }
+
+    @Test fun `updates on date or name change`() {
+        val alice = Occasion(1, "Alice", OccasionType.Birthday, 6, 15, 1990)
+        val moved = alice.copy(day = 16)
+        val renamed = alice.copy(displayName = "Alicia")
+        assertEquals(
+            listOf(50L to moved),
+            OccasionReconcile.diff(listOf(moved), listOf(existing(50, alice)), ::title).toUpdate,
+        )
+        assertEquals(
+            listOf(50L to renamed),
+            OccasionReconcile.diff(listOf(renamed), listOf(existing(50, alice)), ::title).toUpdate,
+        )
+    }
+
+    @Test fun `dedups duplicate desired occasions by stable id`() {
+        val alice = Occasion(1, "Alice", OccasionType.Birthday, 6, 15, 1990)
+        val d = OccasionReconcile.diff(listOf(alice, alice), emptyList(), ::title)
+        assertEquals(1, d.toInsert.size)
+    }
+}
