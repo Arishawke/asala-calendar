@@ -17,20 +17,25 @@ import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
+import android.provider.ContactsContract
 import androidx.core.content.ContextCompat
 import com.arishawke.asala.calendar.data.TodayProvider
+import com.arishawke.asala.calendar.data.syncOccasionsIfEnabled
 import com.arishawke.asala.calendar.notifications.NotificationChannelInitializer
 import com.arishawke.asala.calendar.notifications.ReminderReArmScheduler
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class AsalaCalendarApplication : Application() {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var providerObserverRegistered = false
+    private var contactsSyncJob: Job? = null
 
     // lazy so startup doesn't pay for receiver registration until first access
     val todayProvider: TodayProvider by lazy {
@@ -49,6 +54,10 @@ class AsalaCalendarApplication : Application() {
         Timber.d("AsalaCalendarApplication onCreate")
         NotificationChannelInitializer.ensureCreated(this)
         // observer + initial reschedule deferred until permission granted
+        // contacts observer registers up front: READ_CONTACTS isn't needed to
+        // observe, and syncOccasionsIfEnabled's own gate makes firing it a
+        // no-op while the feature is off or permission is missing.
+        registerContactsObserver()
     }
 
     /** Idempotent: registers the observer once, re-runs rescheduleAll each call. */
@@ -83,6 +92,28 @@ class AsalaCalendarApplication : Application() {
         )
     }
 
+    // debounced: a single contact save can touch several rows (name, birthday,
+    // anniversary event) in quick succession, so coalesce them into one sync
+    // instead of one per row change.
+    private fun registerContactsObserver() {
+        val handler = Handler(Looper.getMainLooper())
+        val observer =
+            object : ContentObserver(handler) {
+                override fun onChange(selfChange: Boolean) {
+                    contactsSyncJob?.cancel()
+                    contactsSyncJob = appScope.launch {
+                        delay(ContactsSyncDebounceMillis)
+                        syncOccasionsIfEnabled(this@AsalaCalendarApplication)
+                    }
+                }
+            }
+        contentResolver.registerContentObserver(
+            ContactsContract.Contacts.CONTENT_URI,
+            true,
+            observer,
+        )
+    }
+
     // forwards date/time/timezone broadcasts into TodayProvider. NOT_EXPORTED
     // is correct: these are protected broadcasts only the system delivers.
     private fun registerDateChangedReceiver(onChange: () -> Unit) {
@@ -102,5 +133,9 @@ class AsalaCalendarApplication : Application() {
             filter,
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+    }
+
+    private companion object {
+        const val ContactsSyncDebounceMillis = 2_000L
     }
 }

@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Quick add understands times of day. "tonight" and "this evening" set an evening
   time, "this afternoon" an afternoon one, and "tomorrow morning" a morning one,
   instead of leaving the word in the title or creating an all-day event.
+- Optional contact birthdays and anniversaries: turn it on in Settings to show
+  your contacts' birthdays and anniversaries as two on-device calendars, with a
+  dedicated reminder. Off by default; needs contacts access.
 
 ### Changed
 - Reminder offsets read in full words ("30 minutes before"), matching the hour

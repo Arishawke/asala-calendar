@@ -17,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.arishawke.asala.calendar.data.syncOccasionsIfEnabled
 import com.arishawke.asala.calendar.notifications.ReminderConstants
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import com.arishawke.asala.calendar.ui.App
@@ -78,6 +79,9 @@ class MainActivity : ComponentActivity() {
         if (granted) {
             lifecycleScope.launch(Dispatchers.IO) {
                 ReminderScheduler.rescheduleAll(applicationContext)
+            }
+            lifecycleScope.launch(Dispatchers.IO) {
+                syncOccasionsIfEnabled(applicationContext)
             }
         }
     }
