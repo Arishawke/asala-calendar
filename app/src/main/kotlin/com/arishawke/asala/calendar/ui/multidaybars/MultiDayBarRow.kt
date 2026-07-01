@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.theme.WcagContrast
 
 private const val DaysPerWeek = 7
@@ -110,7 +111,7 @@ fun MultiDayBarRow(
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     Text(
-                        text = s.title,
+                        text = occasionDisplayTitle(s),
                         style = MaterialTheme.typography.labelSmall.copy(color = fg),
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,

@@ -17,6 +17,7 @@ import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.OCCASION_NO_YEAR_SENTINEL
 import com.arishawke.asala.calendar.data.OccasionKind
+import com.arishawke.asala.calendar.ui.multidaybars.WeekSegment
 import java.time.Instant
 import java.time.ZoneOffset
 
@@ -82,21 +83,34 @@ internal fun occasionDisplayTitle(item: EventItem): String = occasionResultText(
     ),
 )
 
-// EventDetail reads the parent Events row only (no per-instance occurrence
-// date), so parent and occurrence years are the same value here; a
-// recurring occasion series always falls back to the base title in the
-// detail sheet until EventDetail carries the shown instance's start.
+// detail.startMillis is the parent DTSTART; instanceMillis (when present) is
+// the tapped occurrence's start, so a recurring occasion series still ages
+// up per-occurrence instead of always falling back to the base title.
 @Composable
-internal fun occasionDisplayTitle(detail: EventDetail): String = occasionResultText(
+internal fun occasionDisplayTitle(detail: EventDetail, instanceMillis: Long?): String = occasionResultText(
     OccasionTitle.compute(
         kind = detail.occasion,
         name = detail.description,
         baseTitle = detail.title,
         parentDtStartMillis = detail.startMillis,
-        occurrenceStartMillis = detail.startMillis,
+        occurrenceStartMillis = instanceMillis ?: detail.startMillis,
     ),
 )
 
+// week/3-day all-day bars render WeekSegment, not EventItem; occurrenceStartMillis
+// is the segment's own start (birthdays/anniversaries are always single-day).
+@Composable
+internal fun occasionDisplayTitle(segment: WeekSegment): String = occasionResultText(
+    OccasionTitle.compute(
+        kind = segment.occasion,
+        name = segment.occasionName,
+        baseTitle = segment.title,
+        parentDtStartMillis = segment.parentDtStartMillis,
+        occurrenceStartMillis = segment.occurrenceStartMillis,
+    ),
+)
+
+// shared result -> string mapping so the item/detail/segment overloads can't drift.
 @Composable
 private fun occasionResultText(result: OccasionTitleResult): String = when (result) {
     is OccasionTitleResult.Base -> result.title

@@ -155,7 +155,7 @@ private fun EventDetailContent(
                 Spacer(Modifier.width(Spacing.sm))
             }
             Text(
-                text = occasionDisplayTitle(detail).ifBlank { stringResource(R.string.event_no_title) },
+                text = occasionDisplayTitle(detail, instanceMillis).ifBlank { stringResource(R.string.event_no_title) },
                 style = MaterialTheme.typography.headlineSmall,
                 fontStyle = styling.titleFontStyle,
                 textDecoration = styling.titleDecoration,
