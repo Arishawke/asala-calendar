@@ -20,22 +20,29 @@ import android.provider.CalendarContract
 import android.provider.ContactsContract
 import androidx.core.content.ContextCompat
 import com.arishawke.asala.calendar.data.TodayProvider
+import com.arishawke.asala.calendar.data.observeChanges
 import com.arishawke.asala.calendar.data.syncOccasionsIfEnabled
 import com.arishawke.asala.calendar.notifications.NotificationChannelInitializer
 import com.arishawke.asala.calendar.notifications.ReminderReArmScheduler
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
+import com.arishawke.asala.calendar.ui.settings.UserPreferences
+import com.arishawke.asala.calendar.ui.settings.settingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class AsalaCalendarApplication : Application() {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var providerObserverRegistered = false
-    private var contactsSyncJob: Job? = null
 
     // lazy so startup doesn't pay for receiver registration until first access
     val todayProvider: TodayProvider by lazy {
@@ -44,6 +51,7 @@ class AsalaCalendarApplication : Application() {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
@@ -53,11 +61,24 @@ class AsalaCalendarApplication : Application() {
         // crash reporting.
         Timber.d("AsalaCalendarApplication onCreate")
         NotificationChannelInitializer.ensureCreated(this)
-        // observer + initial reschedule deferred until permission granted
-        // contacts observer registers up front: READ_CONTACTS isn't needed to
-        // observe, and syncOccasionsIfEnabled's own gate makes firing it a
-        // no-op while the feature is off or permission is missing.
-        registerContactsObserver()
+        // observe contacts only while the feature is enabled; observeChanges
+        // swallows the SecurityException when READ_CONTACTS isn't (yet)
+        // granted, so this never crashes, and flatMapLatest tears the
+        // observer down (via awaitClose) the moment the pref flips off.
+        appScope.launch {
+            UserPreferences(settingsDataStore).prefs
+                .map { it.contactOccasionsEnabled }
+                .distinctUntilChanged()
+                .flatMapLatest { enabled ->
+                    if (enabled) {
+                        contentResolver.observeChanges(ContactsContract.Contacts.CONTENT_URI)
+                            .debounce(ContactsSyncDebounceMillis)
+                    } else {
+                        emptyFlow()
+                    }
+                }
+                .collect { syncOccasionsIfEnabled(this@AsalaCalendarApplication) }
+        }
     }
 
     /** Idempotent: registers the observer once, re-runs rescheduleAll each call. */
@@ -87,28 +108,6 @@ class AsalaCalendarApplication : Application() {
         )
         contentResolver.registerContentObserver(
             CalendarContract.Reminders.CONTENT_URI,
-            true,
-            observer,
-        )
-    }
-
-    // debounced: a single contact save can touch several rows (name, birthday,
-    // anniversary event) in quick succession, so coalesce them into one sync
-    // instead of one per row change.
-    private fun registerContactsObserver() {
-        val handler = Handler(Looper.getMainLooper())
-        val observer =
-            object : ContentObserver(handler) {
-                override fun onChange(selfChange: Boolean) {
-                    contactsSyncJob?.cancel()
-                    contactsSyncJob = appScope.launch {
-                        delay(ContactsSyncDebounceMillis)
-                        syncOccasionsIfEnabled(this@AsalaCalendarApplication)
-                    }
-                }
-            }
-        contentResolver.registerContentObserver(
-            ContactsContract.Contacts.CONTENT_URI,
             true,
             observer,
         )
