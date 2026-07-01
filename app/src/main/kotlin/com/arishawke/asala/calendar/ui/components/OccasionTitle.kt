@@ -17,10 +17,9 @@ import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.OCCASION_NO_YEAR_SENTINEL
 import com.arishawke.asala.calendar.data.OccasionKind
+import com.arishawke.asala.calendar.data.utcDate
 import com.arishawke.asala.calendar.ui.LocalOccasionCalendarIds
 import com.arishawke.asala.calendar.ui.multidaybars.WeekSegment
-import java.time.Instant
-import java.time.ZoneOffset
 
 // render-time title for occasion events: the stored row keeps the plain base
 // title ("Alice's birthday"), so the age/ordinal is derived here from the
@@ -68,7 +67,7 @@ internal object OccasionTitle {
             OccasionKind.None -> OccasionTitleResult.Base(baseTitle)
         }
 
-    private fun utcYear(millis: Long): Int = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().year
+    private fun utcYear(millis: Long): Int = utcDate(millis).year
 }
 
 // the kind to TITLE by: a third-party calendar merely NAMED like an occasion

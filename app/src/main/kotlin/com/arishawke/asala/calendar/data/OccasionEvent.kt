@@ -15,8 +15,6 @@ import java.time.ZoneOffset
 // all-day event, so a fixed placeholder year stands in (never rendered).
 const val OCCASION_NO_YEAR_SENTINEL = 1604
 
-private const val MILLIS_PER_DAY = 86_400_000L
-
 private val OCCASION_URI_RE = Regex("^asala://occasion/(\\d+)/(\\w+)$")
 
 // identity for app-owned occasion events (ADR-0002 rule 7: no sync-adapter
@@ -51,7 +49,7 @@ fun occasionEventDraft(o: Occasion, calendarId: Long, appPackage: String, title:
         description = name,
         location = null,
         startMillis = start,
-        endMillis = start + MILLIS_PER_DAY,
+        endMillis = start + TimeUnits.MillisPerDay,
         allDay = true,
         eventTimezone = "UTC",
         rrule = RecurrenceRule.build(RecurrenceFrequency.Yearly, allDay = true),

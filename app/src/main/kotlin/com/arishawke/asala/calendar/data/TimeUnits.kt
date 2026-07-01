@@ -13,5 +13,6 @@ internal object TimeUnits {
     const val MinutesPerHour = 60
     const val MillisPerMinute = 60_000L
     const val HoursPerDay = 24
+    const val MillisPerDay = MillisPerMinute * MinutesPerHour * HoursPerDay
     const val MaxStartHour = HoursPerDay - 1
 }

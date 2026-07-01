@@ -8,9 +8,8 @@
  */
 package com.arishawke.asala.calendar.notifications
 
-import java.time.Instant
+import com.arishawke.asala.calendar.data.utcDate
 import java.time.ZoneId
-import java.time.ZoneOffset
 
 object ReminderTimeMath {
     // 9am local avoids the midnight surprise on all-day reminders
@@ -20,7 +19,7 @@ object ReminderTimeMath {
         // all-day events are stored at 00:00 UTC; reading the date in the device
         // zone rolls it back a day in negative-offset zones, so take the date from
         // UTC. the 9am anchor stays in the device zone to fire at local 9am.
-        val date = Instant.ofEpochMilli(startMillis).atZone(ZoneOffset.UTC).toLocalDate()
+        val date = utcDate(startMillis)
         val offsetDate = date.minusDays(minutesBefore / 1440L)
         offsetDate
             .atTime(ALL_DAY_ANCHOR_HOUR, 0)

@@ -38,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.RecurrenceFrequency
-import java.time.Instant
+import com.arishawke.asala.calendar.data.utcDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -176,7 +176,7 @@ private fun EndConditionSection(state: EventEditFormState, onChange: (EventEditF
             confirmButton = {
                 TextButton(onClick = {
                     pickerState.selectedDateMillis?.let { millis ->
-                        val picked = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                        val picked = utcDate(millis)
                         onChange(state.copy(recurrenceUntilDate = picked))
                     }
                     showDatePicker = false

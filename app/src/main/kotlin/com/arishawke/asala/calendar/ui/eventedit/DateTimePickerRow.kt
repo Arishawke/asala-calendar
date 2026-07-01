@@ -34,8 +34,8 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
+import com.arishawke.asala.calendar.data.utcDate
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
@@ -86,7 +86,7 @@ fun DateTimePickerRow(
             confirmButton = {
                 TextButton(onClick = {
                     state.selectedDateMillis?.let { millis ->
-                        val picked = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                        val picked = utcDate(millis)
                         onDateChange(picked)
                     }
                     showDatePicker = false

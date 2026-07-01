@@ -22,6 +22,7 @@ import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.StorageModeFilter
 import com.arishawke.asala.calendar.data.resolveEventDetailColor
+import com.arishawke.asala.calendar.ui.UiStateStopTimeoutMillis
 import com.arishawke.asala.calendar.ui.settings.ThemeMode
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
 import com.arishawke.asala.calendar.ui.settings.UserPrefs
@@ -113,7 +114,7 @@ class AppViewModel(
             )
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
             initialValue = initialPrefs.hiddenCalendarIds,
         )
 
@@ -123,7 +124,7 @@ class AppViewModel(
             .map { it.drawerHiddenAccountKeys }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
                 initialValue = initialPrefs.drawerHiddenAccountKeys,
             )
 
@@ -183,7 +184,7 @@ class AppViewModel(
     val prefs: StateFlow<UserPrefs> =
         userPreferences.prefs.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
             initialValue = initialPrefs,
         )
 
@@ -194,7 +195,7 @@ class AppViewModel(
             .map { it.calendarColorOverrides }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
                 initialValue = initialPrefs.calendarColorOverrides,
             )
 
@@ -206,7 +207,7 @@ class AppViewModel(
             .map { it.eventColorOverrides }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
                 initialValue = initialPrefs.eventColorOverrides,
             )
 
@@ -249,7 +250,7 @@ class AppViewModel(
             }.sortedBy { it.accountName }
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
             initialValue = emptyList(),
         )
 
@@ -270,7 +271,7 @@ class AppViewModel(
             )
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
             initialValue =
             AppUiState(
                 currentView = initialPrefs.defaultView,
@@ -383,7 +384,7 @@ class AppViewModel(
         }
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
         initialValue = null,
     )
 
