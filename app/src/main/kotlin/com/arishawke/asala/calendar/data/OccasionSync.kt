@@ -19,10 +19,13 @@ data class OccasionApplyPlan(val birthdays: OccasionDiff, val anniversaries: Occ
 // pure planner: no provider access, so the guard (a failed contacts read must
 // not be mistaken for a genuinely empty address book and wipe every existing
 // occasion event) is provable without a ContentResolver. see OccasionSyncGuardTest.
+// a null existing-events list means that calendar's read failed too: skip it
+// (empty diff) rather than treat "failed" as "empty", which would queue every
+// desired occasion as a spurious insert.
 fun planOccasions(
     read: OccasionReadResult,
-    existingBirthdays: List<ExistingOccasionEvent>,
-    existingAnniversaries: List<ExistingOccasionEvent>,
+    existingBirthdays: List<ExistingOccasionEvent>?,
+    existingAnniversaries: List<ExistingOccasionEvent>?,
     titleFor: (Occasion) -> String,
 ): OccasionApplyPlan? {
     val occasions =
@@ -32,9 +35,19 @@ fun planOccasions(
         }
     val (birthdays, anniversaries) = occasions.partition { it.type == OccasionType.Birthday }
     return OccasionApplyPlan(
-        birthdays = OccasionReconcile.diff(birthdays, existingBirthdays, titleFor),
-        anniversaries = OccasionReconcile.diff(anniversaries, existingAnniversaries, titleFor),
+        birthdays = diffOrSkip(birthdays, existingBirthdays, titleFor),
+        anniversaries = diffOrSkip(anniversaries, existingAnniversaries, titleFor),
     )
+}
+
+private fun diffOrSkip(
+    desired: List<Occasion>,
+    existing: List<ExistingOccasionEvent>?,
+    titleFor: (Occasion) -> String,
+): OccasionDiff = if (existing == null) {
+    OccasionDiff(emptyList(), emptyList(), emptyList())
+} else {
+    OccasionReconcile.diff(desired, existing, titleFor)
 }
 
 // orchestrates contact occasions into the two provisioned calendars: reads
@@ -69,7 +82,8 @@ class OccasionSync(
     }
 
     suspend fun reapplyReminders(birthdaysCalendarId: Long, anniversariesCalendarId: Long, reminderMinutes: Int?) {
-        val existing = readExisting(birthdaysCalendarId) + readExisting(anniversariesCalendarId)
+        // a failed read has nothing to reapply reminders to; skip that calendar this cycle
+        val existing = readExisting(birthdaysCalendarId).orEmpty() + readExisting(anniversariesCalendarId).orEmpty()
         for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
     }
 
@@ -85,9 +99,10 @@ class OccasionSync(
         }
         for ((eventId, occasion) in diff.toUpdate) {
             val draft = occasion.toDraft(calendarId, titleFor)
-            events.updateEvent(eventId, draft)?.let { reminders.setReminder(it, reminderMinutes) }
+            events.updateEvent(eventId, draft, scope = RecurringEditScope.AllEvents)
+                ?.let { reminders.setReminder(it, reminderMinutes) }
         }
-        for (eventId in diff.toDelete) events.deleteEvent(eventId)
+        for (eventId in diff.toDelete) events.deleteEvent(eventId, scope = RecurringEditScope.AllEvents)
     }
 
     private fun Occasion.toDraft(calendarId: Long, titleFor: (Occasion) -> String): EventDraft =
@@ -95,8 +110,10 @@ class OccasionSync(
 
     // app-owned occasion events carry a parseable CUSTOM_APP_URI (Task 3); rows
     // without one are hand-added by the user in this calendar and left alone.
-    private suspend fun readExisting(calendarId: Long): List<ExistingOccasionEvent> = withContext(Dispatchers.IO) {
-        providerCall("readOccasionEvents", onError = emptyList()) {
+    // null means the read failed (distinct from a genuinely empty calendar);
+    // callers must not treat that as "delete/replace everything".
+    private suspend fun readExisting(calendarId: Long): List<ExistingOccasionEvent>? = withContext(Dispatchers.IO) {
+        providerCall("readOccasionEvents", onError = null) {
             val cursor =
                 contentResolver.query(
                     CalendarContract.Events.CONTENT_URI,
@@ -104,7 +121,7 @@ class OccasionSync(
                     "${CalendarContract.Events.CALENDAR_ID} = ?",
                     arrayOf(calendarId.toString()),
                     null,
-                ) ?: return@providerCall emptyList()
+                ) ?: return@providerCall null
 
             cursor.use { it.readExistingOccasionEvents() }
         }

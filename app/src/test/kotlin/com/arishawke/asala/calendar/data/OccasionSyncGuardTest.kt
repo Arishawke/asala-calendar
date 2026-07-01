@@ -39,4 +39,12 @@ class OccasionSyncGuardTest {
         assertEquals(listOf(alice), plan?.birthdays?.toInsert)
         assertTrue(plan?.anniversaries?.toInsert.isNullOrEmpty())
     }
+
+    // a failed existing-events read (null) must NOT cause spurious inserts for that calendar
+    @Test fun `failed existing read skips that calendar, no inserts`() {
+        val plan = planOccasions(OccasionReadResult.Success(listOf(alice)), null, emptyList(), ::title)
+        assertTrue(plan?.birthdays?.toInsert.isNullOrEmpty())
+        assertTrue(plan?.birthdays?.toUpdate.isNullOrEmpty())
+        assertTrue(plan?.birthdays?.toDelete.isNullOrEmpty())
+    }
 }
