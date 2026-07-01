@@ -192,10 +192,7 @@ internal fun CalendarsSettings(
 
     // off by default; turning it on requests READ_CONTACTS and only
     // provisions the two calendars on grant. denial leaves the toggle off.
-    val requestContactsPermission = rememberContactsPermissionRequest(
-        onGranted = vm::enableContactOccasions,
-        onDenied = vm::disableContactOccasions,
-    )
+    val requestContactsPermission = rememberContactsPermissionRequest(onGranted = vm::enableContactOccasions)
     SwitchRow(
         label = stringResource(R.string.settings_contact_occasions),
         checked = s.contactOccasionsEnabled,

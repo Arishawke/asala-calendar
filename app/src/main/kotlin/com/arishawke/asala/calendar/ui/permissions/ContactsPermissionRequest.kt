@@ -16,7 +16,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,47 +23,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arishawke.asala.calendar.R
 
 // owns the READ_CONTACTS launcher + rationale for the "contact birthdays and
 // anniversaries" toggle; returns a trigger the toggle's onChange(true) calls.
-// on grant, onGranted provisions the calendars; on denial (or an ON_RESUME
-// recheck catching an external revoke), onDenied leaves/reverts the toggle.
+// on grant, onGranted provisions the calendars. denial (in-dialog or system)
+// is non-destructive by design: nothing was provisioned yet, and the toggle
+// reads its checked state from prefs, so it stays off on its own. an
+// external revoke after provisioning is deliberately not rechecked here: the
+// sync layer no-ops on a failed contacts read, so the calendars just go
+// stale until re-granted, per spec, instead of being deleted.
 @Composable
-fun rememberContactsPermissionRequest(onGranted: () -> Unit, onDenied: () -> Unit): () -> Unit {
+fun rememberContactsPermissionRequest(onGranted: () -> Unit): () -> Unit {
     val context = LocalContext.current
     fun hasPermission() = ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.READ_CONTACTS,
     ) == PackageManager.PERMISSION_GRANTED
 
-    var granted by remember { mutableStateOf(hasPermission()) }
     var showRationale by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { result ->
-        granted = result
-        if (result) onGranted() else onDenied()
-    }
-
-    // re-check on resume so revoking contacts access in system settings
-    // flips the toggle back off instead of leaving a stale granted state.
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                val nowGranted = hasPermission()
-                if (granted && !nowGranted) onDenied()
-                granted = nowGranted
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
+    ) { result -> if (result) onGranted() }
 
     if (showRationale) {
         ContactsRationaleDialog(
@@ -72,16 +53,12 @@ fun rememberContactsPermissionRequest(onGranted: () -> Unit, onDenied: () -> Uni
                 showRationale = false
                 launcher.launch(Manifest.permission.READ_CONTACTS)
             },
-            onNotNow = {
-                showRationale = false
-                onDenied()
-            },
+            onNotNow = { showRationale = false },
         )
     }
 
     return {
         if (hasPermission()) {
-            granted = true
             onGranted()
         } else {
             showRationale = true
