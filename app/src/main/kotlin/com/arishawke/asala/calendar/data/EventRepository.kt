@@ -104,7 +104,10 @@ class EventRepository(private val contentResolver: ContentResolver) {
         val colorIdx = getColumnIndexOrThrow(CalendarContract.Instances.DISPLAY_COLOR)
         val statusIdx = getColumnIndexOrThrow(CalendarContract.Instances.STATUS)
         val calNameIdx = getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_DISPLAY_NAME)
+        val dtStartIdx = getColumnIndexOrThrow(CalendarContract.Instances.DTSTART)
+        val descIdx = getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
         while (moveToNext()) {
+            val kind = OccasionDetection.classify(getString(calNameIdx))
             items.add(
                 EventItem(
                     instanceId = getLong(instanceIdIdx),
@@ -122,7 +125,14 @@ class EventRepository(private val contentResolver: ContentResolver) {
                     } else {
                         getInt(statusIdx)
                     },
-                    isBirthday = BirthdayDetection.isBirthdayCalendar(getString(calNameIdx)),
+                    isBirthday = kind == OccasionKind.Birthday,
+                    occasion = kind,
+                    // DTSTART can be null on some provider rows; BEGIN (this
+                    // occurrence's start) is the safe fallback.
+                    parentDtStartMillis = if (isNull(dtStartIdx)) getLong(beginIdx) else getLong(dtStartIdx),
+                    // only occasion rows need the contact name, so non-occasion
+                    // reads skip retaining the description string.
+                    occasionName = if (kind == OccasionKind.None) null else getString(descIdx),
                 ),
             )
         }
@@ -187,6 +197,8 @@ class EventRepository(private val contentResolver: ContentResolver) {
                 CalendarContract.Instances.DISPLAY_COLOR,
                 CalendarContract.Instances.STATUS,
                 CalendarContract.Instances.CALENDAR_DISPLAY_NAME,
+                CalendarContract.Instances.DTSTART,
+                CalendarContract.Instances.DESCRIPTION,
             )
     }
 }

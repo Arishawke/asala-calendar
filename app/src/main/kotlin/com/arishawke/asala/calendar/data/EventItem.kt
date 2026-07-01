@@ -27,6 +27,10 @@ data class EventItem(
     // RFC 5545 STATUS; chip renderer treats null/confirmed identically.
     val status: Int = CalendarContract.Events.STATUS_CONFIRMED,
     val isBirthday: Boolean = false,
+    val occasion: OccasionKind = OccasionKind.None,
+    // parent event's original DTSTART, for computing age from the occurrence year.
+    val parentDtStartMillis: Long = 0L,
+    val occasionName: String? = null,
 ) {
     // all-day millis are at 00:00 UTC regardless of device zone; reading them
     // in local zone shifts the date by the offset (Feb 1 in UTC-5 reads Jan 31).
