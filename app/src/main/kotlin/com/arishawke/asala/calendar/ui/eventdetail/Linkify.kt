@@ -33,6 +33,39 @@ private val LinkPattern = Regex(
 // also dropped to handle `(see https://x.y/z)`.
 private val TrailingUrlNoise = Regex("[.,;:!?)]+$")
 
+// an event description is semi-trusted (any WRITE_CALENDAR app or a CalDAV sync
+// adapter can set it), so links are restricted to these safe schemes. the
+// plain-text linkifier only ever produces these; the HTML path is filtered to
+// match (audit F7).
+private val AllowedLinkSchemes = setOf("http", "https", "mailto", "tel")
+
+private fun isAllowedLinkScheme(url: String): Boolean =
+    url.substringBefore(':', missingDelimiterValue = "").lowercase() in AllowedLinkSchemes
+
+// AnnotatedString.fromHtml turns every <a href> into a clickable Url link with no
+// scheme check. rebuild without the disallowed ones so their text stays visible
+// but inert, preserving styling and the allowed links. same-instance fast path
+// when nothing needs stripping.
+internal fun AnnotatedString.stripDisallowedLinkSchemes(): AnnotatedString {
+    val source = this
+    val links = source.getLinkAnnotations(0, source.length)
+    val hasDisallowed = links.any { range ->
+        (range.item as? LinkAnnotation.Url)?.let { !isAllowedLinkScheme(it.url) } ?: false
+    }
+    if (!hasDisallowed) return source
+    return buildAnnotatedString {
+        append(source.text)
+        source.spanStyles.forEach { addStyle(it.item, it.start, it.end) }
+        source.paragraphStyles.forEach { addStyle(it.item, it.start, it.end) }
+        links.forEach { range ->
+            val item = range.item
+            if (item is LinkAnnotation.Url && isAllowedLinkScheme(item.url)) {
+                addLink(item, range.start, range.end)
+            }
+        }
+    }
+}
+
 // tappable spans for URLs / emails / tel: in a plain-text body. bare
 // emails get a mailto: prefix at click time; the rest pass through verbatim.
 internal fun linkifyAnnotated(text: String, linkColor: Color): AnnotatedString {

@@ -36,7 +36,7 @@ internal fun DescriptionText(description: String, modifier: Modifier = Modifier)
                 linkStyles = TextLinkStyles(
                     style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline),
                 ),
-            )
+            ).stripDisallowedLinkSchemes()
         } else {
             linkifyAnnotated(description, linkColor)
         }
