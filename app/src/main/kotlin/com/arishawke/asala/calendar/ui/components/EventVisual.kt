@@ -144,6 +144,8 @@ internal fun EventChipCompact(event: EventItem, modifier: Modifier = Modifier, o
                 .background(Color(event.displayColor)),
         )
         Spacer(modifier = Modifier.width(4.dp))
+        // base title only: month grid is too narrow for the computed
+        // "N turns 30" / "N's 5th anniversary" form without truncation churn.
         val titleText = event.title.ifBlank { stringResource(R.string.event_no_title) }
         val statusCd = statusContentDescription(titleText, event.status)
         Text(
@@ -222,7 +224,7 @@ private fun EventBlockLabels(
 ) {
     val timeFmt = rememberTimeFormatter()
     val multiDay = segmentCount > 1
-    val baseTitle = event.title.ifBlank { stringResource(R.string.event_no_title) }
+    val baseTitle = occasionDisplayTitle(event).ifBlank { stringResource(R.string.event_no_title) }
     // midnight crosser gets a "N/total" badge so a later slice reads
     // as a continuation, not a separate event.
     val title = if (multiDay) {
@@ -329,7 +331,7 @@ internal fun EventChipRow(
             BirthdayLeadingIcon(size = 16.dp)
             Spacer(modifier = Modifier.width(6.dp))
         }
-        val titleText = event.title.ifBlank { stringResource(R.string.event_no_title) }
+        val titleText = occasionDisplayTitle(event).ifBlank { stringResource(R.string.event_no_title) }
         val statusCd = statusContentDescription(titleText, event.status)
         Text(
             text = titleText,

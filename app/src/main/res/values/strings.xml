@@ -343,6 +343,10 @@
     <string name="occasion_anniversary_calendar">Anniversaries</string>
     <string name="occasion_birthday_base">%1$s\'s birthday</string>
     <string name="occasion_anniversary_base">%1$s\'s anniversary</string>
+    <!-- Render-time birthday title once the birth year is known, e.g. "Alice turns 30". -->
+    <string name="occasion_birthday_age">%1$s turns %2$d</string>
+    <!-- Render-time anniversary title once the founding year is known, e.g. "Bob\'s 5th anniversary"; %2$s is the localized ordinal. -->
+    <string name="occasion_anniversary_ordinal">%1$s\'s %2$s anniversary</string>
     <string name="settings_contact_occasions">Contact birthdays and anniversaries</string>
     <string name="settings_contact_occasions_supporting">Show your contacts\' birthdays and anniversaries as calendars. Needs contacts access.</string>
     <string name="settings_contact_reminder">Birthday and anniversary reminder</string>

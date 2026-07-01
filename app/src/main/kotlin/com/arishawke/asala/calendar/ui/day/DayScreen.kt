@@ -55,6 +55,7 @@ import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
 import com.arishawke.asala.calendar.ui.theme.WcagContrast
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
@@ -268,7 +269,7 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
                     Spacer(modifier = Modifier.width(4.dp))
                 }
                 Text(
-                    text = ev.title.ifBlank { stringResource(R.string.event_no_title) },
+                    text = occasionDisplayTitle(ev).ifBlank { stringResource(R.string.event_no_title) },
                     style = MaterialTheme.typography.bodyMedium,
                     color = rowFg,
                     maxLines = 1,

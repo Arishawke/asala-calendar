@@ -45,6 +45,7 @@ import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.components.reminderLabel
 import com.arishawke.asala.calendar.ui.components.statusStyling
 import com.arishawke.asala.calendar.ui.notifications.NotificationsOffBanner
@@ -154,7 +155,7 @@ private fun EventDetailContent(
                 Spacer(Modifier.width(Spacing.sm))
             }
             Text(
-                text = detail.title.ifBlank { stringResource(R.string.event_no_title) },
+                text = occasionDisplayTitle(detail).ifBlank { stringResource(R.string.event_no_title) },
                 style = MaterialTheme.typography.headlineSmall,
                 fontStyle = styling.titleFontStyle,
                 textDecoration = styling.titleDecoration,

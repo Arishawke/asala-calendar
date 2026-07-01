@@ -107,6 +107,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
                     c.getInt(availabilityIdx)
                 },
                 isBirthday = BirthdayDetection.isBirthdayCalendar(calendarName),
+                occasion = OccasionDetection.classify(calendarName),
                 accessLevel = if (c.isNull(accessLevelIdx)) {
                     CalendarContract.Calendars.CAL_ACCESS_OWNER
                 } else {
