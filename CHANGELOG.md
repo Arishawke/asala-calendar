@@ -24,6 +24,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   instead of "After N occurrences".
 
 ### Fixed
+- Calendar checkboxes in the navigation drawer now show a checkmark that stays
+  legible on light calendar colors, and screen readers announce each row as a
+  checkbox with its on/off state.
 - Links in an event description now open only standard web (http, https), email
   (mailto), and phone (tel) links, whether the description is plain text or HTML.
   Other link types render as plain text.
