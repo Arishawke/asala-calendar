@@ -20,10 +20,10 @@ import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.Occasion
 import com.arishawke.asala.calendar.data.OccasionProvisioner
 import com.arishawke.asala.calendar.data.OccasionSync
-import com.arishawke.asala.calendar.data.OccasionType
 import com.arishawke.asala.calendar.data.RemindersRepository
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.data.StorageModeSetup
+import com.arishawke.asala.calendar.data.occasionBaseTitle
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import com.arishawke.asala.calendar.ui.widget.updateAllWidgets
 import kotlinx.coroutines.flow.SharingStarted
@@ -60,12 +60,7 @@ class SettingsViewModel(
 
     // the stored base title; the render layer treats this as the base to
     // append any decoration (e.g. an age) to, so it must stay in sync with it.
-    private val titleFor: (Occasion) -> String = { o ->
-        when (o.type) {
-            OccasionType.Birthday -> appContext.getString(R.string.occasion_birthday_base, o.displayName)
-            OccasionType.Anniversary -> appContext.getString(R.string.occasion_anniversary_base, o.displayName)
-        }
-    }
+    private val titleFor: (Occasion) -> String = { o -> occasionBaseTitle(appContext, o) }
 
     fun setTheme(mode: ThemeMode) {
         viewModelScope.launch { prefs.setThemeMode(mode) }

@@ -339,8 +339,10 @@
     <string name="settings_notifications_permission_supporting">Tap to grant notification permission so reminders can fire.</string>
 
     <!-- Contact occasions: birthday/anniversary calendars generated from contacts -->
-    <string name="occasion_birthday_calendar">Birthdays</string>
-    <string name="occasion_anniversary_calendar">Anniversaries</string>
+    <!-- name drives OccasionDetection.classify keyword matching; a translation could misclassify the calendar -->
+    <string name="occasion_birthday_calendar" translatable="false">Birthdays</string>
+    <!-- name drives OccasionDetection.classify keyword matching; a translation could misclassify the calendar -->
+    <string name="occasion_anniversary_calendar" translatable="false">Anniversaries</string>
     <string name="occasion_birthday_base">%1$s\'s birthday</string>
     <string name="occasion_anniversary_base">%1$s\'s anniversary</string>
     <!-- Render-time birthday title once the birth year is known, e.g. "Alice turns 30". -->

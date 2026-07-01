@@ -22,6 +22,13 @@ import kotlinx.coroutines.withContext
 
 private data class OccasionCalendarIds(val birthdays: Long, val anniversaries: Long)
 
+// single shared base-title formatter: the stored title seam depends on every
+// sync path (background, enable-time) producing byte-identical titles.
+fun occasionBaseTitle(context: Context, occasion: Occasion): String = when (occasion.type) {
+    OccasionType.Birthday -> context.getString(R.string.occasion_birthday_base, occasion.displayName)
+    OccasionType.Anniversary -> context.getString(R.string.occasion_anniversary_base, occasion.displayName)
+}
+
 // single gated entry point that keeps the two occasion calendars fresh: called
 // on app foreground, the daily reminder re-arm tick, and (debounced) on a
 // contacts change. a no-op whenever the feature is off, either calendar id is
@@ -43,13 +50,7 @@ suspend fun syncOccasionsIfEnabled(context: Context) {
         )
         // same base-title formatter as SettingsViewModel, so a title stored by
         // a background sync matches one stored by the initial enable-time sync.
-        val titleFor: (Occasion) -> String = { occasion ->
-            when (occasion.type) {
-                OccasionType.Birthday -> appContext.getString(R.string.occasion_birthday_base, occasion.displayName)
-                OccasionType.Anniversary ->
-                    appContext.getString(R.string.occasion_anniversary_base, occasion.displayName)
-            }
-        }
+        val titleFor: (Occasion) -> String = { occasion -> occasionBaseTitle(appContext, occasion) }
         sync.sync(ids.birthdays, ids.anniversaries, prefs.contactReminderMinutesBefore, titleFor)
     }
 }

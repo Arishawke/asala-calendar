@@ -25,24 +25,43 @@ object OccasionReconcile {
         expectedTitle: (Occasion) -> String,
     ): OccasionDiff {
         val deduped = desired.distinctBy { it.stableId }
-        // one event per stableId is assumed; a stray duplicate would keep the last
-        val existingById = existing.associateBy { it.stableId }
+        // a racing sync (see OccasionSync.syncMutex) can leave more than one
+        // existing row per stableId; group so every stray gets self-healed below
+        val existingByStableId = existing.groupBy { it.stableId }
+        val desiredIds = deduped.mapTo(mutableSetOf()) { it.stableId }
 
         val toInsert = mutableListOf<Occasion>()
         val toUpdate = mutableListOf<Pair<Long, Occasion>>()
+        val toDelete = mutableListOf<Long>()
         for (o in deduped) {
-            val match = existingById[o.stableId]
-            if (match == null) {
+            val group = existingByStableId[o.stableId]
+            if (group == null) {
                 toInsert += o
-            } else if (needsUpdate(match, o, expectedTitle)) {
-                toUpdate += match.eventId to o
+            } else {
+                matchGroup(group, o, expectedTitle, toUpdate, toDelete)
             }
         }
 
-        val desiredIds = deduped.mapTo(mutableSetOf()) { it.stableId }
-        val toDelete = existing.filter { it.stableId !in desiredIds }.map { it.eventId }
+        // stableIds no longer desired: every row under that id is stale, duplicates included
+        for ((stableId, group) in existingByStableId) {
+            if (stableId !in desiredIds) group.mapTo(toDelete) { it.eventId }
+        }
 
         return OccasionDiff(toInsert, toUpdate, toDelete)
+    }
+
+    // the first existing row (arrival order) drives the update/no-op decision;
+    // any others sharing the stableId are stray duplicates and get deleted
+    private fun matchGroup(
+        group: List<ExistingOccasionEvent>,
+        o: Occasion,
+        expectedTitle: (Occasion) -> String,
+        toUpdate: MutableList<Pair<Long, Occasion>>,
+        toDelete: MutableList<Long>,
+    ) {
+        val first = group.first()
+        if (needsUpdate(first, o, expectedTitle)) toUpdate += first.eventId to o
+        group.drop(1).mapTo(toDelete) { it.eventId }
     }
 
     private fun needsUpdate(match: ExistingOccasionEvent, o: Occasion, expectedTitle: (Occasion) -> String): Boolean =

@@ -51,4 +51,14 @@ class OccasionReconcileTest {
         assertEquals(1, d.toInsert.size)
         assertEquals(15, d.toInsert.first().day)
     }
+
+    @Test fun `self-heals duplicate existing rows sharing a stableId`() {
+        val alice = Occasion(1, "Alice", OccasionType.Birthday, 6, 15, 1990)
+        val first = existing(50, alice)
+        val duplicate = existing(51, alice)
+        val d = OccasionReconcile.diff(listOf(alice), listOf(first, duplicate), ::title)
+        assertTrue(d.toInsert.isEmpty())
+        assertTrue(d.toUpdate.isEmpty())
+        assertEquals(listOf(51L), d.toDelete)
+    }
 }

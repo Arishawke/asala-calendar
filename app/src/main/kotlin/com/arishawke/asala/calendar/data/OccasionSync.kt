@@ -12,6 +12,8 @@ import android.content.ContentResolver
 import android.database.Cursor
 import android.provider.CalendarContract
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 data class OccasionApplyPlan(val birthdays: OccasionDiff, val anniversaries: OccasionDiff)
@@ -62,30 +64,36 @@ class OccasionSync(
     private val reminders: RemindersRepository,
     private val appPackage: String,
 ) {
+    // syncMutex is companion-scoped (one lock for every instance), since each
+    // syncOccasionsIfEnabled call builds a fresh OccasionSync; without a shared
+    // lock, two interleaved syncs can both read-before-either-writes and insert
+    // the same occasion twice.
     suspend fun sync(
         birthdaysCalendarId: Long,
         anniversariesCalendarId: Long,
         reminderMinutes: Int?,
         titleFor: (Occasion) -> String,
-    ): Boolean {
+    ): Boolean = syncMutex.withLock {
         val plan =
             planOccasions(
                 contacts.readOccasions(),
                 readExisting(birthdaysCalendarId),
                 readExisting(anniversariesCalendarId),
                 titleFor,
-            ) ?: return false
+            ) ?: return@withLock false
 
         applyDiff(plan.birthdays, birthdaysCalendarId, titleFor, reminderMinutes)
         applyDiff(plan.anniversaries, anniversariesCalendarId, titleFor, reminderMinutes)
-        return true
+        true
     }
 
-    suspend fun reapplyReminders(birthdaysCalendarId: Long, anniversariesCalendarId: Long, reminderMinutes: Int?) {
-        // a failed read has nothing to reapply reminders to; skip that calendar this cycle
-        val existing = readExisting(birthdaysCalendarId).orEmpty() + readExisting(anniversariesCalendarId).orEmpty()
-        for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
-    }
+    suspend fun reapplyReminders(birthdaysCalendarId: Long, anniversariesCalendarId: Long, reminderMinutes: Int?) =
+        syncMutex.withLock {
+            // a failed read has nothing to reapply reminders to; skip that calendar this cycle
+            val existing =
+                readExisting(birthdaysCalendarId).orEmpty() + readExisting(anniversariesCalendarId).orEmpty()
+            for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
+        }
 
     private suspend fun applyDiff(
         diff: OccasionDiff,
@@ -147,6 +155,10 @@ class OccasionSync(
     }
 
     private companion object {
+        // process-wide: shared across every OccasionSync instance so concurrent
+        // callers (foreground, daily re-arm, contacts observer, enable-time sync)
+        // serialize instead of racing each other's read-then-write.
+        val syncMutex = Mutex()
         val Projection =
             arrayOf(
                 CalendarContract.Events._ID,
