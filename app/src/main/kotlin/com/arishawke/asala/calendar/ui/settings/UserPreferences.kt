@@ -21,6 +21,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.data.TimeUnits
+import com.arishawke.asala.calendar.notifications.OCCASION_REMINDER_DEFAULT_MINUTES
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -110,6 +111,14 @@ data class UserPrefs(
     // reproduces the prior behavior (widgets track themeMode).
     val widgetThemeMode: WidgetThemeMode,
     val widgetTranslucent: Boolean,
+    // master switch for contact birthday/anniversary occasion events.
+    val contactOccasionsEnabled: Boolean,
+    // reminder offset for occasion events; null = none. defaults on at
+    // 9am day-of (see OCCASION_REMINDER_DEFAULT_MINUTES).
+    val contactReminderMinutesBefore: Int?,
+    // calendars occasion events are provisioned into; null until enabled.
+    val birthdaysCalendarId: Long?,
+    val anniversariesCalendarId: Long?,
 ) {
     companion object {
         // the values an empty DataStore yields. UserPreferences.prefs and the
@@ -143,6 +152,10 @@ data class UserPrefs(
             toolbarPosition = ToolbarPosition.Top,
             widgetThemeMode = WidgetThemeMode.FollowApp,
             widgetTranslucent = false,
+            contactOccasionsEnabled = false,
+            contactReminderMinutesBefore = OCCASION_REMINDER_DEFAULT_MINUTES,
+            birthdaysCalendarId = null,
+            anniversariesCalendarId = null,
         )
     }
 }
@@ -191,6 +204,10 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                     WidgetThemeMode.valueOf(it)
                 },
                 widgetTranslucent = p[KEY_WIDGET_TRANSLUCENT] ?: d.widgetTranslucent,
+                contactOccasionsEnabled = p[KEY_CONTACT_OCCASIONS_ENABLED] ?: d.contactOccasionsEnabled,
+                contactReminderMinutesBefore = p[KEY_CONTACT_REMINDER_MIN],
+                birthdaysCalendarId = p[KEY_BIRTHDAYS_CALENDAR_ID]?.toLongOrNull(),
+                anniversariesCalendarId = p[KEY_ANNIVERSARIES_CALENDAR_ID]?.toLongOrNull(),
             )
         }
 
@@ -376,6 +393,34 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[KEY_WIDGET_TRANSLUCENT] = enabled }
     }
 
+    suspend fun setContactOccasionsEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_CONTACT_OCCASIONS_ENABLED] = enabled }
+    }
+
+    suspend fun setContactReminderMinutesBefore(minutes: Int?) {
+        dataStore.edit { p ->
+            if (minutes == null) p.remove(KEY_CONTACT_REMINDER_MIN) else p[KEY_CONTACT_REMINDER_MIN] = minutes
+        }
+    }
+
+    suspend fun setBirthdaysCalendarId(id: Long?) {
+        dataStore.edit { p ->
+            if (id == null) p.remove(KEY_BIRTHDAYS_CALENDAR_ID) else p[KEY_BIRTHDAYS_CALENDAR_ID] = id.toString()
+        }
+    }
+
+    suspend fun setAnniversariesCalendarId(id: Long?) {
+        dataStore.edit { p ->
+            if (id ==
+                null
+            ) {
+                p.remove(KEY_ANNIVERSARIES_CALENDAR_ID)
+            } else {
+                p[KEY_ANNIVERSARIES_CALENDAR_ID] = id.toString()
+            }
+        }
+    }
+
     private inline fun <T> parseEnum(raw: String?, default: T, of: (String) -> T): T = raw?.let {
         runCatching { of(it) }.getOrElse { e ->
             Timber.w(e, "discarding unparseable stored enum value %s", it)
@@ -412,6 +457,10 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val KEY_TOOLBAR_POSITION = stringPreferencesKey("toolbar_position")
         val KEY_WIDGET_THEME_MODE = stringPreferencesKey("widget_theme_mode")
         val KEY_WIDGET_TRANSLUCENT = booleanPreferencesKey("widget_translucent")
+        val KEY_CONTACT_OCCASIONS_ENABLED = booleanPreferencesKey("contact_occasions_enabled")
+        val KEY_CONTACT_REMINDER_MIN = intPreferencesKey("contact_reminder_minutes")
+        val KEY_BIRTHDAYS_CALENDAR_ID = stringPreferencesKey("birthdays_calendar_id")
+        val KEY_ANNIVERSARIES_CALENDAR_ID = stringPreferencesKey("anniversaries_calendar_id")
 
         fun decodeWorkingDays(raw: Set<String>?): Set<DayOfWeek> {
             if (raw.isNullOrEmpty()) return WorkingDaysDefault

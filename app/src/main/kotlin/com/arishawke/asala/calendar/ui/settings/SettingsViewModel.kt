@@ -121,6 +121,22 @@ class SettingsViewModel(
         viewModelScope.launch { prefs.setWorkingDays(days) }
     }
 
+    fun setContactOccasionsEnabled(enabled: Boolean) {
+        viewModelScope.launch { prefs.setContactOccasionsEnabled(enabled) }
+    }
+
+    fun setContactReminderMinutesBefore(minutes: Int?) {
+        viewModelScope.launch { prefs.setContactReminderMinutesBefore(minutes) }
+    }
+
+    fun setBirthdaysCalendarId(id: Long?) {
+        viewModelScope.launch { prefs.setBirthdaysCalendarId(id) }
+    }
+
+    fun setAnniversariesCalendarId(id: Long?) {
+        viewModelScope.launch { prefs.setAnniversariesCalendarId(id) }
+    }
+
     // non-destructive: mode-driven hides are derived on read
     // (StorageModeFilter), so manual hiddenCalendarIds toggles survive.
     fun setStorageMode(mode: StorageMode) {
