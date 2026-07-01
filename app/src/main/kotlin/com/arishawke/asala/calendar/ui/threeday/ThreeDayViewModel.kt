@@ -15,11 +15,10 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.filteredAndRecolored
+import com.arishawke.asala.calendar.ui.stateInWithToday
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.ZoneId
@@ -65,16 +64,16 @@ class ThreeDayViewModel(
                 selectedDate = d,
                 events = evs.filteredAndRecolored(hidden, calOverrides, evtOverrides),
             )
-        }.combine(todayFlow) { state, today ->
-            if (state.today == today) state else state.copy(today = today)
-        }.stateIn(
+        }.stateInWithToday(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ThreeDayUiState(
+            todayFlow = todayFlow,
+            initial = ThreeDayUiState(
                 today = initialToday,
                 selectedDate = initialToday,
                 events = emptyList(),
             ),
+            currentToday = { it.today },
+            withToday = { state, today -> state.copy(today = today) },
         )
 
     fun selectDate(date: LocalDate) {

@@ -15,12 +15,15 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.filteredAndRecolored
+import com.arishawke.asala.calendar.ui.UiStateStopTimeoutMillis
 import com.arishawke.asala.calendar.ui.timeline.clipToDay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 import java.time.LocalDate
@@ -158,15 +161,16 @@ class ScheduleViewModel(
                 daysInOrder = byDate.keys.sorted(),
                 rowsByDate = byDate,
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ScheduleUiState(
-                today = initialToday,
-                daysInOrder = emptyList(),
-                rowsByDate = emptyMap(),
-            ),
-        )
+        }.flowOn(Dispatchers.Default)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
+                initialValue = ScheduleUiState(
+                    today = initialToday,
+                    daysInOrder = emptyList(),
+                    rowsByDate = emptyMap(),
+                ),
+            )
 
     class Factory(
         private val contentResolver: ContentResolver,

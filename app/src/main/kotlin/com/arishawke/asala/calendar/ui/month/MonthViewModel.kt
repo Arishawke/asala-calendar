@@ -15,13 +15,12 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.filteredAndRecolored
+import com.arishawke.asala.calendar.ui.stateInWithToday
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.YearMonth
@@ -74,18 +73,17 @@ class MonthViewModel(
                 eventsByDate = byDate,
                 events = visible,
             )
-        }.combine(todayFlow) { state, today ->
-            if (state.today == today) state else state.copy(today = today)
-        }.stateIn(
+        }.stateInWithToday(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue =
-            MonthUiState(
+            todayFlow = todayFlow,
+            initial = MonthUiState(
                 yearMonth = YearMonth.from(initialToday),
                 today = initialToday,
                 eventsByDate = emptyMap(),
                 events = emptyList(),
             ),
+            currentToday = { it.today },
+            withToday = { state, today -> state.copy(today = today) },
         )
 
     fun showMonth(yearMonth: YearMonth) {

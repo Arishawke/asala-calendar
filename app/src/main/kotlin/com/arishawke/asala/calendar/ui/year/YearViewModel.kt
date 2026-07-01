@@ -15,20 +15,16 @@ import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
 import com.arishawke.asala.calendar.data.filteredAndRecolored
+import com.arishawke.asala.calendar.ui.stateInWithToday
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.Year
 import java.time.ZoneId
-
-// keep the collector warm briefly so a quick return skips a re-query.
-private const val StopTimeoutMillis = 5_000L
 
 data class YearUiState(val today: LocalDate, val eventsByDate: Map<LocalDate, List<EventItem>>)
 
@@ -63,12 +59,12 @@ class YearViewModel(
                 today = todayFlow.value,
                 eventsByDate = visible.groupBy { it.startDate(zone) },
             )
-        }.combine(todayFlow) { state, today ->
-            if (state.today == today) state else state.copy(today = today)
-        }.stateIn(
+        }.stateInWithToday(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(StopTimeoutMillis),
-            initialValue = YearUiState(today = initialToday, eventsByDate = emptyMap()),
+            todayFlow = todayFlow,
+            initial = YearUiState(today = initialToday, eventsByDate = emptyMap()),
+            currentToday = { it.today },
+            withToday = { state, today -> state.copy(today = today) },
         )
 
     fun showYear(year: Year) {
