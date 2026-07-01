@@ -95,7 +95,9 @@ class OccasionSync(
             for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
         }
 
-    private suspend fun applyDiff(
+    // internal (not private) so the androidTest can drive the insert/update/delete
+    // write wiring with a hand-built diff, without the non-deterministic contacts read.
+    internal suspend fun applyDiff(
         diff: OccasionDiff,
         calendarId: Long,
         titleFor: (Occasion) -> String,
