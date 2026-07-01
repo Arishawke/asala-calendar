@@ -14,6 +14,7 @@ import org.junit.Test
 class MultiDayOverflowTest {
     private fun seg(id: Long, lane: Int): WeekSegment = WeekSegment(
         eventId = id,
+        calendarId = id,
         title = "e$id",
         color = 0,
         startCol = 0,

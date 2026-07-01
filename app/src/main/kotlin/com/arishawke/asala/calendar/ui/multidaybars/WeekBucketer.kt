@@ -51,6 +51,7 @@ object WeekBucketer {
         val endCol = (clippedEnd.toEpochDay() - weekStart.toEpochDay()).toInt().coerceIn(0, LastDayCol)
         return WeekSegment(
             eventId = e.eventId,
+            calendarId = e.calendarId,
             title = e.title,
             color = e.displayColor,
             startCol = startCol,

@@ -14,6 +14,7 @@ import org.junit.Test
 class LaneAssignerTest {
     private fun seg(id: Long, startCol: Int, endCol: Int): WeekSegment = WeekSegment(
         eventId = id,
+        calendarId = id,
         title = "e$id",
         color = 0,
         startCol = startCol,

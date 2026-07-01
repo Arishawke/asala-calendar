@@ -15,6 +15,7 @@ import com.arishawke.asala.calendar.data.OccasionKind
 @Immutable
 data class WeekSegment(
     val eventId: Long,
+    val calendarId: Long,
     val title: String,
     val color: Int,
     val startCol: Int,

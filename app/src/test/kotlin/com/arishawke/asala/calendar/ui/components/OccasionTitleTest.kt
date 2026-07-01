@@ -93,4 +93,14 @@ class OccasionTitleTest {
         )
         assertEquals(OccasionTitleResult.Base("Alice's birthday"), futureDated)
     }
+
+    // audit F4: a third-party calendar named "Birthdays" classifies as an occasion
+    // (for the cake icon) but is not owned by the app, so it titles as None and its
+    // events keep their own text rather than a description-derived age relabel.
+    @Test fun `titling kind is None for a non-owned occasion, unchanged when owned`() {
+        assertEquals(OccasionKind.None, occasionTitlingKind(OccasionKind.Birthday, owned = false))
+        assertEquals(OccasionKind.None, occasionTitlingKind(OccasionKind.Anniversary, owned = false))
+        assertEquals(OccasionKind.Birthday, occasionTitlingKind(OccasionKind.Birthday, owned = true))
+        assertEquals(OccasionKind.Anniversary, occasionTitlingKind(OccasionKind.Anniversary, owned = true))
+    }
 }

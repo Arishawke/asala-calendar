@@ -19,7 +19,7 @@
         errorLine2="    ^">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
-            line="105"
+            line="106"
             column="5"/>
     </issue>
 
@@ -129,7 +129,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/BarScaffold.kt"
-            line="32"
+            line="36"
             column="5"/>
     </issue>
 
@@ -140,7 +140,7 @@
         errorLine2="                             ~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="15"
+            line="16"
             column="30"/>
     </issue>
 
@@ -187,6 +187,17 @@
     <issue
         id="ComposeCompositionLocalUsage"
         message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
+        errorLine1="// the app&apos;s two provisioned occasion calendars (birthdays, anniversaries), or"
+        errorLine2="^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/LocalOccasionCalendarIds.kt"
+            line="14"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="ComposeCompositionLocalUsage"
+        message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
         errorLine1="// the app bar position, provided once at the root so every screen&apos;s bar"
         errorLine2="^">
         <location
@@ -224,7 +235,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventdetail/EventDetailSheet.kt"
-            line="57"
+            line="58"
             column="5"/>
     </issue>
 
@@ -433,7 +444,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
-            line="191"
+            line="192"
             column="13"/>
     </issue>
 
@@ -444,7 +455,7 @@
         errorLine2="                               ~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
-            line="239"
+            line="240"
             column="32"/>
     </issue>
 
@@ -455,7 +466,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/day/DayScreen.kt"
-            line="288"
+            line="289"
             column="13"/>
     </issue>
 
@@ -543,7 +554,7 @@
         errorLine2="              ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/multidaybars/MultiDayBarRow.kt"
-            line="52"
+            line="53"
             column="15"/>
     </issue>
 

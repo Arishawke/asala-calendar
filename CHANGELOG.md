@@ -30,6 +30,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Contact birthdays and anniversaries no longer crash the app when a contact's date
   is February 29 stored with a non-leap year (as some imported contacts are). The
   occasion still shows; only the age is omitted for that entry.
+- Age and anniversary labels ("Alice turns 30", "5th anniversary") now appear only
+  on the app's own birthday and anniversary calendars, not on a separate calendar
+  that merely has "Birthdays" or "Anniversaries" in its name.
+- A contact birthday or anniversary detail no longer repeats the person's name as a
+  redundant "Notes" line.
 - A synced calendar's "default" reminder no longer schedules a timed reminder a
   minute after the event has already started; such reminders are skipped instead.
 - Quick add reads a plain time range like "9 to 5" as a daytime span (9am to 5pm)

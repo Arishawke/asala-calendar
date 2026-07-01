@@ -44,6 +44,7 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventDetail
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
+import com.arishawke.asala.calendar.ui.LocalOccasionCalendarIds
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
 import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.components.reminderLabel
@@ -133,7 +134,11 @@ private fun EventDetailContent(
 
     val recurrenceFrequency = RecurrenceRule.frequencyOf(detail.rrule)
     val hasLocation = !detail.location.isNullOrBlank()
-    val hasDescription = !detail.description.isNullOrBlank()
+    // owned occasion events store the contact name in DESCRIPTION as a machine
+    // marker (it drives the age/ordinal title), so don't also surface it as a
+    // redundant "Notes" section, e.g. title "Alice turns 30" + Notes "Alice" (F13).
+    val isOwnedOccasion = detail.calendarId in LocalOccasionCalendarIds.current
+    val hasDescription = !detail.description.isNullOrBlank() && !isOwnedOccasion
     val hasReminder = detail.reminderMinutesBefore != null
 
     val statusLabel = when (detail.status) {

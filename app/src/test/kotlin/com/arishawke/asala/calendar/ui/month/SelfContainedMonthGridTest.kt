@@ -79,6 +79,7 @@ class SelfContainedMonthGridTest {
 
     private fun segment(startCol: Int, endCol: Int) = WeekSegment(
         eventId = 1L,
+        calendarId = 1L,
         title = "e",
         color = 0,
         startCol = startCol,
