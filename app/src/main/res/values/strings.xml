@@ -338,6 +338,19 @@
     <string name="settings_section_calendars_and_accounts">Calendars &amp; accounts</string>
     <string name="settings_notifications_permission_supporting">Tap to grant notification permission so reminders can fire.</string>
 
+    <!-- Contact occasions: birthday/anniversary calendars generated from contacts -->
+    <string name="occasion_birthday_calendar">Birthdays</string>
+    <string name="occasion_anniversary_calendar">Anniversaries</string>
+    <string name="occasion_birthday_base">%1$s\'s birthday</string>
+    <string name="occasion_anniversary_base">%1$s\'s anniversary</string>
+    <string name="settings_contact_occasions">Contact birthdays and anniversaries</string>
+    <string name="settings_contact_occasions_supporting">Show your contacts\' birthdays and anniversaries as calendars. Needs contacts access.</string>
+    <string name="settings_contact_reminder">Birthday and anniversary reminder</string>
+    <string name="contacts_rationale_title">Allow contacts access?</string>
+    <string name="contacts_rationale_body">Asala needs permission to read your contacts so it can create birthday and anniversary events. Nothing leaves your device.</string>
+    <string name="contacts_rationale_continue">Continue</string>
+    <string name="contacts_rationale_not_now">Not now</string>
+
     <!-- Settings: About section -->
     <string name="settings_section_about">About</string>
     <string name="settings_about_license_value" translatable="false">GPL-3.0-or-later</string>

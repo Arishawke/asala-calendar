@@ -13,7 +13,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.CalendarView
+import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.CalendarRepository
+import com.arishawke.asala.calendar.data.ContactsRepository
+import com.arishawke.asala.calendar.data.EventRepository
+import com.arishawke.asala.calendar.data.Occasion
+import com.arishawke.asala.calendar.data.OccasionProvisioner
+import com.arishawke.asala.calendar.data.OccasionSync
+import com.arishawke.asala.calendar.data.OccasionType
+import com.arishawke.asala.calendar.data.RemindersRepository
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.data.StorageModeSetup
 import com.arishawke.asala.calendar.ui.theme.PaletteId
@@ -38,6 +46,26 @@ class SettingsViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = UserPrefs.Defaults,
         )
+
+    // contact-occasions collaborators, assembled from the same content
+    // resolver / package the rest of the app uses to talk to the providers.
+    private val occasionSync = OccasionSync(
+        contentResolver = appContext.contentResolver,
+        contacts = ContactsRepository(appContext.contentResolver),
+        events = EventRepository(appContext.contentResolver),
+        reminders = RemindersRepository(appContext.contentResolver),
+        appPackage = appContext.packageName,
+    )
+    private val occasionProvisioner = OccasionProvisioner(calendarRepo, prefs, occasionSync)
+
+    // the stored base title; the render layer treats this as the base to
+    // append any decoration (e.g. an age) to, so it must stay in sync with it.
+    private val titleFor: (Occasion) -> String = { o ->
+        when (o.type) {
+            OccasionType.Birthday -> appContext.getString(R.string.occasion_birthday_base, o.displayName)
+            OccasionType.Anniversary -> appContext.getString(R.string.occasion_anniversary_base, o.displayName)
+        }
+    }
 
     fun setTheme(mode: ThemeMode) {
         viewModelScope.launch { prefs.setThemeMode(mode) }
@@ -125,8 +153,35 @@ class SettingsViewModel(
         viewModelScope.launch { prefs.setContactOccasionsEnabled(enabled) }
     }
 
+    // provisions the two calendars and runs the first sync; called only
+    // after READ_CONTACTS is granted (see ContactsPermissionRequest).
+    fun enableContactOccasions() {
+        viewModelScope.launch {
+            occasionProvisioner.enable(
+                appContext.getString(R.string.occasion_birthday_calendar),
+                appContext.getString(R.string.occasion_anniversary_calendar),
+                state.value.contactReminderMinutesBefore,
+                titleFor,
+            )
+        }
+    }
+
+    fun disableContactOccasions() {
+        viewModelScope.launch {
+            occasionProvisioner.disable(state.value.birthdaysCalendarId, state.value.anniversariesCalendarId)
+        }
+    }
+
     fun setContactReminderMinutesBefore(minutes: Int?) {
-        viewModelScope.launch { prefs.setContactReminderMinutesBefore(minutes) }
+        viewModelScope.launch {
+            prefs.setContactReminderMinutesBefore(minutes)
+            val current = state.value
+            val birthdaysId = current.birthdaysCalendarId
+            val anniversariesId = current.anniversariesCalendarId
+            if (current.contactOccasionsEnabled && birthdaysId != null && anniversariesId != null) {
+                occasionSync.reapplyReminders(birthdaysId, anniversariesId, minutes)
+            }
+        }
     }
 
     fun setBirthdaysCalendarId(id: Long?) {

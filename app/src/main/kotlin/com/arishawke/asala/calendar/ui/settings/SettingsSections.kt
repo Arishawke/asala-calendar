@@ -22,6 +22,7 @@ import androidx.core.net.toUri
 import com.arishawke.asala.calendar.DrawerHiddenAccount
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.notifications.OemBatteryAdvisory
+import com.arishawke.asala.calendar.ui.permissions.rememberContactsPermissionRequest
 import com.arishawke.asala.calendar.ui.theme.LocalIs24Hour
 import com.arishawke.asala.calendar.ui.theme.Spacing
 
@@ -128,6 +129,13 @@ internal fun NotificationsSettings(
         current = s.defaultAllDayReminderMinutes,
         onChange = vm::setDefaultAllDayReminderMinutes,
     )
+    if (s.contactOccasionsEnabled) {
+        DefaultReminderRow(
+            labelResId = R.string.settings_contact_reminder,
+            current = s.contactReminderMinutesBefore,
+            onChange = vm::setContactReminderMinutesBefore,
+        )
+    }
     if (OemBatteryAdvisory.isAffected()) {
         val context = LocalContext.current
         ListItem(
@@ -181,6 +189,19 @@ internal fun CalendarsSettings(
         onClick = { openDavx5(ctx) },
     )
     StorageModeRow(s.storageMode, vm::setStorageMode)
+
+    // off by default; turning it on requests READ_CONTACTS and only
+    // provisions the two calendars on grant. denial leaves the toggle off.
+    val requestContactsPermission = rememberContactsPermissionRequest(
+        onGranted = vm::enableContactOccasions,
+        onDenied = vm::disableContactOccasions,
+    )
+    SwitchRow(
+        label = stringResource(R.string.settings_contact_occasions),
+        checked = s.contactOccasionsEnabled,
+        onChange = { enabled -> if (enabled) requestContactsPermission() else vm.disableContactOccasions() },
+        supporting = stringResource(R.string.settings_contact_occasions_supporting),
+    )
 }
 
 @Composable
