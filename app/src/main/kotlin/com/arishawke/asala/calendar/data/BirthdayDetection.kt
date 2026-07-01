@@ -8,35 +8,10 @@
  */
 package com.arishawke.asala.calendar.data
 
-import java.util.Locale
-
 // CalendarContract has no birthday metadata; birthday calendars are only
-// distinguishable by display name. Match locale keywords by case-insensitive
-// substring rather than per-locale logic.
+// distinguishable by display name. Delegates to OccasionDetection, the
+// single source of truth for the keyword sets.
 object BirthdayDetection {
-    // substrings, not tokens, so plurals/compounds match. "anniversaire"
-    // intentionally tags wedding-anniversary calendars in French installs.
-    private val keywords = setOf(
-        "birthday",
-        "geburtstag",
-        "anniversaire",
-        // ascii variants for diacritic-stripping keyboards/sync adapters
-        "cumpleaño",
-        "cumpleano",
-        "compleann",
-        "verjaardag",
-        "aniversári",
-        "aniversari",
-        "urodzin",
-        "誕生日",
-        "生日",
-        "생일",
-        "день рождения",
-    )
-
-    fun isBirthdayCalendar(displayName: String?): Boolean {
-        if (displayName.isNullOrBlank()) return false
-        val lower = displayName.lowercase(Locale.ROOT)
-        return keywords.any { lower.contains(it) }
-    }
+    fun isBirthdayCalendar(displayName: String?): Boolean =
+        OccasionDetection.classify(displayName) == OccasionKind.Birthday
 }
