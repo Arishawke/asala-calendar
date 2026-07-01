@@ -26,6 +26,9 @@ data class EventDraft(
     val status: Int? = null,
     // same preservation contract as status; insert fallback AVAILABILITY_BUSY.
     val availability: Int? = null,
+    // identifies app-owned events (ADR-0002 rule 7: no sync-adapter writes).
+    val customAppPackage: String? = null,
+    val customAppUri: String? = null,
 ) {
     // plain map so field mapping is unit-testable without a ContentValues stub.
     internal fun toMap(): Map<String, Any?> = buildMap {
@@ -39,6 +42,8 @@ data class EventDraft(
         // some CalDAV-backed accounts reject inserts without these fields
         put(CalendarContract.Events.STATUS, status ?: CalendarContract.Events.STATUS_CONFIRMED)
         put(CalendarContract.Events.AVAILABILITY, availability ?: CalendarContract.Events.AVAILABILITY_BUSY)
+        if (customAppPackage != null) put(CalendarContract.Events.CUSTOM_APP_PACKAGE, customAppPackage)
+        if (customAppUri != null) put(CalendarContract.Events.CUSTOM_APP_URI, customAppUri)
 
         if (rrule != null) {
             // recurring rows need DURATION, not DTEND. some account types reject
