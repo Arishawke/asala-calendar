@@ -22,6 +22,7 @@ import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.data.TimeUnits
 import com.arishawke.asala.calendar.notifications.OCCASION_REMINDER_DEFAULT_MINUTES
+import com.arishawke.asala.calendar.notifications.OCCASION_REMINDER_NONE_SENTINEL
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -205,7 +206,11 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                 },
                 widgetTranslucent = p[KEY_WIDGET_TRANSLUCENT] ?: d.widgetTranslucent,
                 contactOccasionsEnabled = p[KEY_CONTACT_OCCASIONS_ENABLED] ?: d.contactOccasionsEnabled,
-                contactReminderMinutesBefore = p[KEY_CONTACT_REMINDER_MIN],
+                contactReminderMinutesBefore = when (val raw = p[KEY_CONTACT_REMINDER_MIN]) {
+                    null -> OCCASION_REMINDER_DEFAULT_MINUTES
+                    OCCASION_REMINDER_NONE_SENTINEL -> null
+                    else -> raw
+                },
                 birthdaysCalendarId = p[KEY_BIRTHDAYS_CALENDAR_ID]?.toLongOrNull(),
                 anniversariesCalendarId = p[KEY_ANNIVERSARIES_CALENDAR_ID]?.toLongOrNull(),
             )
@@ -398,9 +403,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
     }
 
     suspend fun setContactReminderMinutesBefore(minutes: Int?) {
-        dataStore.edit { p ->
-            if (minutes == null) p.remove(KEY_CONTACT_REMINDER_MIN) else p[KEY_CONTACT_REMINDER_MIN] = minutes
-        }
+        dataStore.edit { it[KEY_CONTACT_REMINDER_MIN] = minutes ?: OCCASION_REMINDER_NONE_SENTINEL }
     }
 
     suspend fun setBirthdaysCalendarId(id: Long?) {
