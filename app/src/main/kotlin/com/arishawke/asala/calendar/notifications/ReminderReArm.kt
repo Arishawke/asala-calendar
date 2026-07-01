@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.arishawke.asala.calendar.PendingIntentFlags
 import com.arishawke.asala.calendar.data.syncOccasionsIfEnabled
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -81,12 +82,18 @@ class ReminderReArmReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 runCatching { ReminderScheduler.rescheduleAll(app) }
-                    .onFailure { Timber.e(it, "reminder re-arm threw") }
+                    .onFailure {
+                        if (it is CancellationException) throw it
+                        Timber.e(it, "reminder re-arm threw")
+                    }
                 // reuses this daily tick to keep occasion events fresh rather than
                 // adding a second WorkManager job; the function's own gate makes it
                 // a no-op unless the feature is on and contacts access is granted.
                 runCatching { syncOccasionsIfEnabled(app) }
-                    .onFailure { Timber.e(it, "occasion sync re-arm threw") }
+                    .onFailure {
+                        if (it is CancellationException) throw it
+                        Timber.e(it, "occasion sync re-arm threw")
+                    }
             } finally {
                 pending.finish()
             }

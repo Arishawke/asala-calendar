@@ -27,6 +27,7 @@ import com.arishawke.asala.calendar.notifications.ReminderReArmScheduler
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
 import com.arishawke.asala.calendar.ui.settings.settingsDataStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -77,7 +78,15 @@ class AsalaCalendarApplication : Application() {
                         emptyFlow()
                     }
                 }
-                .collect { syncOccasionsIfEnabled(this@AsalaCalendarApplication) }
+                .collect {
+                    // a single unparseable contact date must not tear down the
+                    // observer collector or crash the app on a contacts change.
+                    runCatching { syncOccasionsIfEnabled(this@AsalaCalendarApplication) }
+                        .onFailure {
+                            if (it is CancellationException) throw it
+                            Timber.e(it, "occasion sync on contacts change failed")
+                        }
+                }
         }
     }
 

@@ -30,6 +30,25 @@ class OccasionEventTest {
         assertEquals(OCCASION_NO_YEAR_SENTINEL, y)
     }
 
+    // audit F2: OccasionDateParser accepts Feb 29 for any year and defers leap
+    // validity to here. a non-leap real year (e.g. a vCard placeholder like 1900)
+    // must normalize to the leap sentinel, not throw DateTimeException and crash
+    // occasion sync on foreground.
+    @Test fun `Feb 29 in a non-leap year normalizes to the sentinel instead of crashing`() {
+        val ms = occasionDtStartMillis(2, 29, 2001)
+        val d = java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneOffset.UTC).toLocalDate()
+        assertEquals(2, d.monthValue)
+        assertEquals(29, d.dayOfMonth)
+        assertEquals(OCCASION_NO_YEAR_SENTINEL, d.year)
+    }
+
+    // a real leap-year birthday keeps its real year (age still renders).
+    @Test fun `Feb 29 in a leap year keeps its real year`() {
+        val ms = occasionDtStartMillis(2, 29, 2000)
+        val d = java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneOffset.UTC).toLocalDate()
+        assertEquals(java.time.LocalDate.of(2000, 2, 29), d)
+    }
+
     @Test fun `draft is all-day yearly with custom-app id and P1D`() {
         val o = Occasion(42, "Alice", OccasionType.Birthday, 6, 15, 1990)
         val m = occasionEventDraft(

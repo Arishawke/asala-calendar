@@ -59,6 +59,35 @@ class ReminderSchedulerDiffTest {
         assertTrue(plan.isEmpty())
     }
 
+    // audit F6: synced calendars can store MINUTES = -1 (MINUTES_DEFAULT). for a
+    // timed event that would arm at start - (-1) = one minute AFTER the start, so a
+    // negative-minute timed reminder must be dropped, not fired late.
+    @Test
+    fun `negative default-minutes timed reminder is dropped`() {
+        val start = now + 60 * 60_000L
+        val plan = ReminderScheduler.computePlan(now = now, zone = ny, reminders = listOf(reminder(10L, start, -1)))
+        assertTrue(plan.isEmpty())
+    }
+
+    // the all-day path is benign: -1 / 1440 = 0 days, so a default all-day reminder
+    // still fires at the 9am anchor day-of. keep it (only timed negatives are wrong).
+    @Test
+    fun `negative default-minutes all-day reminder still arms`() {
+        val start =
+            java.time.LocalDate
+                .of(2026, 6, 1)
+                .atStartOfDay(java.time.ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        val plan =
+            ReminderScheduler.computePlan(
+                now = start - 24 * 60 * 60_000L,
+                zone = ny,
+                reminders = listOf(reminder(11L, start, -1, allDay = true)),
+            )
+        assertEquals(1, plan.size)
+    }
+
     @Test
     fun `duplicate reminder rows produce only one alarm key`() {
         val start = now + 60 * 60_000L
@@ -176,12 +205,13 @@ class ReminderSchedulerDiffTest {
         assertEquals(newStart - 10 * 60_000L, toArm.first().triggerAtMillis)
     }
 
-    // an occurrence leaving the plan must drop its pending snooze too, deduped to a
-    // single (eventId, instance) even when that occurrence carried several reminder
-    // rows. Guards the "snoozed, then rescheduled or deleted, snooze still rings"
-    // regression: the cancel pass feeds these keys to a forSnoozeAlarm cancel.
+    // an occurrence that genuinely left the provider (event deleted or rescheduled
+    // away) must drop its pending snooze too, deduped to a single (eventId, instance)
+    // even when it carried several reminder rows. liveOccurrences lists the (eventId,
+    // instance) pairs still present this cycle; occurrence 2 is absent (gone), so its
+    // snooze is cancelled.
     @Test
-    fun `snooze cancel keys cover only occurrences leaving the plan`() {
+    fun `snooze cancel keys cover occurrences that left the provider`() {
         val survives =
             AlarmKey(eventId = 1L, instanceStartMillis = now + 60_000L, minutesBefore = 10, triggerAtMillis = now)
         val leaving10 =
@@ -190,8 +220,23 @@ class ReminderSchedulerDiffTest {
             AlarmKey(eventId = 2L, instanceStartMillis = now + 120_000L, minutesBefore = 30, triggerAtMillis = now)
         val (toCancel, _) =
             ReminderScheduler.diff(previous = setOf(survives, leaving10, leaving30), current = setOf(survives))
-        val snoozeKeys = ReminderScheduler.snoozeKeysToCancel(toCancel)
+        val snoozeKeys =
+            ReminderScheduler.snoozeKeysToCancel(toCancel, liveOccurrences = setOf(1L to (now + 60_000L)))
         assertEquals(setOf(2L to (now + 120_000L)), snoozeKeys)
-        assertTrue((1L to (now + 60_000L)) !in snoozeKeys)
+    }
+
+    // regression (audit F1): a reminder that merely fired leaves the plan (its
+    // trigger time passed) but its occurrence still exists in the provider this
+    // cycle. a routine rescheduleAll must NOT cancel that occurrence's pending
+    // snooze, or a snoozed reminder silently never rings after the next
+    // foreground / sync / boot / daily tick.
+    @Test
+    fun `snooze survives when its occurrence merely fired and still exists`() {
+        val instance = now + 120_000L
+        val firedKey =
+            AlarmKey(eventId = 2L, instanceStartMillis = instance, minutesBefore = 10, triggerAtMillis = now - 60_000L)
+        val snoozeKeys =
+            ReminderScheduler.snoozeKeysToCancel(setOf(firedKey), liveOccurrences = setOf(2L to instance))
+        assertTrue("a fired-but-still-present occurrence must keep its snooze", snoozeKeys.isEmpty())
     }
 }

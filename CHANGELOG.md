@@ -24,6 +24,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   instead of "After N occurrences".
 
 ### Fixed
+- A snoozed reminder is no longer silently cancelled by a routine refresh (opening
+  the app, a calendar sync, a reboot, or the daily tick). Once you snooze a
+  reminder it reliably rings again at the snoozed time.
+- Contact birthdays and anniversaries no longer crash the app when a contact's date
+  is February 29 stored with a non-leap year (as some imported contacts are). The
+  occasion still shows; only the age is omitted for that entry.
+- A synced calendar's "default" reminder no longer schedules a timed reminder a
+  minute after the event has already started; such reminders are skipped instead.
 - Quick add reads a plain time range like "9 to 5" as a daytime span (9am to 5pm)
   instead of a 20-hour event running past midnight. Ranges written with a single
   am/pm, such as "9-5pm", and afternoon ranges like "3 to 4", now land in the

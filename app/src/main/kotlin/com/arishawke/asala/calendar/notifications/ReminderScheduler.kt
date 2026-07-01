@@ -18,6 +18,7 @@ import android.provider.CalendarContract
 import androidx.core.content.getSystemService
 import com.arishawke.asala.calendar.PendingIntentFlags
 import com.arishawke.asala.calendar.data.instancesUriFor
+import com.arishawke.asala.calendar.data.providerCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -61,6 +62,10 @@ internal object ReminderScheduler {
     fun computePlan(now: Long, zone: ZoneId, reminders: List<ScheduledReminder>): Set<AlarmKey> = reminders
         .asSequence()
         .filterNot { it.cancelled }
+        // synced calendars can store MINUTES = -1 (MINUTES_DEFAULT). a timed one
+        // would arm at start - (-1) = one minute AFTER the start, so drop it; the
+        // all-day path is benign (-1/1440 = 0 days -> 9am day-of), so keep those.
+        .filterNot { !it.allDay && it.minutesBefore < 0 }
         // no instance-start pre-filter: all-day instances are at 00:00 UTC but fire
         // at 9am local, so a same-day all-day reminder has a past instance start and
         // a future trigger. the trailing triggerAtMillis > now is the real guard.
@@ -86,9 +91,17 @@ internal object ReminderScheduler {
 
     // pure; tested by ReminderSchedulerDiffTest. one occurrence can carry several
     // reminder rows (different lead times) but a single snooze slot, so dedupe the
-    // cancelled keys down to their (eventId, instance) pair.
-    internal fun snoozeKeysToCancel(cancelled: Set<AlarmKey>): Set<Pair<Long, Long>> =
-        cancelled.mapTo(mutableSetOf()) { it.eventId to it.instanceStartMillis }
+    // cancelled keys down to their (eventId, instance) pair. a key can leave the
+    // plan because it fired (trigger passed) while its occurrence still exists;
+    // those keep their snooze. only occurrences absent from liveOccurrences (event
+    // deleted or rescheduled away) drop it.
+    internal fun snoozeKeysToCancel(
+        cancelled: Set<AlarmKey>,
+        liveOccurrences: Set<Pair<Long, Long>>,
+    ): Set<Pair<Long, Long>> = cancelled.asSequence()
+        .map { it.eventId to it.instanceStartMillis }
+        .filterNot { it in liveOccurrences }
+        .toMutableSet()
 
     // idempotent; planMutex serializes the observer/boot/foreground callers against races
     suspend fun rescheduleAll(context: Context) = withContext(Dispatchers.IO) {
@@ -97,6 +110,15 @@ internal object ReminderScheduler {
             val zone = ZoneId.systemDefault()
             val reminders = readUpcomingReminders(context.contentResolver, now, now + WINDOW_MILLIS)
             val newPlan = computePlan(now, zone, reminders)
+            // occurrences still present in the provider this cycle. a reminder can
+            // leave the plan because it fired (trigger passed) while its occurrence
+            // still lives; only occurrences that genuinely vanished (deleted or
+            // rescheduled, so no reminder row remains) should lose their snooze.
+            // liveness = "has a reminder row in [now, now+30d]"; residual gap: an
+            // occurrence whose event already ended falls out of the window, so a
+            // snooze set past the event's own end can still be dropped by a routine
+            // refresh. the full fix is the tracked robust-snooze-store work.
+            val liveOccurrences = reminders.mapTo(mutableSetOf()) { it.eventId to it.instanceStartMillis }
 
             val am = context.getSystemService<AlarmManager>() ?: return@withLock
             // seed from disk on the first run this process; thereafter the warm
@@ -107,11 +129,12 @@ internal object ReminderScheduler {
             toCancel.forEach { key ->
                 am.cancel(buildAlarmPendingIntent(context, key))
             }
-            // an occurrence leaving the plan (event deleted or rescheduled away) must
-            // also drop any pending snooze keyed on its old (eventId, instance): the
-            // fire-time receiver already guards a deleted event, but a reschedule would
-            // otherwise ring the orphaned snooze at the stale time.
-            snoozeKeysToCancel(toCancel).forEach { (eventId, instance) ->
+            // an occurrence that genuinely left the provider (event deleted or
+            // rescheduled away) must also drop any pending snooze keyed on its old
+            // (eventId, instance): a reschedule would otherwise ring the orphaned
+            // snooze at the stale time. a key that left the plan only because it fired
+            // is still in liveOccurrences, so its snooze survives (audit F1).
+            snoozeKeysToCancel(toCancel, liveOccurrences).forEach { (eventId, instance) ->
                 am.cancel(buildSnoozePendingIntent(context, eventId, instance))
             }
 
@@ -196,48 +219,53 @@ internal object ReminderScheduler {
         }
     }
 
-    private fun readInstances(cr: ContentResolver, windowStart: Long, windowEnd: Long): List<ReminderInstance> {
-        val out = mutableListOf<ReminderInstance>()
-        val cols =
-            arrayOf(
-                CalendarContract.Instances.EVENT_ID,
-                CalendarContract.Instances.BEGIN,
-                CalendarContract.Instances.ALL_DAY,
-                CalendarContract.Instances.STATUS,
-            )
-        val uri = instancesUriFor(windowStart, windowEnd)
-        cr.query(uri, cols, null, null, "${CalendarContract.Instances.BEGIN} ASC")?.use { ic ->
-            while (ic.moveToNext()) {
-                if (ic.getInt(3) == CalendarContract.Instances.STATUS_CANCELED) continue
-                out += ReminderInstance(
-                    eventId = ic.getLong(0),
-                    instanceStartMillis = ic.getLong(1),
-                    allDay = ic.getInt(2) == 1,
+    // provider reads route through providerCall: CalendarContract.query throws on
+    // revoked permission / provider death, and rescheduleAll runs unguarded from
+    // onResume, so an unwrapped throw here would crash the app.
+    private fun readInstances(cr: ContentResolver, windowStart: Long, windowEnd: Long): List<ReminderInstance> =
+        providerCall("readInstances", emptyList()) {
+            val out = mutableListOf<ReminderInstance>()
+            val cols =
+                arrayOf(
+                    CalendarContract.Instances.EVENT_ID,
+                    CalendarContract.Instances.BEGIN,
+                    CalendarContract.Instances.ALL_DAY,
+                    CalendarContract.Instances.STATUS,
                 )
+            val uri = instancesUriFor(windowStart, windowEnd)
+            cr.query(uri, cols, null, null, "${CalendarContract.Instances.BEGIN} ASC")?.use { ic ->
+                while (ic.moveToNext()) {
+                    if (ic.getInt(3) == CalendarContract.Instances.STATUS_CANCELED) continue
+                    out += ReminderInstance(
+                        eventId = ic.getLong(0),
+                        instanceStartMillis = ic.getLong(1),
+                        allDay = ic.getInt(2) == 1,
+                    )
+                }
             }
+            out
         }
-        return out
-    }
 
     // one Reminders query per chunk of distinct event ids, replacing the old
     // one-query-per-instance N+1.
-    private fun readReminderMinutes(cr: ContentResolver, eventIds: Collection<Long>): Map<Long, List<Int>> {
-        val out = mutableMapOf<Long, MutableList<Int>>()
-        val cols = arrayOf(CalendarContract.Reminders.EVENT_ID, CalendarContract.Reminders.MINUTES)
-        eventIds.chunked(REMINDER_QUERY_CHUNK).forEach { chunk ->
-            val placeholders = chunk.joinToString(",") { "?" }
-            cr.query(
-                CalendarContract.Reminders.CONTENT_URI,
-                cols,
-                "${CalendarContract.Reminders.EVENT_ID} IN ($placeholders)",
-                chunk.map { it.toString() }.toTypedArray(),
-                null,
-            )?.use { rc ->
-                while (rc.moveToNext()) {
-                    out.getOrPut(rc.getLong(0)) { mutableListOf() } += rc.getInt(1)
+    private fun readReminderMinutes(cr: ContentResolver, eventIds: Collection<Long>): Map<Long, List<Int>> =
+        providerCall("readReminderMinutes", emptyMap()) {
+            val out = mutableMapOf<Long, MutableList<Int>>()
+            val cols = arrayOf(CalendarContract.Reminders.EVENT_ID, CalendarContract.Reminders.MINUTES)
+            eventIds.chunked(REMINDER_QUERY_CHUNK).forEach { chunk ->
+                val placeholders = chunk.joinToString(",") { "?" }
+                cr.query(
+                    CalendarContract.Reminders.CONTENT_URI,
+                    cols,
+                    "${CalendarContract.Reminders.EVENT_ID} IN ($placeholders)",
+                    chunk.map { it.toString() }.toTypedArray(),
+                    null,
+                )?.use { rc ->
+                    while (rc.moveToNext()) {
+                        out.getOrPut(rc.getLong(0)) { mutableListOf() } += rc.getInt(1)
+                    }
                 }
             }
+            out
         }
-        return out
-    }
 }

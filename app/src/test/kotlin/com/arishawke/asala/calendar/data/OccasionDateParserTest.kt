@@ -31,4 +31,23 @@ class OccasionDateParserTest {
         assertNull(OccasionDateParser.parse(null))
         assertNull(OccasionDateParser.parse("1990-13-40"))
     }
+
+    // day-ceiling boundaries: the only prior invalid case (1990-13-40) short-circuits
+    // on month > 12, leaving maxDayOf untested. these pin per-month day limits.
+    @Test fun `rejects impossible days in an otherwise valid month`() {
+        assertNull(OccasionDateParser.parse("1990-02-30"))
+        assertNull(OccasionDateParser.parse("1990-04-31"))
+        assertNull(OccasionDateParser.parse("1990-00-15"))
+        assertNull(OccasionDateParser.parse("1990-06-00"))
+    }
+
+    @Test fun `accepts the last day of a 30-day month`() {
+        assertEquals(ParsedOccasionDate(4, 30, 1990), OccasionDateParser.parse("1990-04-30"))
+    }
+
+    // Feb 29 is accepted regardless of year here; leap-validity is deferred to
+    // occasionDtStartMillis (see OccasionEventTest). documents the contract F2 relies on.
+    @Test fun `accepts Feb 29 with a non-leap year (deferred to dtstart)`() {
+        assertEquals(ParsedOccasionDate(2, 29, 2001), OccasionDateParser.parse("2001-02-29"))
+    }
 }

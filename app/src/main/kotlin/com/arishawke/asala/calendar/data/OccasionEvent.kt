@@ -29,11 +29,19 @@ fun parseOccasionUri(uri: String?): Pair<Long, OccasionType>? {
     return runCatching { OccasionType.valueOf(typeName) }.getOrNull()?.let { contactId.toLong() to it }
 }
 
-fun occasionDtStartMillis(month: Int, day: Int, year: Int?): Long =
-    LocalDate.of(year ?: OCCASION_NO_YEAR_SENTINEL, month, day)
+fun occasionDtStartMillis(month: Int, day: Int, year: Int?): Long {
+    // the parser accepts Feb 29 for any year and defers leap-validity here; a
+    // non-leap real year can't build a LocalDate, so fall back to the leap sentinel
+    // (the age just won't render, same as a no-year occasion) rather than throwing
+    // and crashing occasion sync.
+    val resolvedYear = year ?: OCCASION_NO_YEAR_SENTINEL
+    val date = runCatching { LocalDate.of(resolvedYear, month, day) }
+        .getOrElse { LocalDate.of(OCCASION_NO_YEAR_SENTINEL, month, day) }
+    return date
         .atStartOfDay(ZoneOffset.UTC)
         .toInstant()
         .toEpochMilli()
+}
 
 fun occasionEventDraft(o: Occasion, calendarId: Long, appPackage: String, title: String, name: String): EventDraft {
     val start = occasionDtStartMillis(o.month, o.day, o.year)

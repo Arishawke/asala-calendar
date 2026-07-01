@@ -22,8 +22,10 @@ import com.arishawke.asala.calendar.notifications.ReminderConstants
 import com.arishawke.asala.calendar.notifications.ReminderScheduler
 import com.arishawke.asala.calendar.ui.App
 import com.arishawke.asala.calendar.ui.widget.WidgetDeepLink
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
@@ -81,7 +83,13 @@ class MainActivity : ComponentActivity() {
                 ReminderScheduler.rescheduleAll(applicationContext)
             }
             lifecycleScope.launch(Dispatchers.IO) {
-                syncOccasionsIfEnabled(applicationContext)
+                // never let one bad contact row (see occasionDtStartMillis) crash a
+                // routine foreground re-sync, which onResume would then re-trigger.
+                runCatching { syncOccasionsIfEnabled(applicationContext) }
+                    .onFailure {
+                        if (it is CancellationException) throw it
+                        Timber.e(it, "occasion sync on resume failed")
+                    }
             }
         }
     }
