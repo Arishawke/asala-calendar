@@ -45,6 +45,7 @@ import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.TimeUnits
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.components.EventChipRow
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
 import com.arishawke.asala.calendar.ui.timeline.NowLineRow
@@ -73,13 +74,15 @@ fun ScheduleScreen(
     val context = LocalContext.current
     val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
     val vm: ScheduleViewModel = viewModel(
-        factory = ScheduleViewModel.Factory(
-            context.contentResolver,
-            hiddenCalendarIdsFlow,
-            calendarColorOverridesFlow,
-            eventColorOverridesFlow,
-            todayFlow,
-        ),
+        factory = EventViewModelFactory(context.contentResolver, ScheduleViewModel::class.java) { repo ->
+            ScheduleViewModel(
+                eventRepo = repo,
+                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = calendarColorOverridesFlow,
+                eventColorOverridesFlow = eventColorOverridesFlow,
+                todayFlow = todayFlow,
+            )
+        },
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
 

@@ -8,9 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.year
 
-import android.content.ContentResolver
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
@@ -69,26 +67,6 @@ class YearViewModel(
 
     fun showYear(year: Year) {
         visibleYear.update { year }
-    }
-
-    class Factory(
-        private val contentResolver: ContentResolver,
-        private val hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
-        private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val todayFlow: StateFlow<LocalDate>,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass == YearViewModel::class.java)
-            return YearViewModel(
-                eventRepo = EventRepository(contentResolver),
-                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
-                calendarColorOverridesFlow = calendarColorOverridesFlow,
-                eventColorOverridesFlow = eventColorOverridesFlow,
-                todayFlow = todayFlow,
-            ) as T
-        }
     }
 
     companion object {

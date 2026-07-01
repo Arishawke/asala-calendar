@@ -27,6 +27,7 @@ import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
 import com.arishawke.asala.calendar.PendingEventReveal
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
 import com.arishawke.asala.calendar.ui.week.WeekPage
 import com.arishawke.asala.calendar.ui.week.formatWeekRange
@@ -61,13 +62,15 @@ fun ThreeDayScreen(
     val context = LocalContext.current
     val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
     val vm: ThreeDayViewModel = viewModel(
-        factory = ThreeDayViewModel.Factory(
-            context.contentResolver,
-            hiddenCalendarIdsFlow,
-            calendarColorOverridesFlow,
-            eventColorOverridesFlow,
-            todayFlow,
-        ),
+        factory = EventViewModelFactory(context.contentResolver, ThreeDayViewModel::class.java) { repo ->
+            ThreeDayViewModel(
+                eventRepo = repo,
+                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = calendarColorOverridesFlow,
+                eventColorOverridesFlow = eventColorOverridesFlow,
+                todayFlow = todayFlow,
+            )
+        },
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
 

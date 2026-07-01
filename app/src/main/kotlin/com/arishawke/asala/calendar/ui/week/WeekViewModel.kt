@@ -8,9 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.week
 
-import android.content.ContentResolver
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
@@ -75,25 +73,5 @@ class WeekViewModel(
 
     fun showWeek(weekStart: LocalDate) {
         visibleWeekStart.update { weekStart }
-    }
-
-    class Factory(
-        private val contentResolver: ContentResolver,
-        private val hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
-        private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val todayFlow: StateFlow<LocalDate>,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass == WeekViewModel::class.java)
-            return WeekViewModel(
-                eventRepo = EventRepository(contentResolver),
-                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
-                calendarColorOverridesFlow = calendarColorOverridesFlow,
-                eventColorOverridesFlow = eventColorOverridesFlow,
-                todayFlow = todayFlow,
-            ) as T
-        }
     }
 }

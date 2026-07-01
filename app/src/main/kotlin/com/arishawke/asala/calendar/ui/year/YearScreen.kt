@@ -25,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.kizitonwose.calendar.compose.VerticalYearCalendar
 import com.kizitonwose.calendar.compose.yearcalendar.rememberYearCalendarState
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
@@ -57,13 +58,15 @@ fun YearScreen(
     val context = LocalContext.current
     val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
     val vm: YearViewModel = viewModel(
-        factory = YearViewModel.Factory(
-            context.contentResolver,
-            hiddenCalendarIdsFlow,
-            calendarColorOverridesFlow,
-            eventColorOverridesFlow,
-            todayFlow,
-        ),
+        factory = EventViewModelFactory(context.contentResolver, YearViewModel::class.java) { repo ->
+            YearViewModel(
+                eventRepo = repo,
+                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = calendarColorOverridesFlow,
+                eventColorOverridesFlow = eventColorOverridesFlow,
+                todayFlow = todayFlow,
+            )
+        },
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
     val locale = LocalConfiguration.current.locales.get(0)

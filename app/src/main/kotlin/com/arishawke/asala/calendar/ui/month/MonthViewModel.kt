@@ -8,9 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.month
 
-import android.content.ContentResolver
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
@@ -88,28 +86,6 @@ class MonthViewModel(
 
     fun showMonth(yearMonth: YearMonth) {
         visibleMonth.update { yearMonth }
-    }
-
-    class Factory(
-        private val contentResolver: ContentResolver,
-        private val hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
-        private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val todayFlow: StateFlow<LocalDate>,
-        private val monthWindowRadius: Int = 1,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass == MonthViewModel::class.java)
-            return MonthViewModel(
-                eventRepo = EventRepository(contentResolver),
-                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
-                calendarColorOverridesFlow = calendarColorOverridesFlow,
-                eventColorOverridesFlow = eventColorOverridesFlow,
-                todayFlow = todayFlow,
-                monthWindowRadius = monthWindowRadius,
-            ) as T
-        }
     }
 
     companion object {

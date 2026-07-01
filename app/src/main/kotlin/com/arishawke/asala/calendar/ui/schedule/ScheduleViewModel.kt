@@ -8,9 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.schedule
 
-import android.content.ContentResolver
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
@@ -171,26 +169,6 @@ class ScheduleViewModel(
                     rowsByDate = emptyMap(),
                 ),
             )
-
-    class Factory(
-        private val contentResolver: ContentResolver,
-        private val hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
-        private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val todayFlow: StateFlow<LocalDate>,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass == ScheduleViewModel::class.java)
-            return ScheduleViewModel(
-                eventRepo = EventRepository(contentResolver),
-                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
-                calendarColorOverridesFlow = calendarColorOverridesFlow,
-                eventColorOverridesFlow = eventColorOverridesFlow,
-                todayFlow = todayFlow,
-            ) as T
-        }
-    }
 
     private companion object {
         const val WindowBeforeDays = 7L

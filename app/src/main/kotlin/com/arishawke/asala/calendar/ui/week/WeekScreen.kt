@@ -41,6 +41,7 @@ import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
 import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
 import com.arishawke.asala.calendar.ui.timeline.HourAxisWidth
@@ -85,13 +86,15 @@ fun WeekScreen(
     val context = LocalContext.current
     val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
     val vm: WeekViewModel = viewModel(
-        factory = WeekViewModel.Factory(
-            context.contentResolver,
-            hiddenCalendarIdsFlow,
-            calendarColorOverridesFlow,
-            eventColorOverridesFlow,
-            todayFlow,
-        ),
+        factory = EventViewModelFactory(context.contentResolver, WeekViewModel::class.java) { repo ->
+            WeekViewModel(
+                eventRepo = repo,
+                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = calendarColorOverridesFlow,
+                eventColorOverridesFlow = eventColorOverridesFlow,
+                todayFlow = todayFlow,
+            )
+        },
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
 

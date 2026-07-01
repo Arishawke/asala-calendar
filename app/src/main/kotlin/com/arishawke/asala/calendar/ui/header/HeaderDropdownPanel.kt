@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.CalendarView
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import kotlinx.coroutines.flow.StateFlow
 import java.time.DayOfWeek
@@ -59,13 +60,15 @@ internal fun HeaderDropdownPanel(
             val context = LocalContext.current
             val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
             val vm: MiniMonthViewModel = viewModel(
-                factory = MiniMonthViewModel.Factory(
-                    context.contentResolver,
-                    hiddenCalendarIdsFlow,
-                    calendarColorOverridesFlow,
-                    eventColorOverridesFlow,
-                    todayFlow,
-                ),
+                factory = EventViewModelFactory(context.contentResolver, MiniMonthViewModel::class.java) { repo ->
+                    MiniMonthViewModel(
+                        eventRepo = repo,
+                        hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                        calendarColorOverridesFlow = calendarColorOverridesFlow,
+                        eventColorOverridesFlow = eventColorOverridesFlow,
+                        todayFlow = todayFlow,
+                    )
+                },
             )
             // reset to today's month each time the panel re-enters.
             LaunchedEffect(currentView) { vm.resetToToday() }

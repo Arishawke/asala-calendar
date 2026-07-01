@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arishawke.asala.calendar.AsalaCalendarApplication
 import com.arishawke.asala.calendar.PendingDateJump
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.settings.MonthScrollStyle
 import kotlinx.coroutines.flow.StateFlow
 import java.time.DayOfWeek
@@ -52,14 +53,16 @@ fun MonthScreen(
     }
     val vm: MonthViewModel = viewModel(
         key = "month-scroll-${monthScrollStyle.name}",
-        factory = MonthViewModel.Factory(
-            context.contentResolver,
-            hiddenCalendarIdsFlow,
-            calendarColorOverridesFlow,
-            eventColorOverridesFlow,
-            todayFlow,
-            radius,
-        ),
+        factory = EventViewModelFactory(context.contentResolver, MonthViewModel::class.java) { repo ->
+            MonthViewModel(
+                eventRepo = repo,
+                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = calendarColorOverridesFlow,
+                eventColorOverridesFlow = eventColorOverridesFlow,
+                todayFlow = todayFlow,
+                monthWindowRadius = radius,
+            )
+        },
     )
 
     when (monthScrollStyle) {

@@ -8,9 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.header
 
-import android.content.ContentResolver
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.EventRepository
@@ -88,25 +86,5 @@ class MiniMonthViewModel(
 
     fun resetToToday() {
         displayedMonthBacker.update { YearMonth.from(todayFlow.value) }
-    }
-
-    class Factory(
-        private val contentResolver: ContentResolver,
-        private val hiddenCalendarIdsFlow: StateFlow<Set<Long>>,
-        private val calendarColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val eventColorOverridesFlow: StateFlow<Map<Long, Int>>,
-        private val todayFlow: StateFlow<LocalDate>,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass == MiniMonthViewModel::class.java)
-            return MiniMonthViewModel(
-                eventRepo = EventRepository(contentResolver),
-                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
-                calendarColorOverridesFlow = calendarColorOverridesFlow,
-                eventColorOverridesFlow = eventColorOverridesFlow,
-                todayFlow = todayFlow,
-            ) as T
-        }
     }
 }

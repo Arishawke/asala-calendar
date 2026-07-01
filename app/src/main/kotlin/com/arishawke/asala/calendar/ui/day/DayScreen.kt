@@ -54,6 +54,7 @@ import com.arishawke.asala.calendar.PendingDateJump
 import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
 import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
@@ -104,13 +105,15 @@ fun DayScreen(
     val context = LocalContext.current
     val todayFlow = (context.applicationContext as AsalaCalendarApplication).todayProvider.today
     val vm: DayViewModel = viewModel(
-        factory = DayViewModel.Factory(
-            context.contentResolver,
-            hiddenCalendarIdsFlow,
-            calendarColorOverridesFlow,
-            eventColorOverridesFlow,
-            todayFlow,
-        ),
+        factory = EventViewModelFactory(context.contentResolver, DayViewModel::class.java) { repo ->
+            DayViewModel(
+                eventRepo = repo,
+                hiddenCalendarIdsFlow = hiddenCalendarIdsFlow,
+                calendarColorOverridesFlow = calendarColorOverridesFlow,
+                eventColorOverridesFlow = eventColorOverridesFlow,
+                todayFlow = todayFlow,
+            )
+        },
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
 
