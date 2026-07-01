@@ -25,6 +25,7 @@ object OccasionReconcile {
         expectedTitle: (Occasion) -> String,
     ): OccasionDiff {
         val deduped = desired.distinctBy { it.stableId }
+        // one event per stableId is assumed; a stray duplicate would keep the last
         val existingById = existing.associateBy { it.stableId }
 
         val toInsert = mutableListOf<Occasion>()

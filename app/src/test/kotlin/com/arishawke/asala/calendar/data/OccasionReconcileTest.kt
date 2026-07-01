@@ -36,9 +36,19 @@ class OccasionReconcileTest {
         )
     }
 
-    @Test fun `dedups duplicate desired occasions by stable id`() {
+    @Test fun `unchanged occasion is a no-op`() {
         val alice = Occasion(1, "Alice", OccasionType.Birthday, 6, 15, 1990)
-        val d = OccasionReconcile.diff(listOf(alice, alice), emptyList(), ::title)
+        val d = OccasionReconcile.diff(listOf(alice), listOf(existing(50, alice)), ::title)
+        assertTrue(d.toInsert.isEmpty())
+        assertTrue(d.toUpdate.isEmpty())
+        assertTrue(d.toDelete.isEmpty())
+    }
+
+    @Test fun `dedups duplicate desired occasions keeping the first`() {
+        val alice = Occasion(1, "Alice", OccasionType.Birthday, 6, 15, 1990)
+        val aliceLater = alice.copy(day = 16)
+        val d = OccasionReconcile.diff(listOf(alice, aliceLater), emptyList(), ::title)
         assertEquals(1, d.toInsert.size)
+        assertEquals(15, d.toInsert.first().day)
     }
 }
