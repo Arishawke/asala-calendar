@@ -43,7 +43,9 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         if (intent.action != ReminderConstants.ACTION_FIRE) return
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
         val instanceMillis = intent.getLongExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, -1L)
-        val minutesBefore = intent.getIntExtra(ReminderConstants.EXTRA_REMINDER_MINUTES, -1)
+        // coerce -1 default-reminder offsets to 0 so the shade id matches the stored
+        // alert MINUTES and the snooze cancel
+        val minutesBefore = intent.getIntExtra(ReminderConstants.EXTRA_REMINDER_MINUTES, -1).coerceAtLeast(0)
         Timber.d(
             "alarm fired eventId=%d instance=%d minutesBefore=%d",
             eventId,

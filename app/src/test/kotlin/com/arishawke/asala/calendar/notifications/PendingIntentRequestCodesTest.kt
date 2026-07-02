@@ -119,6 +119,21 @@ class PendingIntentRequestCodesTest {
         )
     }
 
+    // the receiver must coerce -1 before computing ids: forNotification itself does
+    // not, so a raw -1 offset would post/cancel under a different id than the
+    // stored CalendarAlerts.MINUTES (always coerced to 0), orphaning the shade entry.
+    @Test
+    fun `negative offset coerces to the same shade id as the stored alert minutes`() {
+        assertEquals(
+            PendingIntentRequestCodes.forNotification(1L, 100L, (-1).coerceAtLeast(0)),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 0),
+        )
+        assertNotEquals(
+            PendingIntentRequestCodes.forNotification(1L, 100L, 0),
+            PendingIntentRequestCodes.forNotification(1L, 100L, -1),
+        )
+    }
+
     // every request-code namespace must be distinct for the same ids, or two
     // unrelated PendingIntents collide under FLAG_UPDATE_CURRENT.
     @Test
