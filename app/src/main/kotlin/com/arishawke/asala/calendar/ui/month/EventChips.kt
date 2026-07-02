@@ -31,6 +31,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
@@ -45,6 +48,9 @@ internal const val MaxEventChipsPerCell = 3
 internal fun chipCapacity(maxHeightDp: Float, chipRowHeightDp: Float, maxChips: Int): Int =
     (maxHeightDp / chipRowHeightDp).toInt().coerceIn(0, maxChips)
 
+// isolated so the toDp() fontScale math is exercisable from a JVM test.
+internal fun Density.chipRowHeight(lineHeight: TextUnit): Dp = lineHeight.toDp() + ChipVerticalPadding * 2
+
 @Composable
 internal fun EventChips(
     date: LocalDate,
@@ -54,9 +60,7 @@ internal fun EventChips(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
-        val chipRowHeight = with(density) {
-            MaterialTheme.typography.bodySmall.lineHeight.toDp()
-        } + ChipVerticalPadding * 2
+        val chipRowHeight = density.chipRowHeight(MaterialTheme.typography.bodySmall.lineHeight)
         val capacity = chipCapacity(maxHeight.value, chipRowHeight.value, MaxEventChipsPerCell)
         // reserve a slot for the +N row so overflow stays visible
         val needsOverflow = events.size > capacity
