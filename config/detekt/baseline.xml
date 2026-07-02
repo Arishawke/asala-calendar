@@ -159,13 +159,13 @@
     <ID>NestedBlockDepth:ReminderScheduler.kt$ReminderScheduler$private fun readUpcomingReminders( cr: ContentResolver, windowStart: Long, windowEnd: Long, ): List&lt;ScheduledReminder&gt;</ID>
     <ID>ReturnCount:AccountSection.kt$internal fun avatarColor(accountType: String, account: String, overrideArgb: Int?): Color</ID>
     <ID>ReturnCount:DateGrammar.kt$DateGrammar$fun find(work: String, today: LocalDate, locale: Locale, vocab: Vocabulary = Vocabulary.English): DateMatch?</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun monthNameDate(work: String, today: LocalDate, vocab: Vocabulary): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun monthNameDate(work: String, today: LocalDate, vocab: Vocabulary, grammar: CompiledGrammar): DateMatch?</ID>
     <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun numericDate(work: String, today: LocalDate, locale: Locale): DateMatch?</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun ordinalDate(work: String, today: LocalDate, vocab: Vocabulary): DateMatch?</ID>
-    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun relative(work: String, today: LocalDate, vocab: Vocabulary): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun ordinalDate(work: String, today: LocalDate, grammar: CompiledGrammar): DateMatch?</ID>
+    <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun relative(work: String, today: LocalDate, vocab: Vocabulary, grammar: CompiledGrammar): DateMatch?</ID>
     <ID>ReturnCount:DayClippedEvent.kt$internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClippedEvent?</ID>
     <ID>ReturnCount:EventDraft.kt$EventDraft.Companion$fun parseIso8601DurationMs(raw: String?): Long?</ID>
-    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractSingleTime(acc: Acc, vocab: Vocabulary)</ID>
+    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractSingleTime(acc: Acc, vocab: Vocabulary, grammar: CompiledGrammar)</ID>
     <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractTimeRange(acc: Acc, vocab: Vocabulary)</ID>
     <ID>ReturnCount:RecurrenceRule.kt$RecurrenceRule$fun frequencyOf(rrule: String?): RecurrenceFrequency?</ID>
     <ID>TooGenericExceptionCaught:NotificationActionReceiver.kt$NotificationActionReceiver$t: Throwable</ID>

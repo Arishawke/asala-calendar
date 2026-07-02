@@ -33,17 +33,18 @@ object EventTextParser {
 
     fun parse(input: String, now: LocalDateTime, locale: Locale): ParsedEvent {
         val vocab = Vocabulary.forLocale(locale)
+        val grammar = CompiledGrammar.forVocabulary(vocab)
         val acc = Acc(input)
-        extractDuration(acc, vocab)
-        extractTimeRange(acc, vocab)
-        if (acc.startTime == null) extractSingleTime(acc, vocab)
-        if (acc.startTime == null) extractTimeOfDay(acc, vocab)
+        extractDuration(acc, vocab, grammar)
+        extractTimeRange(acc, grammar)
+        if (acc.startTime == null) extractSingleTime(acc, vocab, grammar)
+        if (acc.startTime == null) extractTimeOfDay(acc, vocab, grammar)
         extractDate(acc, now.toLocalDate(), locale, vocab)
-        extractLocation(acc, vocab)
+        extractLocation(acc, grammar)
 
         val end = acc.endTime
             ?: acc.startTime?.let { s -> acc.durationMin?.let { s.plusMinutes(it.toLong()) } }
-        val title = acc.work.replace(Regex("\\s+"), " ").trim()
+        val title = acc.work.replace(WHITESPACE, " ").trim()
         return ParsedEvent(
             title = title,
             location = acc.location,
@@ -53,7 +54,9 @@ object EventTextParser {
         )
     }
 
-    private val IC = setOf(RegexOption.IGNORE_CASE)
+    // vocab-independent patterns: compiled once, shared across every locale.
+    private val CLOCK_24H = Regex("\\b([01]?\\d|2[0-3]):([0-5]\\d)\\b")
+    private val WHITESPACE = Regex("\\s+")
 
     // build a LocalTime from clock parts, applying am/pm. null if out of range.
     // the am/pm comparison is English; a future language maps its meridiem here.
@@ -67,32 +70,22 @@ object EventTextParser {
         return LocalTime.of(h, minute)
     }
 
-    private fun extractDuration(acc: Acc, vocab: Vocabulary) {
-        val units = alt(vocab.hourUnits + vocab.minuteUnits)
-        val m = Regex(
-            "\\b(?:${alt(vocab.forConnector)})\\s+(\\d+(?:\\.\\d+)?)\\s*($units)\\b",
-            IC,
-        ).find(acc.work) ?: return
+    private fun extractDuration(acc: Acc, vocab: Vocabulary, grammar: CompiledGrammar) {
+        val m = grammar.duration.find(acc.work) ?: return
         val n = m.groupValues[1].toDouble()
         val unit = m.groupValues[2].lowercase()
         acc.durationMin = if (unit in vocab.hourUnits) (n * 60).roundToInt() else n.roundToInt()
         acc.blank(m.range)
     }
 
-    private fun extractTimeRange(acc: Acc, vocab: Vocabulary) {
-        val mer = alt(vocab.meridiemAm + vocab.meridiemPm)
-        val fromTo = alt(vocab.fromConnector + vocab.toConnector)
-        val m = Regex(
-            "(?:\\b(?:${alt(vocab.fromConnector)})\\s+)?\\b(\\d{1,2})(?::(\\d{2}))?\\s*($mer)?\\s*" +
-                "(?:-|${alt(vocab.toConnector)})\\s*(\\d{1,2})(?::(\\d{2}))?\\s*($mer)?\\b",
-            IC,
-        ).find(acc.work) ?: return
+    private fun extractTimeRange(acc: Acc, grammar: CompiledGrammar) {
+        val m = grammar.timeRange.find(acc.work) ?: return
         val sMer = m.groupValues[3].ifBlank { null }
         val eMer = m.groupValues[6].ifBlank { null }
         val times = if (sMer == null && eMer == null) {
             // a bare "N-M" is a number/date range ("jan 3-15") unless a from/to cue
             // signals time intent ("9 to 5"), then it reads as a daytime range.
-            if (m.value.contains(Regex("\\b($fromTo)\\b", IC))) {
+            if (m.value.contains(grammar.timeRangeFromTo)) {
                 daytimeRange(
                     m.groupValues[1].toInt(),
                     m.groupValues[2].ifBlank { "0" }.toInt(),
@@ -144,17 +137,14 @@ object EventTextParser {
         }
     }
 
-    private fun extractSingleTime(acc: Acc, vocab: Vocabulary) {
-        val at = alt(vocab.atConnector)
-        val named = alt(vocab.noon + vocab.midnight)
-        Regex("(?:\\b(?:$at)\\s+)?\\b($named)\\b", IC).find(acc.work)?.let { m ->
+    private fun extractSingleTime(acc: Acc, vocab: Vocabulary, grammar: CompiledGrammar) {
+        grammar.singleTimeNamed.find(acc.work)?.let { m ->
             val word = m.groupValues[1].lowercase()
             acc.startTime = if (word in vocab.noon) LocalTime.NOON else LocalTime.MIDNIGHT
             acc.blank(m.range)
             return
         }
-        val mer = alt(vocab.meridiemAm + vocab.meridiemPm)
-        Regex("(?:\\b(?:$at)\\s+)?\\b(\\d{1,2})(?::(\\d{2}))?\\s*($mer)\\b", IC).find(acc.work)?.let { m ->
+        grammar.singleTimeMeridiem.find(acc.work)?.let { m ->
             val t = clock(m.groupValues[1].toInt(), m.groupValues[2].ifBlank { "0" }.toInt(), m.groupValues[3])
             if (t != null) {
                 acc.startTime = t
@@ -162,12 +152,12 @@ object EventTextParser {
                 return
             }
         }
-        Regex("\\b([01]?\\d|2[0-3]):([0-5]\\d)\\b").find(acc.work)?.let { m ->
+        CLOCK_24H.find(acc.work)?.let { m ->
             acc.startTime = LocalTime.of(m.groupValues[1].toInt(), m.groupValues[2].toInt())
             acc.blank(m.range)
             return
         }
-        Regex("\\b(?:$at)\\s+(\\d{1,2})\\b", IC).find(acc.work)?.let { m ->
+        grammar.singleTimeBareAt.find(acc.work)?.let { m ->
             val t = clock(m.groupValues[1].toInt(), 0, null)
             if (t != null) {
                 acc.startTime = t
@@ -177,16 +167,14 @@ object EventTextParser {
         }
     }
 
-    private fun extractTimeOfDay(acc: Acc, vocab: Vocabulary) {
+    private fun extractTimeOfDay(acc: Acc, vocab: Vocabulary, grammar: CompiledGrammar) {
         if (vocab.timeOfDay.isEmpty()) return
         // "tonight" reads as evening and stays in the text so the date grammar
         // resolves it to today.
-        val tonight = Regex("\\b(${alt(vocab.tonight)})\\b", IC).find(acc.work)
+        val tonight = grammar.tonight.find(acc.work)
         // the other words set a time only after a temporal lead (this/the or a day
         // word), so a plain title like "movie night" keeps its word untouched.
-        val lead = alt(vocab.thisQualifier + vocab.theArticle + vocab.today + vocab.tomorrow + vocab.weekdays.keys)
-        val words = alt(vocab.timeOfDay.keys - vocab.tonight.toSet())
-        val led = Regex("\\b($lead)\\s+($words)\\b", IC).find(acc.work)
+        val led = grammar.timeOfDayLed.find(acc.work)
         if (tonight != null) {
             acc.startTime = vocab.timeOfDay[tonight.groupValues[1].lowercase()]
         } else if (led != null) {
@@ -206,12 +194,12 @@ object EventTextParser {
         acc.blank(m.range)
     }
 
-    private fun extractLocation(acc: Acc, vocab: Vocabulary) {
+    private fun extractLocation(acc: Acc, grammar: CompiledGrammar) {
         // time/date are already blanked, so any remaining "at X" is a place.
-        val m = Regex("\\b(?:${alt(vocab.atConnector)})\\s+(.+)$", IC).find(acc.work) ?: return
-        var loc = m.groupValues[1].replace(Regex("\\s+"), " ").trim()
+        val m = grammar.location.find(acc.work) ?: return
+        var loc = m.groupValues[1].replace(WHITESPACE, " ").trim()
         // drop a connector stranded by a blanked date/time ("... on <blanked>").
-        loc = loc.replace(Regex("\\s+(${alt(vocab.locationTrimConnectors)})$", IC), "").trim()
+        loc = loc.replace(grammar.locationTrim, "").trim()
         if (loc.isNotEmpty()) {
             acc.location = loc
             acc.blank(m.range)

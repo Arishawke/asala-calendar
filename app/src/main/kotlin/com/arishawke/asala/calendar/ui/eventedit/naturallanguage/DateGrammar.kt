@@ -18,25 +18,24 @@ internal data class DateMatch(val date: LocalDate, val range: IntRange)
 // specific first so "next monday" is not grabbed as bare "monday". all words
 // come from the vocabulary; the logic here is language-neutral.
 internal object DateGrammar {
-    private val IC = setOf(RegexOption.IGNORE_CASE)
+    // vocab-independent: compiled once, shared across every locale.
+    private val NUMERIC_DATE = Regex("\\b(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?\\b")
 
     fun find(work: String, today: LocalDate, locale: Locale, vocab: Vocabulary = Vocabulary.English): DateMatch? {
-        relative(work, today, vocab)?.let { return it }
-        nextThisWeekday(work, today, vocab)?.let { return it }
-        bareWeekday(work, today, vocab)?.let { return it }
-        monthNameDate(work, today, vocab)?.let { return it }
+        val grammar = CompiledGrammar.forVocabulary(vocab)
+        relative(work, today, vocab, grammar)?.let { return it }
+        nextThisWeekday(work, today, vocab, grammar)?.let { return it }
+        bareWeekday(work, today, vocab, grammar)?.let { return it }
+        monthNameDate(work, today, vocab, grammar)?.let { return it }
         numericDate(work, today, locale)?.let { return it }
-        ordinalDate(work, today, vocab)?.let { return it }
+        ordinalDate(work, today, grammar)?.let { return it }
         return null
     }
 
-    private fun relative(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
-        Regex("\\b(?:${alt(vocab.today)})\\b", IC).find(work)?.let { return DateMatch(today, it.range) }
-        Regex("\\b(?:${alt(vocab.tomorrow)})\\b", IC).find(work)?.let { return DateMatch(today.plusDays(1), it.range) }
-        Regex(
-            "\\b(?:${alt(vocab.inConnector)})\\s+(\\d+)\\s+(${alt(vocab.dayUnits + vocab.weekUnits)})\\b",
-            IC,
-        ).find(work)?.let { m ->
+    private fun relative(work: String, today: LocalDate, vocab: Vocabulary, grammar: CompiledGrammar): DateMatch? {
+        grammar.relativeToday.find(work)?.let { return DateMatch(today, it.range) }
+        grammar.relativeTomorrow.find(work)?.let { return DateMatch(today.plusDays(1), it.range) }
+        grammar.relativeIn.find(work)?.let { m ->
             val n = m.groupValues[1].toLongOrNull() ?: return null
             val unit = m.groupValues[2].lowercase()
             // out-of-range counts overflow the date; fall through to title.
@@ -51,22 +50,25 @@ internal object DateGrammar {
     private fun daysUntil(today: LocalDate, target: DayOfWeek): Long =
         ((target.value - today.dayOfWeek.value + 7) % 7).toLong() // 0 == today
 
-    private fun nextThisWeekday(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
-        val qual = alt(vocab.nextQualifier + vocab.thisQualifier)
-        val m = Regex("\\b($qual)\\s+(${alt(vocab.weekdays.keys)})\\b", IC).find(work) ?: return null
+    private fun nextThisWeekday(
+        work: String,
+        today: LocalDate,
+        vocab: Vocabulary,
+        grammar: CompiledGrammar,
+    ): DateMatch? {
+        val m = grammar.nextThisWeekday.find(work) ?: return null
         val target = vocab.weekdays.getValue(m.groupValues[2].lowercase())
         val upcoming = today.plusDays(daysUntil(today, target))
         val date = if (m.groupValues[1].lowercase() in vocab.nextQualifier) upcoming.plusDays(7) else upcoming
         return DateMatch(date, m.range)
     }
 
-    private fun bareWeekday(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
+    private fun bareWeekday(work: String, today: LocalDate, vocab: Vocabulary, grammar: CompiledGrammar): DateMatch? {
         // "every monday" (also "every other monday", "every monday and tuesday") is
         // recurrence the quick-add cannot express; if an "every" qualifier appears
         // at all, decline a bare weekday rather than schedule a misleading one-off.
-        if (Regex("\\b(?:${alt(vocab.everyQualifier)})\\b", IC).containsMatchIn(work)) return null
-        val bare = alt(vocab.weekdays.keys - vocab.bareHomographs)
-        return Regex("\\b($bare)\\b", IC).find(work)?.let { m ->
+        if (grammar.everyQualifier.containsMatchIn(work)) return null
+        return grammar.bareWeekday.find(work)?.let { m ->
             val target = vocab.weekdays.getValue(m.groupValues[1].lowercase())
             DateMatch(today.plusDays(daysUntil(today, target)), m.range)
         }
@@ -79,10 +81,8 @@ internal object DateGrammar {
         return if (year == null && d.isBefore(today)) d.plusYears(1) else d
     }
 
-    private fun monthNameDate(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
-        val mon = alt(vocab.months.keys)
-        val ord = alt(vocab.ordinalSuffixes)
-        Regex("\\b($mon)\\.?\\s+(\\d{1,2})(?:$ord)?(?:,?\\s+(\\d{4}))?\\b", IC)
+    private fun monthNameDate(work: String, today: LocalDate, vocab: Vocabulary, grammar: CompiledGrammar): DateMatch? {
+        grammar.monthDayYear
             .find(work)?.let { m ->
                 val d =
                     build(
@@ -95,7 +95,7 @@ internal object DateGrammar {
                     )
                 if (d != null) return DateMatch(d, m.range)
             }
-        Regex("\\b(\\d{1,2})(?:$ord)?\\s+($mon)\\.?(?:,?\\s+(\\d{4}))?\\b", IC)
+        grammar.dayMonthYear
             .find(work)?.let { m ->
                 val d =
                     build(
@@ -120,7 +120,7 @@ internal object DateGrammar {
     }
 
     private fun numericDate(work: String, today: LocalDate, locale: Locale): DateMatch? {
-        val m = Regex("\\b(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?\\b").find(work) ?: return null
+        val m = NUMERIC_DATE.find(work) ?: return null
         val a = m.groupValues[1].toInt()
         val b = m.groupValues[2].toInt()
         val year = m.groupValues[3].ifBlank { null }?.toInt()?.let { if (it < 100) 2000 + it else it }
@@ -129,10 +129,8 @@ internal object DateGrammar {
         return DateMatch(d, m.range)
     }
 
-    private fun ordinalDate(work: String, today: LocalDate, vocab: Vocabulary): DateMatch? {
-        val the = alt(vocab.theArticle)
-        val ord = alt(vocab.ordinalSuffixes)
-        val m = Regex("\\b(?:(?:$the)\\s+)?(\\d{1,2})(?:$ord)\\b", IC).find(work) ?: return null
+    private fun ordinalDate(work: String, today: LocalDate, grammar: CompiledGrammar): DateMatch? {
+        val m = grammar.ordinalDate.find(work) ?: return null
         val day = m.groupValues[1].toInt()
         val base = if (day >= today.dayOfMonth) today else today.plusMonths(1)
         if (day > base.lengthOfMonth()) return null
