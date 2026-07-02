@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -69,6 +70,7 @@ internal fun YearDayCell(
         null
     }
     val stateLabel = listOfNotNull(todayLabel, countLabel).joinToString(", ").ifEmpty { null }
+    val badgeDiameter = with(LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() }
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -88,7 +90,7 @@ internal fun YearDayCell(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(badgeDiameter)
                     .clip(CircleShape)
                     .background(if (isToday) CalendarTokens.todayHighlight else Color.Transparent),
                 contentAlignment = Alignment.Center,
