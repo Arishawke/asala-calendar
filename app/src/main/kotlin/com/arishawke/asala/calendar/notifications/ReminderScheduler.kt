@@ -17,6 +17,7 @@ import android.os.Build
 import android.provider.CalendarContract
 import androidx.core.content.getSystemService
 import com.arishawke.asala.calendar.PendingIntentFlags
+import com.arishawke.asala.calendar.data.TimeUnits
 import com.arishawke.asala.calendar.data.instancesUriFor
 import com.arishawke.asala.calendar.data.providerCall
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +87,7 @@ internal fun replanDecision(
 
 internal object ReminderScheduler {
     private const val WINDOW_DAYS = 30L
-    private const val WINDOW_MILLIS = WINDOW_DAYS * 24 * 60 * 60 * 1000L
+    private const val WINDOW_MILLIS = WINDOW_DAYS * TimeUnits.MillisPerDay
 
     // SQLite caps bound args near 999; chunk distinct event ids well under it.
     private const val REMINDER_QUERY_CHUNK = 900

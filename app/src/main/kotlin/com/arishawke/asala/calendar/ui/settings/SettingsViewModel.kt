@@ -24,6 +24,7 @@ import com.arishawke.asala.calendar.data.RemindersRepository
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.data.StorageModeSetup
 import com.arishawke.asala.calendar.data.occasionBaseTitle
+import com.arishawke.asala.calendar.ui.UiStateStopTimeoutMillis
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import com.arishawke.asala.calendar.ui.widget.updateAllWidgets
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,7 +44,7 @@ class SettingsViewModel(
     val state: StateFlow<UserPrefs> =
         prefs.prefs.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(UiStateStopTimeoutMillis),
             initialValue = UserPrefs.Defaults,
         )
 
