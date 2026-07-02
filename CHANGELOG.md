@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-07-01
+
 ### Added
 - Tap an empty slot in the Day, Week, or 3-Day timeline to create an event
   right there: the editor opens prefilled with that day and time, snapped to
@@ -15,10 +17,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   N days, weeks, months, or years ("every 2 weeks"), not just every single
   one. Events imported with an interval already expanded correctly; now you
   can author and edit them too.
-
-## [0.23.0] - 2026-07-01
-
-### Added
 - A "Toolbar position" setting (Settings, Appearance) moves the app bar to the
   bottom of the screen for one-handed reach. It applies across the calendar,
   search, event editor, and settings screens. Defaults to top.
