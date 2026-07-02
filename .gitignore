@@ -16,6 +16,7 @@ keystore.properties
 # Personal research notes, journals, and other non-public working files
 notes/
 logos/
+docs/private/
 
 # WSL/Windows alternate-data-stream metadata
 *:Zone.Identifier
