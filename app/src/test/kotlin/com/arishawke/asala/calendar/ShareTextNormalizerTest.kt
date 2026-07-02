@@ -5,6 +5,7 @@
 package com.arishawke.asala.calendar
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -44,5 +45,19 @@ class ShareTextNormalizerTest {
     fun `input at exactly 500 characters is unchanged`() {
         val exact = "b".repeat(500)
         assertEquals(exact, ShareTextNormalizer.normalize(exact))
+    }
+
+    @Test
+    fun `a collapsed space landing at the cap boundary does not survive as trailing space`() {
+        val input = "a".repeat(499) + " " + "a".repeat(10)
+        assertEquals("a".repeat(499), ShareTextNormalizer.normalize(input))
+    }
+
+    @Test
+    fun `an emoji straddling the cap boundary does not leave an unpaired surrogate`() {
+        val input = "a".repeat(499) + "😀" + "more text after the emoji"
+        val result = ShareTextNormalizer.normalize(input)
+        assertEquals("a".repeat(499), result)
+        assertFalse(result!!.last().isHighSurrogate())
     }
 }

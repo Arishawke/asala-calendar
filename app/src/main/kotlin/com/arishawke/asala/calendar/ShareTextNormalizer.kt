@@ -20,6 +20,10 @@ object ShareTextNormalizer {
     fun normalize(raw: String?): String? {
         if (raw == null) return null
         val collapsed = raw.replace(WHITESPACE_RUN, " ").trim()
-        return collapsed.ifEmpty { null }?.take(MaxLength)
+        return collapsed.ifEmpty { null }
+            ?.take(MaxLength)
+            // avoid splitting an emoji at the cap
+            ?.let { if (it.last().isHighSurrogate()) it.dropLast(1) else it }
+            ?.trimEnd()
     }
 }
