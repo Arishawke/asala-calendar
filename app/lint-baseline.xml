@@ -723,4 +723,15 @@
             column="32"/>
     </issue>
 
+    <issue
+        id="ComposeUnstableCollections"
+        message="The Compose Compiler cannot infer the stability of a parameter if a List&lt;Int> is used in it, even if the item type is stable.&#xA;You should use Kotlinx Immutable Collections instead: `reminders: ImmutableList&lt;Int>` or create an `@Immutable` wrapper for this class: `@Immutable data class RemindersList(val items: List&lt;Int>)`&#xA;See https://slackhq.github.io/compose-lints/rules/#avoid-using-unstable-collections for more information."
+        errorLine1="    reminders: List&lt;Int>,"
+        errorLine2="               ~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/eventedit/ReminderList.kt"
+            line="43"
+            column="16"/>
+    </issue>
+
 </issues>
