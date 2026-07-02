@@ -5,7 +5,16 @@ order.
 
 ## Now
 
-Nothing in active development right now. See Next.
+Specced 2026-07-02 (see `docs/specs/`), plans next.
+
+- **Multiple reminders per event.** List-shaped editor and data model,
+  per-reminder notifications, and the fix for the editor silently
+  dropping reminder rows it cannot see.
+- **In-app font-size control.** A text-size preference multiplied on
+  top of the OS font scale, with a hardening pass on the dense
+  surfaces whose fixed heights would clip scaled text.
+- **Share text to Asala.** Share plain text from any app; the
+  natural-language parser prefills the event editor.
 
 ## Next
 
@@ -17,13 +26,6 @@ Planned and near-term. Rough priority order within each group.
   plus a `SyncAdapter`. Server providers: Nextcloud, Fastmail,
   mailbox.org, posteo. Lets Asala stand alone without the DAVx5
   companion app.
-
-**Events and reminders**
-
-- **Multiple reminders per event.** The editor's single-reminder model is
-  the remaining cap; the data layer already reads and preserves multiple
-  rows. Needs its own design pass (editor list UI, per-reminder alarm
-  slots, default handling).
 
 **Widgets**
 
@@ -62,8 +64,6 @@ Ideas and opportunities. May not happen. Kept for reference.
   month surface rather than being a separate view.
 - **ICS export / import of all events.** Offline backup without a sync
   server. Large effort (full ical4j parse / serialize).
-- **In-app font-size control.** A text-size preference inside Asala,
-  independent of the OS font-scale support above.
 - **Multiple timezones per event** (second timezone in editor and
   detail sheet; optional pinned secondary timezone in the Day / Week
   rail), and travel-aware display when the device timezone differs from
