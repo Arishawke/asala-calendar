@@ -15,6 +15,10 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -205,11 +209,14 @@ internal fun CalendarsSettings(
 internal fun AboutSettings() {
     val context = LocalContext.current
     val sourceUrl = stringResource(R.string.settings_about_source_url)
-    val licensesUrl = stringResource(R.string.settings_about_licenses_url)
     val supportUrl = stringResource(R.string.settings_about_support_url)
+    var showLicenses by remember { mutableStateOf(false) }
     AboutSection(
         onOpenSource = { context.startActivity(Intent(Intent.ACTION_VIEW, sourceUrl.toUri())) },
-        onOpenLicenses = { context.startActivity(Intent(Intent.ACTION_VIEW, licensesUrl.toUri())) },
+        onOpenLicenses = { showLicenses = true },
         onOpenSupport = { context.startActivity(Intent(Intent.ACTION_VIEW, supportUrl.toUri())) },
     )
+    if (showLicenses) {
+        LicensesSheet(onDismiss = { showLicenses = false })
+    }
 }

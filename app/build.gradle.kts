@@ -1,3 +1,9 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import java.util.Properties
 
 plugins {
@@ -23,6 +29,32 @@ val hasSigningEnv: Boolean =
     listOf("SIGNING_STORE_FILE", "SIGNING_STORE_PASSWORD", "SIGNING_KEY_ALIAS", "SIGNING_KEY_PASSWORD")
         .all { providers.environmentVariable(it).orNull != null }
 val hasSigningConfig: Boolean = keystorePropertiesFile.exists() || hasSigningEnv
+
+// copies repo-root NOTICE (single source of truth) into a generated assets
+// dir, named NOTICE.txt, so the in-app licenses viewer works offline. A plain
+// Copy task only exposes its destination as a File, not a DirectoryProperty,
+// so addGeneratedSourceDirectory below (which needs the latter) requires this
+// small custom task instead.
+abstract class CopyNoticeAssetTask : DefaultTask() {
+    @get:InputFile
+    abstract val noticeFile: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copyNotice() {
+        val destination = outputDir.get().asFile
+        destination.mkdirs()
+        noticeFile.get().asFile.copyTo(destination.resolve("NOTICE.txt"), overwrite = true)
+    }
+}
+
+val copyNoticeAsset =
+    tasks.register<CopyNoticeAssetTask>("copyNoticeAsset") {
+        noticeFile.set(rootProject.file("NOTICE"))
+        outputDir.set(layout.buildDirectory.dir("generated/noticeAssets"))
+    }
 
 android {
     namespace = "com.arishawke.asala.calendar"
@@ -110,6 +142,16 @@ android {
         // ADR-0004: a11y + i18n + rtl gates promoted from warning to error.
         // MissingTranslation is already error by default; do not re-promote.
         error += setOf("HardcodedText", "ContentDescription", "RtlHardcoded")
+    }
+}
+
+// wires the generated NOTICE asset into every variant's assets, using the
+// Variant API (not the classic sourceSets DSL, which AGP 9 rejects for
+// provider-backed generated directories); this also makes the merge*Assets
+// task for each variant depend on copyNoticeAsset automatically.
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(copyNoticeAsset, CopyNoticeAssetTask::outputDir)
     }
 }
 

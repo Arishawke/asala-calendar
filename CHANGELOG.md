@@ -19,6 +19,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Optional contact birthdays and anniversaries: turn it on in Settings to show
   your contacts' birthdays and anniversaries as two on-device calendars, with a
   dedicated reminder. Off by default; needs contacts access.
+- The open source license notices are now viewable inside the app, no connection needed.
 
 ### Changed
 - Reminder offsets read in full words ("30 minutes before"), matching the hour
