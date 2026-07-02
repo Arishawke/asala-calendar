@@ -299,14 +299,14 @@ private fun DotRow(events: List<EventItem>) {
         dotColors.forEach { argb ->
             Box(
                 modifier = Modifier
-                    .size(4.dp)
+                    .size(MiniMonthDotRowHeight)
                     .clip(CircleShape)
                     .background(Color(argb)),
             )
         }
         // reserve room so cells keep equal height with or without dots.
         if (dotColors.isEmpty()) {
-            Spacer(modifier = Modifier.size(4.dp))
+            Spacer(modifier = Modifier.size(MiniMonthDotRowHeight))
         }
     }
 }
