@@ -116,6 +116,25 @@
     <string name="repeats_monthly">Repeats monthly</string>
     <string name="repeats_yearly">Repeats yearly</string>
 
+    <!-- Recurrence interval ("Every 2 weeks") -->
+    <string name="repeats_every">Every</string>
+    <plurals name="recurrence_interval_days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="recurrence_interval_weeks">
+        <item quantity="one">week</item>
+        <item quantity="other">weeks</item>
+    </plurals>
+    <plurals name="recurrence_interval_months">
+        <item quantity="one">month</item>
+        <item quantity="other">months</item>
+    </plurals>
+    <plurals name="recurrence_interval_years">
+        <item quantity="one">year</item>
+        <item quantity="other">years</item>
+    </plurals>
+
     <!-- Event edit screen -->
     <string name="event_new">New event</string>
     <string name="quick_add_label">Quick add (e.g. lunch tomorrow at noon)</string>

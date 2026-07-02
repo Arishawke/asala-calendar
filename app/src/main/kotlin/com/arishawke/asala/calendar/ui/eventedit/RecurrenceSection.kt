@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
@@ -88,7 +89,10 @@ fun RecurrenceSection(state: EventEditFormState, onChange: (EventEditFormState) 
                     DropdownMenuItem(
                         text = { Text(frequencyLabel(freq)) },
                         onClick = {
-                            onChange(state.copy(recurrenceFrequency = freq))
+                            // switching frequency resets the interval (every 2 weeks
+                            // is not every 2 days); re-picking the same one keeps it.
+                            val interval = if (freq == state.recurrenceFrequency) state.recurrenceInterval else 1
+                            onChange(state.copy(recurrenceFrequency = freq, recurrenceInterval = interval))
                             showFreqMenu = false
                         },
                     )
@@ -98,8 +102,42 @@ fun RecurrenceSection(state: EventEditFormState, onChange: (EventEditFormState) 
     }
 
     if (state.recurrenceFrequency != null) {
+        IntervalSection(state = state, onChange = onChange)
         EndConditionSection(state = state, onChange = onChange)
     }
+}
+
+private const val MaxRecurrenceInterval = 99
+private const val IntervalFieldWidthFraction = 0.3f
+
+// "Every N weeks" stepper; the data path (save, parse-back, splits) already
+// carries INTERVAL, this is just the missing authoring surface.
+@Composable
+private fun IntervalSection(state: EventEditFormState, onChange: (EventEditFormState) -> Unit) {
+    val freq = state.recurrenceFrequency ?: return
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(R.string.repeats_every))
+        OutlinedTextField(
+            value = state.recurrenceInterval.toString(),
+            onValueChange = { v ->
+                val n = v.toIntOrNull()
+                if (n != null && n in 1..MaxRecurrenceInterval) onChange(state.copy(recurrenceInterval = n))
+            },
+            singleLine = true,
+            modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(IntervalFieldWidthFraction),
+        )
+        Text(pluralStringResource(intervalUnitPlural(freq), state.recurrenceInterval))
+    }
+}
+
+private fun intervalUnitPlural(freq: RecurrenceFrequency): Int = when (freq) {
+    RecurrenceFrequency.Daily -> R.plurals.recurrence_interval_days
+    RecurrenceFrequency.Weekly -> R.plurals.recurrence_interval_weeks
+    RecurrenceFrequency.Monthly -> R.plurals.recurrence_interval_months
+    RecurrenceFrequency.Yearly -> R.plurals.recurrence_interval_years
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

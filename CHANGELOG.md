@@ -11,6 +11,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Tap an empty slot in the Day, Week, or 3-Day timeline to create an event
   right there: the editor opens prefilled with that day and time, snapped to
   15 minutes. The + button works as before.
+- Repeat intervals: the event editor can now create events that repeat every
+  N days, weeks, months, or years ("every 2 weeks"), not just every single
+  one. Events imported with an interval already expanded correctly; now you
+  can author and edit them too.
 
 ## [0.23.0] - 2026-07-01
 
