@@ -53,6 +53,7 @@ Asala keeps no calendar data of its own. Your events live in your phone's system
 - **Continuous or paged month.** Read months as one endless vertical scroll, or swipe a page at a time.
 - **Search everything.** Find any event by title, location, or notes, across every calendar and any date, past or future.
 - **All your calendars in one app.** Work, personal, local, and CalDAV (through the DAVx5 companion app), each event colored by the calendar it came from.
+- **Birthdays and anniversaries from your contacts.** An optional toggle turns the dates already on your phone into two on-device calendars, ages included, with their own reminder. Everything stays on the device.
 - **Six views.** Year, Month, Week, 3-Day, Day, and Schedule.
 - **Drag to reschedule.** Pick up an event in Day or Week and drop it on a new time.
 
@@ -66,6 +67,7 @@ Asala keeps no calendar data of its own. Your events live in your phone's system
 - A focus mode that dims non-working hours and days.
 - Follows your phone: the 24-hour setting, your device language for dates and month names, and optional ISO week numbers.
 - A tidy drawer to toggle calendars, hide whole accounts, recolor anything, and rename or delete local calendars.
+- Home-screen widgets: a scrolling agenda and a month grid, with light, dark, and translucent looks.
 
 ## Install
 

@@ -18,6 +18,13 @@ Planned and near-term. Rough priority order within each group.
   mailbox.org, posteo. Lets Asala stand alone without the DAVx5
   companion app.
 
+**Events and reminders**
+
+- **Multiple reminders per event.** The editor's single-reminder model is
+  the remaining cap; the data layer already reads and preserves multiple
+  rows. Needs its own design pass (editor list UI, per-reminder alarm
+  slots, default handling).
+
 **Widgets**
 
 - Multiple agenda-widget sizes with distinct compact / large layouts (the
@@ -57,10 +64,6 @@ Ideas and opportunities. May not happen. Kept for reference.
   server. Large effort (full ical4j parse / serialize).
 - **In-app font-size control.** A text-size preference inside Asala,
   independent of the OS font-scale support above.
-- **Bottom-aligned header / navigation toggle.** Optional setting to
-  move the top bar (title, nav buttons, controls) to the bottom of the
-  screen for one-handed reach on tall phones. Affects the screens with a
-  top app bar; needs a layout pass per view plus a settings switch.
 - **Multiple timezones per event** (second timezone in editor and
   detail sheet; optional pinned secondary timezone in the Day / Week
   rail), and travel-aware display when the device timezone differs from
@@ -71,10 +74,8 @@ Ideas and opportunities. May not happen. Kept for reference.
   first locales: German, French, Spanish, Portuguese-BR, Japanese,
   simplified Chinese).
 - Subscribe to a holiday calendar (ICS feed); optionally bundle one
-  in-app. Import significant dates (birthdays, anniversaries) from
-  `ContactsContract` as a virtual calendar.
+  in-app.
 - Email reminders (needs a server or carefully scoped SMTP; defer);
-  multiple reminders per event with per-event lead-time override;
   custom-snooze IME choice.
 - Fuzzy / typo-tolerant search on top of the existing exact-substring
   search; saved searches / quick filters.
