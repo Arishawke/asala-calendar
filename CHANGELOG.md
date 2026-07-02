@@ -15,6 +15,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   row per alert with a remove button and an "Add reminder" row (up to ten), and
   each reminder fires as its own notification so two reminders for the same
   event now stack in the shade instead of replacing each other.
+- A font size setting (Settings > Appearance) scales in-app text from 85% to
+  150%, layered on top of the OS accessibility text size. Month event chips,
+  the year view's day-number circles, all-day bars, the mini month panel, the
+  timeline's hour labels, and the schedule view's day and time columns all
+  resize with it so nothing clips or overlaps at larger sizes.
 
 ### Fixed
 - Editing an event that carries more than one reminder no longer drops the
