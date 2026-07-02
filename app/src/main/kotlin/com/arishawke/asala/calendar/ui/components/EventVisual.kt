@@ -122,6 +122,11 @@ internal fun statusContentDescription(title: String, status: Int): String? = whe
 
 // month grid: stays ~12dp tall so dense days fit multiple chips; the
 // surrounding day cell is the 48dp+ touch target.
+
+// shared with EventChips' capacity math (ui/month/EventChips.kt) so the
+// predicted chip-row height matches what actually renders.
+internal val ChipVerticalPadding: Dp = 1.dp
+
 @Composable
 internal fun EventChipCompact(event: EventItem, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     val styling = statusStyling(event.status)
@@ -140,7 +145,7 @@ internal fun EventChipCompact(event: EventItem, modifier: Modifier = Modifier, o
                     Modifier
                 },
             )
-            .padding(horizontal = 2.dp, vertical = 1.dp),
+            .padding(horizontal = 2.dp, vertical = ChipVerticalPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(

@@ -25,22 +25,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.ui.components.ChipVerticalPadding
 import com.arishawke.asala.calendar.ui.components.EventChipCompact
 import java.time.LocalDate
 
 internal const val MaxEventChipsPerCell = 3
 
-// approx chip row height; drives capacity-by-height so the +N row never spills past the cell
-private val ChipRowHeightApprox: Dp = 18.dp
+// pure so the +N math is unit-testable without a Compose runtime: how many
+// chip rows fit in maxHeightDp given each row's real rendered height.
+internal fun chipCapacity(maxHeightDp: Float, chipRowHeightDp: Float, maxChips: Int): Int =
+    (maxHeightDp / chipRowHeightDp).toInt().coerceIn(0, maxChips)
 
 @Composable
 internal fun EventChips(
@@ -50,8 +53,11 @@ internal fun EventChips(
     onOverflowClick: (() -> Unit)?,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val capacityByHeight = (maxHeight / ChipRowHeightApprox).toInt().coerceAtLeast(0)
-        val capacity = capacityByHeight.coerceAtMost(MaxEventChipsPerCell)
+        val density = LocalDensity.current
+        val chipRowHeight = with(density) {
+            MaterialTheme.typography.bodySmall.lineHeight.toDp()
+        } + ChipVerticalPadding * 2
+        val capacity = chipCapacity(maxHeight.value, chipRowHeight.value, MaxEventChipsPerCell)
         // reserve a slot for the +N row so overflow stays visible
         val needsOverflow = events.size > capacity
         val shown = if (needsOverflow) {
