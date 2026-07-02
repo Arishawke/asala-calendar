@@ -16,6 +16,8 @@ import android.content.Intent
 import android.provider.CalendarContract
 import androidx.core.app.NotificationManagerCompat
 import com.arishawke.asala.calendar.R
+import com.arishawke.asala.calendar.data.instancesUriFor
+import com.arishawke.asala.calendar.data.providerCall
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
 import com.arishawke.asala.calendar.ui.settings.settingsDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +25,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+
+internal data class FireWindowInstance(val eventId: Long, val beginMillis: Long, val cancelled: Boolean)
+
+// pure; tested by ReminderFireLivenessTest. the armed (eventId, instance) pair
+// must still exist exactly as armed: an EXDATE'd or cancelled occurrence, a
+// moved one (BEGIN differs), or a deleted event (no instance rows at all) must
+// not ring its stale alarm or snooze. the scheduler's snooze-cancel heuristic
+// cannot reach a snooze whose plan key already fired, so this fire-time check
+// is what actually suppresses those ghosts.
+internal fun anyLiveOccurrenceMatches(rows: List<FireWindowInstance>, eventId: Long, instanceMillis: Long): Boolean =
+    rows.any { it.eventId == eventId && it.beginMillis == instanceMillis && !it.cancelled }
 
 class ReminderAlarmReceiver : BroadcastReceiver() {
     @SuppressLint("MissingPermission") // notify() is gated on areNotificationsEnabled() at fire time below
@@ -47,6 +60,10 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
             try {
                 // log rather than crash the process on a provider hiccup or bad row
                 runCatching {
+                    if (!occurrenceStillExists(context, eventId, instanceMillis)) {
+                        Timber.w("alarm: occurrence (%d, %d) no longer exists; dropping", eventId, instanceMillis)
+                        return@runCatching
+                    }
                     val prefs = UserPreferences(context.settingsDataStore).prefs.first()
                     val event =
                         readEvent(
@@ -84,6 +101,41 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
                 pending.finish()
             }
         }
+    }
+
+    // one Instances query at fire time; a failed read (throw or null cursor)
+    // fails toward RINGING, never toward silence: the inverse of the scheduler's
+    // replan-abort rule, because a stale ring beats a silently missed reminder.
+    private fun occurrenceStillExists(context: Context, eventId: Long, instanceMillis: Long): Boolean {
+        val rows =
+            providerCall("readFireWindow", null) {
+                val cols =
+                    arrayOf(
+                        CalendarContract.Instances.EVENT_ID,
+                        CalendarContract.Instances.BEGIN,
+                        CalendarContract.Instances.STATUS,
+                    )
+                val cursor =
+                    context.contentResolver.query(
+                        instancesUriFor(instanceMillis, instanceMillis + 1),
+                        cols,
+                        null,
+                        null,
+                        null,
+                    ) ?: return@providerCall null
+                cursor.use { c ->
+                    val out = mutableListOf<FireWindowInstance>()
+                    while (c.moveToNext()) {
+                        out += FireWindowInstance(
+                            eventId = c.getLong(0),
+                            beginMillis = c.getLong(1),
+                            cancelled = c.getInt(2) == CalendarContract.Instances.STATUS_CANCELED,
+                        )
+                    }
+                    out
+                }
+            } ?: return true
+        return anyLiveOccurrenceMatches(rows, eventId, instanceMillis)
     }
 
     private fun readEvent(

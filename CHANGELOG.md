@@ -34,7 +34,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   Other link types render as plain text.
 - A snoozed reminder is no longer silently cancelled by a routine refresh (opening
   the app, a calendar sync, a reboot, or the daily tick). Once you snooze a
-  reminder it reliably rings again at the snoozed time.
+  reminder it rings again at the snoozed time.
+- A reminder (including a snoozed one) no longer rings for an event occurrence
+  that was deleted, cancelled, or moved to a different time in the meantime.
 - If reading the calendar fails mid-refresh (a rare system hiccup), the app now
   keeps its already-scheduled reminders instead of clearing them until the next
   successful refresh.
