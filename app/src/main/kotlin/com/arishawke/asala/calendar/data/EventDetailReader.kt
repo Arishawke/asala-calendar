@@ -45,6 +45,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             CalendarContract.Events.STATUS,
             CalendarContract.Events.AVAILABILITY,
             CalendarContract.Events.CALENDAR_ACCESS_LEVEL,
+            CalendarContract.Events.CUSTOM_APP_URI,
         )
 
     val event =
@@ -71,6 +72,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             val statusIdx = c.getColumnIndexOrThrow(CalendarContract.Events.STATUS)
             val availabilityIdx = c.getColumnIndexOrThrow(CalendarContract.Events.AVAILABILITY)
             val accessLevelIdx = c.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ACCESS_LEVEL)
+            val customUriIdx = c.getColumnIndexOrThrow(CalendarContract.Events.CUSTOM_APP_URI)
             val dtStart = c.getLong(dtStartIdx)
             val endMillis =
                 EventEndMillis.compute(
@@ -108,6 +110,9 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
                 },
                 isBirthday = BirthdayDetection.isBirthdayCalendar(calendarName),
                 occasion = OccasionDetection.classify(calendarName),
+                // row-scoped: hand-added rows in the app's own occasion calendars
+                // carry no occasion URI and must keep their titles and notes.
+                isOwnedOccasion = isOwnedOccasionUri(c.getString(customUriIdx)),
                 accessLevel = if (c.isNull(accessLevelIdx)) {
                     CalendarContract.Calendars.CAL_ACCESS_OWNER
                 } else {

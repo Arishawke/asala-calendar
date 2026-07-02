@@ -106,8 +106,12 @@ class EventRepository(private val contentResolver: ContentResolver) {
         val calNameIdx = getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_DISPLAY_NAME)
         val dtStartIdx = getColumnIndexOrThrow(CalendarContract.Instances.DTSTART)
         val descIdx = getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
+        val customUriIdx = getColumnIndexOrThrow(CalendarContract.Instances.CUSTOM_APP_URI)
         while (moveToNext()) {
             val kind = OccasionDetection.classify(getString(calNameIdx))
+            // row-scoped: hand-added rows in the app's own occasion calendars
+            // carry no occasion URI and must keep their titles and notes.
+            val owned = isOwnedOccasionUri(getString(customUriIdx))
             items.add(
                 EventItem(
                     instanceId = getLong(instanceIdIdx),
@@ -130,9 +134,10 @@ class EventRepository(private val contentResolver: ContentResolver) {
                     // DTSTART can be null on some provider rows; BEGIN (this
                     // occurrence's start) is the safe fallback.
                     parentDtStartMillis = if (isNull(dtStartIdx)) getLong(beginIdx) else getLong(dtStartIdx),
-                    // only occasion rows need the contact name, so non-occasion
-                    // reads skip retaining the description string.
-                    occasionName = if (kind == OccasionKind.None) null else getString(descIdx),
+                    // only owned occasion rows need the contact name (it feeds the
+                    // age relabel); everything else skips retaining the description.
+                    occasionName = if (kind == OccasionKind.None || !owned) null else getString(descIdx),
+                    isOwnedOccasion = owned,
                 ),
             )
         }
@@ -199,6 +204,7 @@ class EventRepository(private val contentResolver: ContentResolver) {
                 CalendarContract.Instances.CALENDAR_DISPLAY_NAME,
                 CalendarContract.Instances.DTSTART,
                 CalendarContract.Instances.DESCRIPTION,
+                CalendarContract.Instances.CUSTOM_APP_URI,
             )
     }
 }

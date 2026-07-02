@@ -32,6 +32,9 @@ data class EventDetail(
     val availability: Int = CalendarContract.Events.AVAILABILITY_BUSY,
     val isBirthday: Boolean = false,
     val occasion: OccasionKind = OccasionKind.None,
+    // row carries the app's occasion CUSTOM_APP_URI (see isOwnedOccasionUri);
+    // gates both the age/ordinal relabel and the Notes suppression.
+    val isOwnedOccasion: Boolean = false,
     // CalendarContract.Calendars.CAL_ACCESS_*; 500 = CAL_ACCESS_CONTRIBUTOR.
     // below this the calendar is read-only (subscriptions, holidays, birthdays),
     // so edit/delete would be rejected by the provider. defaults to owner so an

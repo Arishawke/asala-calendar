@@ -29,6 +29,8 @@ data class WeekSegment(
     // parent event's original DTSTART, for computing age from the occurrence year.
     val parentDtStartMillis: Long = 0L,
     val occurrenceStartMillis: Long = 0L,
+    // carried from EventItem: row-scoped occasion ownership for the relabel gate.
+    val isOwnedOccasion: Boolean = false,
 ) {
     val spanDays: Int get() = endCol - startCol + 1
 

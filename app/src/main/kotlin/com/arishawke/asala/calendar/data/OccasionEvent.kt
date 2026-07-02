@@ -27,6 +27,12 @@ fun parseOccasionUri(uri: String?): Pair<Long, OccasionType>? {
     return runCatching { OccasionType.valueOf(typeName) }.getOrNull()?.let { contactId.toLong() to it }
 }
 
+// row-scoped ownership, the same predicate OccasionSync reconciles by: only a
+// row stamped with a parseable occasion URI is app-generated. calendar
+// membership is NOT ownership: the provisioned calendars accept hand-added
+// rows, which must keep their own titles and notes.
+fun isOwnedOccasionUri(uri: String?): Boolean = parseOccasionUri(uri) != null
+
 fun occasionDtStartMillis(month: Int, day: Int, year: Int?): Long {
     // the parser accepts Feb 29 for any year and defers leap-validity here; a
     // non-leap real year can't build a LocalDate, so fall back to the leap sentinel

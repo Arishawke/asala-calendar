@@ -63,6 +63,7 @@ object WeekBucketer {
             occasionName = e.occasionName,
             parentDtStartMillis = e.parentDtStartMillis,
             occurrenceStartMillis = e.startMillis,
+            isOwnedOccasion = e.isOwnedOccasion,
         )
     }
 }

@@ -6,7 +6,9 @@ package com.arishawke.asala.calendar.data
 
 import android.provider.CalendarContract
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OccasionEventTest {
@@ -47,6 +49,27 @@ class OccasionEventTest {
         val ms = occasionDtStartMillis(2, 29, 2000)
         val d = java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneOffset.UTC).toLocalDate()
         assertEquals(java.time.LocalDate.of(2000, 2, 29), d)
+    }
+
+    // 1900 is the divisible-by-100 non-leap year and the common vCard placeholder;
+    // normalization must come from real calendar rules (LocalDate), not a year % 4
+    // shortcut that would pass the 2001 case above yet reintroduce the crash here.
+    @Test fun `Feb 29 in 1900 also normalizes to the sentinel`() {
+        val ms = occasionDtStartMillis(2, 29, 1900)
+        val d = java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneOffset.UTC).toLocalDate()
+        assertEquals(OCCASION_NO_YEAR_SENTINEL, d.year)
+    }
+
+    // row-scoped ownership (audit D3): only a parseable occasion URI marks an
+    // app-generated row. hand-added rows in the provisioned calendars carry no
+    // URI and must not be relabeled or have their notes hidden.
+    @Test fun `ownership requires a parseable occasion uri`() {
+        assertTrue(isOwnedOccasionUri("asala://occasion/42/Birthday"))
+        assertTrue(isOwnedOccasionUri("asala://occasion/7/Anniversary"))
+        assertFalse(isOwnedOccasionUri(null))
+        assertFalse(isOwnedOccasionUri(""))
+        assertFalse(isOwnedOccasionUri("https://example.com"))
+        assertFalse(isOwnedOccasionUri("asala://occasion/42/Wedding"))
     }
 
     @Test fun `draft is all-day yearly with custom-app id and P1D`() {

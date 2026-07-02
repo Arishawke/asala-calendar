@@ -63,17 +63,10 @@ internal fun App() {
     }
     val resolvedIs24Hour = prefs.is24HourOverride ?: systemIs24Hour
 
-    // the app's own occasion calendars; render code relabels ages only for these,
-    // so a third-party "Birthdays" calendar keeps its own titles (audit F4).
-    val occasionCalendarIds = remember(prefs.birthdaysCalendarId, prefs.anniversariesCalendarId) {
-        setOfNotNull(prefs.birthdaysCalendarId, prefs.anniversariesCalendarId)
-    }
-
     AsalaCalendarTheme(darkTheme = darkTheme, amoled = amoled) {
         CompositionLocalProvider(
             LocalIs24Hour provides resolvedIs24Hour,
             LocalToolbarPosition provides prefs.toolbarPosition,
-            LocalOccasionCalendarIds provides occasionCalendarIds,
         ) {
             CalendarPermissionGate {
                 AppShell(vm = vm)

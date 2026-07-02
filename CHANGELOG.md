@@ -51,6 +51,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   that merely has "Birthdays" or "Anniversaries" in its name.
 - A contact birthday or anniversary detail no longer repeats the person's name as a
   redundant "Notes" line.
+- Events you add yourself into the generated Birthdays or Anniversaries calendars
+  now keep their own titles and notes, instead of being renamed and having their
+  notes hidden like generated entries.
 - If you delete a generated birthdays or anniversaries calendar outside the app, it
   is now re-created on the next refresh (or when you turn the feature on again)
   instead of silently staying empty. Turning the feature on again no longer creates

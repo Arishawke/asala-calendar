@@ -18,7 +18,6 @@ import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.OCCASION_NO_YEAR_SENTINEL
 import com.arishawke.asala.calendar.data.OccasionKind
 import com.arishawke.asala.calendar.data.utcDate
-import com.arishawke.asala.calendar.ui.LocalOccasionCalendarIds
 import com.arishawke.asala.calendar.ui.multidaybars.WeekSegment
 
 // render-time title for occasion events: the stored row keeps the plain base
@@ -73,7 +72,8 @@ internal object OccasionTitle {
 // the kind to TITLE by: a third-party calendar merely NAMED like an occasion
 // classifies as one (so the cake icon still shows) but is not owned by the app,
 // so its events title as None and keep their own text instead of a "<desc> turns
-// N" relabel (audit F4). owned = the event is in a provisioned occasion calendar.
+// N" relabel (audit F4). owned = the ROW carries the app's occasion URI; a
+// hand-added event in a provisioned occasion calendar is not owned either.
 internal fun occasionTitlingKind(occasion: OccasionKind, owned: Boolean): OccasionKind =
     if (owned) occasion else OccasionKind.None
 
@@ -82,7 +82,7 @@ internal fun occasionTitlingKind(occasion: OccasionKind, owned: Boolean): Occasi
 @Composable
 internal fun occasionDisplayTitle(item: EventItem): String = occasionResultText(
     OccasionTitle.compute(
-        kind = occasionTitlingKind(item.occasion, item.calendarId in LocalOccasionCalendarIds.current),
+        kind = occasionTitlingKind(item.occasion, item.isOwnedOccasion),
         name = item.occasionName,
         baseTitle = item.title,
         parentDtStartMillis = item.parentDtStartMillis,
@@ -96,7 +96,7 @@ internal fun occasionDisplayTitle(item: EventItem): String = occasionResultText(
 @Composable
 internal fun occasionDisplayTitle(detail: EventDetail, instanceMillis: Long?): String = occasionResultText(
     OccasionTitle.compute(
-        kind = occasionTitlingKind(detail.occasion, detail.calendarId in LocalOccasionCalendarIds.current),
+        kind = occasionTitlingKind(detail.occasion, detail.isOwnedOccasion),
         name = detail.description,
         baseTitle = detail.title,
         parentDtStartMillis = detail.startMillis,
@@ -109,7 +109,7 @@ internal fun occasionDisplayTitle(detail: EventDetail, instanceMillis: Long?): S
 @Composable
 internal fun occasionDisplayTitle(segment: WeekSegment): String = occasionResultText(
     OccasionTitle.compute(
-        kind = occasionTitlingKind(segment.occasion, segment.calendarId in LocalOccasionCalendarIds.current),
+        kind = occasionTitlingKind(segment.occasion, segment.isOwnedOccasion),
         name = segment.occasionName,
         baseTitle = segment.title,
         parentDtStartMillis = segment.parentDtStartMillis,

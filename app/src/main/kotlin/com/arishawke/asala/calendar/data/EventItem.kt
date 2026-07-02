@@ -31,6 +31,9 @@ data class EventItem(
     // parent event's original DTSTART, for computing age from the occurrence year.
     val parentDtStartMillis: Long = 0L,
     val occasionName: String? = null,
+    // row carries the app's occasion CUSTOM_APP_URI (see isOwnedOccasionUri);
+    // gates the age/ordinal relabel so hand-added rows keep their own titles.
+    val isOwnedOccasion: Boolean = false,
 ) {
     // all-day millis are at 00:00 UTC regardless of device zone; reading them
     // in local zone shifts the date by the offset (Feb 1 in UTC-5 reads Jan 31).
