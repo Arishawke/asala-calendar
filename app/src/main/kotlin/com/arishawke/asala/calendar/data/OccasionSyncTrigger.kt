@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.data
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
@@ -28,17 +29,32 @@ fun occasionBaseTitle(context: Context, occasion: Occasion): String = when (occa
     OccasionType.Anniversary -> context.getString(R.string.occasion_anniversary_base, occasion.displayName)
 }
 
+// process-local: a cold start always syncs once; the freshness gate only trims
+// the repeated onResume passes (returns from dialogs, share sheets, switches).
+@Volatile
+private var lastSyncElapsedMillis = 0L
+private const val RESUME_SYNC_MIN_INTERVAL_MILLIS = 60 * 60 * 1000L
+
 // single gated entry point that keeps the two occasion calendars fresh: called
 // on app foreground, the daily reminder re-arm tick, and (debounced) on a
 // contacts change. a no-op whenever the feature is off or READ_CONTACTS has
 // since been revoked, so every call site can fire it unconditionally without
 // repeating those checks itself. ensureCalendars re-creates a calendar the user
 // deleted outside the app rather than writing into a dead id (F5).
-suspend fun syncOccasionsIfEnabled(context: Context) {
+// skipIfFresh gates the resume path: a full contacts + two-calendar reconcile
+// per foreground is wasted provider work when the contacts observer and daily
+// tick already cover real changes.
+suspend fun syncOccasionsIfEnabled(context: Context, skipIfFresh: Boolean = false) {
     val appContext = context.applicationContext
     val userPreferences = UserPreferences(appContext.settingsDataStore)
     val prefs = userPreferences.prefs.first()
     if (!prefs.contactOccasionsEnabled || !hasContactsPermission(appContext)) return
+    val elapsed = SystemClock.elapsedRealtime()
+    if (skipIfFresh && lastSyncElapsedMillis != 0L &&
+        elapsed - lastSyncElapsedMillis < RESUME_SYNC_MIN_INTERVAL_MILLIS
+    ) {
+        return
+    }
 
     withContext(Dispatchers.IO) {
         val contentResolver = appContext.contentResolver
@@ -62,6 +78,9 @@ suspend fun syncOccasionsIfEnabled(context: Context) {
             prefs.contactReminderMinutesBefore,
             titleFor,
         )
+        // stamped only after a pass actually ran, so a thrown sync doesn't
+        // suppress the resume retry for an hour.
+        lastSyncElapsedMillis = elapsed
     }
 }
 

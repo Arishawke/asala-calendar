@@ -13,9 +13,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.database.ContentObserver
-import android.os.Handler
-import android.os.Looper
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import androidx.core.content.ContextCompat
@@ -38,6 +35,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -73,7 +71,7 @@ class AsalaCalendarApplication : Application() {
                 .flatMapLatest { enabled ->
                     if (enabled) {
                         contentResolver.observeChanges(ContactsContract.Contacts.CONTENT_URI)
-                            .debounce(ContactsSyncDebounceMillis)
+                            .debounce(ObserverSyncDebounceMillis)
                     } else {
                         emptyFlow()
                     }
@@ -102,24 +100,21 @@ class AsalaCalendarApplication : Application() {
         ReminderReArmScheduler.scheduleNext(this)
     }
 
+    // debounced like the contacts observer: an enable-time occasion sync writes
+    // dozens of event + reminder rows back to back, and each provider notify
+    // would otherwise queue its own full reschedule pass. the merged flow emits
+    // once on subscription, which harmlessly overlaps the immediate
+    // rescheduleAll in onCalendarPermissionGranted.
+    @OptIn(FlowPreview::class)
     private fun registerProviderObserver() {
-        val handler = Handler(Looper.getMainLooper())
-        val observer =
-            object : ContentObserver(handler) {
-                override fun onChange(selfChange: Boolean) {
-                    appScope.launch { ReminderScheduler.rescheduleAll(this@AsalaCalendarApplication) }
-                }
-            }
-        contentResolver.registerContentObserver(
-            CalendarContract.Events.CONTENT_URI,
-            true,
-            observer,
-        )
-        contentResolver.registerContentObserver(
-            CalendarContract.Reminders.CONTENT_URI,
-            true,
-            observer,
-        )
+        appScope.launch {
+            merge(
+                contentResolver.observeChanges(CalendarContract.Events.CONTENT_URI),
+                contentResolver.observeChanges(CalendarContract.Reminders.CONTENT_URI),
+            )
+                .debounce(ObserverSyncDebounceMillis)
+                .collect { ReminderScheduler.rescheduleAll(this@AsalaCalendarApplication) }
+        }
     }
 
     // forwards date/time/timezone broadcasts into TodayProvider. NOT_EXPORTED
@@ -144,6 +139,7 @@ class AsalaCalendarApplication : Application() {
     }
 
     private companion object {
-        const val ContactsSyncDebounceMillis = 2_000L
+        // shared by the contacts and calendar-provider observers
+        const val ObserverSyncDebounceMillis = 2_000L
     }
 }

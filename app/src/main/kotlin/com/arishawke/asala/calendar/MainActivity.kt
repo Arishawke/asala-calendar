@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
                 // never let one bad contact row (see occasionDtStartMillis) crash a
                 // routine foreground re-sync, which onResume would then re-trigger.
-                runCatching { syncOccasionsIfEnabled(applicationContext) }
+                runCatching { syncOccasionsIfEnabled(applicationContext, skipIfFresh = true) }
                     .onFailure {
                         if (it is CancellationException) throw it
                         Timber.e(it, "occasion sync on resume failed")

@@ -10,6 +10,7 @@ package com.arishawke.asala.calendar.ui.components
 
 import android.icu.text.MessageFormat
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import com.arishawke.asala.calendar.R
@@ -129,5 +130,7 @@ private fun occasionResultText(result: OccasionTitleResult): String = when (resu
 @Composable
 private fun ordinalString(n: Int): String {
     val locale = LocalConfiguration.current.locales.get(0)
-    return MessageFormat("{0,ordinal}", locale).format(arrayOf(n))
+    // MessageFormat parses its pattern on every construction; anniversary bars
+    // recompose on month flings, so cache per (n, locale).
+    return remember(n, locale) { MessageFormat("{0,ordinal}", locale).format(arrayOf(n)) }
 }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,56 +68,60 @@ fun MultiDayBarRow(
     ) {
         segments.forEach { s ->
             if (s.lane >= maxLanes) return@forEach
-            val shape = remember(s.isContinuedLeft, s.isContinuedRight) {
-                RoundedCornerShape(
-                    topStart = if (s.isContinuedLeft) CutCorner else NaturalCorner,
-                    bottomStart = if (s.isContinuedLeft) CutCorner else NaturalCorner,
-                    topEnd = if (s.isContinuedRight) CutCorner else NaturalCorner,
-                    bottomEnd = if (s.isContinuedRight) CutCorner else NaturalCorner,
-                )
-            }
-            val bg = Color(s.color)
-            val fg = Color(WcagContrast.onColor(s.color))
-            Box(
-                modifier = Modifier
-                    .offset(
-                        x = cellWidth * s.startCol,
-                        y = laneSpan * s.lane,
+            // keyed so slot identity follows the segment when a fling shifts the
+            // list; positional slots would misalign every remember below.
+            key(s.eventId, s.startCol) {
+                val shape = remember(s.isContinuedLeft, s.isContinuedRight) {
+                    RoundedCornerShape(
+                        topStart = if (s.isContinuedLeft) CutCorner else NaturalCorner,
+                        bottomStart = if (s.isContinuedLeft) CutCorner else NaturalCorner,
+                        topEnd = if (s.isContinuedRight) CutCorner else NaturalCorner,
+                        bottomEnd = if (s.isContinuedRight) CutCorner else NaturalCorner,
                     )
-                    .width(cellWidth * (s.endCol - s.startCol + 1))
-                    .height(BarHeight)
-                    .padding(horizontal = 1.dp)
-                    .clip(shape)
-                    .background(bg)
-                    .then(
-                        // expose as a button + merge the title so TalkBack reads
-                        // and opens the event, matching the timed EventBlock fix.
-                        if (onSegmentClick != null) {
-                            Modifier
-                                .semantics(mergeDescendants = true) { role = Role.Button }
-                                .clickable { onSegmentClick(s.eventId) }
-                        } else {
-                            Modifier
-                        },
-                    ),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                // title repeats per segment so a continuation row reads on its own
-                Row(
-                    modifier = Modifier.padding(horizontal = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                }
+                val bg = Color(s.color)
+                val fg = Color(WcagContrast.onColor(s.color))
+                Box(
+                    modifier = Modifier
+                        .offset(
+                            x = cellWidth * s.startCol,
+                            y = laneSpan * s.lane,
+                        )
+                        .width(cellWidth * (s.endCol - s.startCol + 1))
+                        .height(BarHeight)
+                        .padding(horizontal = 1.dp)
+                        .clip(shape)
+                        .background(bg)
+                        .then(
+                            // expose as a button + merge the title so TalkBack reads
+                            // and opens the event, matching the timed EventBlock fix.
+                            if (onSegmentClick != null) {
+                                Modifier
+                                    .semantics(mergeDescendants = true) { role = Role.Button }
+                                    .clickable { onSegmentClick(s.eventId) }
+                            } else {
+                                Modifier
+                            },
+                        ),
+                    contentAlignment = Alignment.CenterStart,
                 ) {
-                    if (s.isBirthday) {
-                        BirthdayLeadingIcon(size = 10.dp, tint = fg)
-                        Spacer(modifier = Modifier.width(4.dp))
+                    // title repeats per segment so a continuation row reads on its own
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (s.isBirthday) {
+                            BirthdayLeadingIcon(size = 10.dp, tint = fg)
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        Text(
+                            text = occasionDisplayTitle(s),
+                            style = MaterialTheme.typography.labelSmall.copy(color = fg),
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
-                    Text(
-                        text = occasionDisplayTitle(s),
-                        style = MaterialTheme.typography.labelSmall.copy(color = fg),
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                 }
             }
         }
