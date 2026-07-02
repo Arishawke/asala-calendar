@@ -206,11 +206,15 @@ data class EventEditFormState(
             // initialStartDate is the date viewed at FAB tap; falls back to
             // today for callers (and tests) that don't pass one.
             val date = initialStartDate ?: LocalDate.now()
+            val end = start.plusMinutes(defaultDurationMinutes.toLong())
             return EventEditFormState(
                 startDate = date,
-                endDate = date,
+                // a late-evening start wraps LocalTime past midnight; roll the
+                // end date forward so the form opens valid (same rule as
+                // withEndTime), instead of a disabled Save on an empty-slot tap.
+                endDate = if (end.isAfter(start)) date else date.plusDays(1),
                 startTime = start,
-                endTime = start.plusMinutes(defaultDurationMinutes.toLong()),
+                endTime = end,
                 reminderMinutesBefore = defaultTimedReminderMinutes,
                 defaultDurationMinutes = defaultDurationMinutes,
                 defaultTimedReminderMinutes = defaultTimedReminderMinutes,

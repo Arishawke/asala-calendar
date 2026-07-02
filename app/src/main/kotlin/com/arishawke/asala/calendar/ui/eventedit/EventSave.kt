@@ -130,7 +130,7 @@ internal object EventSave {
                 if (keepOriginal) {
                     parentRrule
                 } else {
-                    RecurrenceRule.build(
+                    val rebuilt = RecurrenceRule.build(
                         frequency = freq,
                         interval = form.recurrenceInterval,
                         untilDate = form.recurrenceUntilDate,
@@ -138,6 +138,19 @@ internal object EventSave {
                         allDay = form.allDay,
                         zoneId = eventZone,
                     )
+                    // an interval/end edit on a loaded rule must not strip the
+                    // tokens build() cannot express (BYDAY, WKST, ...). carried
+                    // only while the frequency is unchanged: weekly BYDAY means
+                    // something else under a new frequency.
+                    val carried =
+                        if (scope != RecurringEditScope.ThisInstance &&
+                            RecurrenceRule.frequencyOf(parentRrule) == freq
+                        ) {
+                            RecurrenceRule.unmodeledParts(parentRrule)
+                        } else {
+                            emptyList()
+                        }
+                    (listOf(rebuilt) + carried).joinToString(";")
                 }
             }
 

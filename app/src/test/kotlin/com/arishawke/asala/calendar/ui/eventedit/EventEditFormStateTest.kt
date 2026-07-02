@@ -34,6 +34,21 @@ class EventEditFormStateTest {
         allDay = true,
     )
 
+    // a late-evening start wraps LocalTime past midnight; the end DATE must
+    // roll forward or the form opens with a disabled Save and an "end before
+    // start" error the user never caused (fresh-review moderate finding).
+    @Test
+    fun `forNewEvent rolls the end date when the duration crosses midnight`() {
+        val s = EventEditFormState.forNewEvent(
+            defaultDurationMinutes = 60,
+            initialStartDate = LocalDate.of(2026, 7, 3),
+            initialStartTime = LocalTime.of(23, 30),
+        )
+        assertEquals(LocalTime.of(0, 30), s.endTime)
+        assertEquals(LocalDate.of(2026, 7, 4), s.endDate)
+        assertEquals(true, s.isEndAfterStart)
+    }
+
     // tap-create: a timeline empty-slot tap prefills the exact snapped time and
     // the end honors the default-duration preference; without a time the FAB
     // path keeps its next-round-hour behavior.

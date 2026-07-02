@@ -521,11 +521,12 @@ class EventSaveTest {
         assertEquals("FREQ=WEEKLY;BYDAY=MO,WE", savedRrule)
     }
 
-    // Guard: actually changing recurrence on "this and following" rebuilds the
-    // rule from the editor fields (the user redefined it), so BYDAY does not
-    // carry. Documents the boundary of the keep-verbatim path.
+    // Changing only a modeled field (here the interval) rebuilds the rule but
+    // must CARRY the tokens the editor cannot express: an every-2-weeks edit on
+    // an imported MO,WE series must not silently collapse it to the DTSTART
+    // weekday. The frequency is unchanged, so BYDAY still means the same thing.
     @Test
-    fun `ThisAndFollowing rebuilds the rule when recurrence is changed`() = runBlocking {
+    fun `ThisAndFollowing carries unmodeled tokens when only the interval changes`() = runBlocking {
         var savedRrule: String? = null
         val recurringForm = form().copy(
             recurrenceFrequency = RecurrenceFrequency.Weekly,
@@ -547,7 +548,36 @@ class EventSaveTest {
             },
             setReminder = { _, _ -> true },
         )
-        assertEquals("FREQ=WEEKLY;INTERVAL=2", savedRrule)
+        assertEquals("FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE", savedRrule)
+    }
+
+    // Guard on the carry's boundary: changing the FREQUENCY redefines the rule,
+    // and weekly BYDAY tokens mean something different under a new frequency,
+    // so they are dropped rather than carried.
+    @Test
+    fun `ThisAndFollowing drops unmodeled tokens when the frequency changes`() = runBlocking {
+        var savedRrule: String? = null
+        val recurringForm = form().copy(
+            recurrenceFrequency = RecurrenceFrequency.Monthly,
+            recurrenceInterval = 1,
+            recurrenceUntilDate = null,
+            recurrenceCount = null,
+        )
+        EventSave.attempt(
+            form = recurringForm,
+            editingEventId = 7L,
+            scope = RecurringEditScope.ThisAndFollowing,
+            instanceMillis = 1_700_000_000_000L,
+            parentRrule = "FREQ=WEEKLY;BYDAY=MO,WE",
+            loadedTimezone = "UTC",
+            insertEvent = { error("must not be called on edit path") },
+            updateEvent = { _, draft, _, _, _, _ ->
+                savedRrule = draft.rrule
+                7L
+            },
+            setReminder = { _, _ -> true },
+        )
+        assertEquals("FREQ=MONTHLY", savedRrule)
     }
 
     // C1: editing a recurring series via "All events" from a NON-FIRST occurrence

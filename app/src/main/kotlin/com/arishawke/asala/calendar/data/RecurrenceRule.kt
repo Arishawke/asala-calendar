@@ -85,6 +85,17 @@ object RecurrenceRule {
             effectiveCount == count
     }
 
+    // tokens the editor cannot represent (BYDAY, WKST, BYMONTHDAY, ...). a
+    // rebuild that changed only the modeled fields re-appends these so an
+    // interval or end edit does not silently strip an imported weekly
+    // MO,WE,FR pattern down to the DTSTART weekday.
+    fun unmodeledParts(rrule: String?): List<String> {
+        if (rrule.isNullOrBlank()) return emptyList()
+        return rrule.split(";").filter { part -> MODELED_PREFIXES.none { part.startsWith(it) } }
+    }
+
+    private val MODELED_PREFIXES = listOf("FREQ=", "INTERVAL=", "COUNT=", "UNTIL=")
+
     private fun partOf(rrule: String?, prefix: String): String? {
         if (rrule.isNullOrBlank()) return null
         return rrule

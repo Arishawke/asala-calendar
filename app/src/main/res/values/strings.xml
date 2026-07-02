@@ -116,6 +116,8 @@
     <string name="repeats_monthly">Repeats monthly</string>
     <string name="repeats_yearly">Repeats yearly</string>
 
+    <string name="settings_about_licenses_error">The license text could not be read. It is also available in the NOTICE file of the source distribution.</string>
+
     <!-- Recurrence interval ("Every 2 weeks") -->
     <string name="repeats_every">Every</string>
     <plurals name="recurrence_interval_days">

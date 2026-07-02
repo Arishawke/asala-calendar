@@ -47,9 +47,14 @@ internal fun LicensesSheet(onDismiss: () -> Unit) {
     val context = LocalContext.current
     var noticeText by remember { mutableStateOf<String?>(null) }
 
+    val errorText = stringResource(R.string.settings_about_licenses_error)
     LaunchedEffect(Unit) {
         noticeText = withContext(Dispatchers.IO) {
-            context.assets.open(NOTICE_ASSET_NAME).bufferedReader().use { it.readText() }
+            // an asset read failing is exotic (the build fails without NOTICE),
+            // but a throw here would crash the app and a null would spin forever.
+            runCatching {
+                context.assets.open(NOTICE_ASSET_NAME).bufferedReader().use { it.readText() }
+            }.getOrElse { errorText }
         }
     }
 

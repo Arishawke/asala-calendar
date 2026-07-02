@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.RecurrenceFrequency
@@ -127,6 +129,7 @@ private fun IntervalSection(state: EventEditFormState, onChange: (EventEditFormS
                 if (n != null && n in 1..MaxRecurrenceInterval) onChange(state.copy(recurrenceInterval = n))
             },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(IntervalFieldWidthFraction),
         )
         Text(pluralStringResource(intervalUnitPlural(freq), state.recurrenceInterval))

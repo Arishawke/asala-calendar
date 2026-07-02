@@ -24,7 +24,10 @@ fun occasionCustomAppUri(o: Occasion): String = "asala://occasion/${o.contactId}
 fun parseOccasionUri(uri: String?): Pair<Long, OccasionType>? {
     val match = uri?.let { OCCASION_URI_RE.matchEntire(it) } ?: return null
     val (contactId, typeName) = match.destructured
-    return runCatching { OccasionType.valueOf(typeName) }.getOrNull()?.let { contactId.toLong() to it }
+    // toLongOrNull: this now parses every rendered row, and a hostile 19+ digit
+    // id must read as not-ours, not throw.
+    val type = runCatching { OccasionType.valueOf(typeName) }.getOrNull()
+    return contactId.toLongOrNull()?.let { id -> type?.let { id to it } }
 }
 
 // row-scoped ownership, the same predicate OccasionSync reconciles by: only a
