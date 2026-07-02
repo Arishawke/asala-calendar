@@ -224,6 +224,9 @@ internal fun EventChipBlock(
 // title + (when tall enough) times, inset past the 3dp color bar.
 private val EventBlockLabelTopPadding: Dp = 2.dp
 
+// calibrates the derived threshold to the old 32dp at default scale.
+private val TimeLabelMinHeightCalibration: Dp = 2.dp
+
 @Suppress("LongParameterList")
 @Composable
 private fun EventBlockLabels(
@@ -239,7 +242,7 @@ private fun EventBlockLabels(
 ) {
     val timeFmt = rememberTimeFormatter()
     val labelLineHeight = with(LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() }
-    val timeLabelMinHeight = EventBlockLabelTopPadding + labelLineHeight * 2
+    val timeLabelMinHeight = EventBlockLabelTopPadding + labelLineHeight * 2 - TimeLabelMinHeightCalibration
     val multiDay = segmentCount > 1
     val baseTitle = occasionDisplayTitle(event).ifBlank { stringResource(R.string.event_no_title) }
     // midnight crosser gets a "N/total" badge so a later slice reads
