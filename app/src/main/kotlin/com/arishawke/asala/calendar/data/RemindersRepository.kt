@@ -17,28 +17,35 @@ import timber.log.Timber
 
 class RemindersRepository(private val contentResolver: ContentResolver) {
     /**
-     * Replaces all reminders for the event with at most one. False means the
-     * provider rejected the insert (permission revoked / account removed
-     * mid-save); the caller should surface that, not assume the reminder is set.
+     * Replaces all reminders for the event with one row per distinct value. False
+     * means the provider rejected an insert (permission revoked / account removed
+     * mid-save); the caller should surface that, not assume the reminders are set.
      */
-    suspend fun setReminder(eventId: Long, minutesBefore: Int?): Boolean = withContext(Dispatchers.IO) {
-        providerCall("setReminder", onError = false) {
+    suspend fun setReminders(eventId: Long, minutes: List<Int>): Boolean = withContext(Dispatchers.IO) {
+        providerCall("setReminders", onError = false) {
             contentResolver.delete(
                 CalendarContract.Reminders.CONTENT_URI,
                 "${CalendarContract.Reminders.EVENT_ID} = ?",
                 arrayOf(eventId.toString()),
             )
-            if (minutesBefore == null) return@providerCall true
-
-            val cv =
-                ContentValues().apply {
-                    put(CalendarContract.Reminders.EVENT_ID, eventId)
-                    put(CalendarContract.Reminders.MINUTES, minutesBefore)
-                    put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+            var allInserted = true
+            for (m in minutes.distinct()) {
+                val cv =
+                    ContentValues().apply {
+                        put(CalendarContract.Reminders.EVENT_ID, eventId)
+                        put(CalendarContract.Reminders.MINUTES, m)
+                        put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                    }
+                if (contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, cv) == null) {
+                    Timber.w("setReminders: provider rejected reminder insert for event %d minutes %d", eventId, m)
+                    allInserted = false
                 }
-            val inserted = contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, cv) != null
-            if (!inserted) Timber.w("setReminder: provider rejected reminder insert for event %d", eventId)
-            inserted
+            }
+            allInserted
         }
     }
+
+    // transitional single-value caller shim (removed in Task 3).
+    suspend fun setReminder(eventId: Long, minutesBefore: Int?): Boolean =
+        setReminders(eventId, listOfNotNull(minutesBefore))
 }

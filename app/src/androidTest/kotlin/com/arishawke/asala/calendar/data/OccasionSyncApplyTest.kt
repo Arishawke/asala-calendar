@@ -98,7 +98,7 @@ class OccasionSyncApplyTest {
         // pre-seed a different reminder so the post-update assertion can tell
         // set (replace) from append: an append regression would leave both
         // OLD_REMINDER_MIN and REMINDER_MIN on the row instead of just the latter.
-        reminders.setReminder(eventId, OLD_REMINDER_MIN)
+        reminders.setReminders(eventId, listOf(OLD_REMINDER_MIN))
         assertEquals(
             "precondition: the old reminder is in place",
             listOf(OLD_REMINDER_MIN),

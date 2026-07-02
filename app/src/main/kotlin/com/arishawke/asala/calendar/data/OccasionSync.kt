@@ -95,7 +95,7 @@ class OccasionSync(
         // a failed read has nothing to reapply reminders to; skip that calendar this cycle
         val existing =
             readExisting(birthdaysCalendarId).orEmpty() + readExisting(anniversariesCalendarId).orEmpty()
-        for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
+        for (event in existing) reminders.setReminders(event.eventId, listOfNotNull(reminderMinutes))
     }
 
     // internal (not private) so the androidTest can drive the insert/update/delete
@@ -108,12 +108,12 @@ class OccasionSync(
     ) {
         for (occasion in diff.toInsert) {
             val draft = occasion.toDraft(calendarId, titleFor)
-            events.insertEvent(draft)?.let { reminders.setReminder(it, reminderMinutes) }
+            events.insertEvent(draft)?.let { reminders.setReminders(it, listOfNotNull(reminderMinutes)) }
         }
         for ((eventId, occasion) in diff.toUpdate) {
             val draft = occasion.toDraft(calendarId, titleFor)
             events.updateEvent(eventId, draft, scope = RecurringEditScope.AllEvents)
-                ?.let { reminders.setReminder(it, reminderMinutes) }
+                ?.let { reminders.setReminders(it, listOfNotNull(reminderMinutes)) }
         }
         for (eventId in diff.toDelete) events.deleteEvent(eventId, scope = RecurringEditScope.AllEvents)
     }
