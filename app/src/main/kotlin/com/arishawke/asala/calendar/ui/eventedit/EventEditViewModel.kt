@@ -198,8 +198,11 @@ data class EventEditFormState(
             defaultTimedReminderMinutes: Int? = null,
             defaultAllDayReminderMinutes: Int? = null,
             initialStartDate: LocalDate? = null,
+            initialStartTime: LocalTime? = null,
         ): EventEditFormState {
-            val start = nextRoundHour()
+            // a timeline empty-slot tap supplies the exact snapped time; the
+            // FAB path falls back to the next round hour.
+            val start = initialStartTime ?: nextRoundHour()
             // initialStartDate is the date viewed at FAB tap; falls back to
             // today for callers (and tests) that don't pass one.
             val date = initialStartDate ?: LocalDate.now()
@@ -291,6 +294,8 @@ class EventEditViewModel(
     private val hiddenCalendarIds: Set<Long> = emptySet(),
     // pre-fill date for the new-event form. null falls back to today.
     private val initialStartDate: LocalDate? = null,
+    // pre-fill time from a timeline empty-slot tap. null = next round hour.
+    private val initialStartTime: LocalTime? = null,
 ) : ViewModel() {
     private val _form = MutableStateFlow(
         EventEditFormState.forNewEvent(
@@ -298,6 +303,7 @@ class EventEditViewModel(
             defaultTimedReminderMinutes = defaultTimedReminderMinutes,
             defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
             initialStartDate = initialStartDate,
+            initialStartTime = initialStartTime,
         ),
     )
     val form: StateFlow<EventEditFormState> = _form.asStateFlow()
@@ -456,6 +462,7 @@ class EventEditViewModel(
         private val initialColorOverrideArgb: Int? = null,
         private val hiddenCalendarIds: Set<Long> = emptySet(),
         private val initialStartDate: LocalDate? = null,
+        private val initialStartTime: LocalTime? = null,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -474,6 +481,7 @@ class EventEditViewModel(
                 initialColorOverrideArgb = initialColorOverrideArgb,
                 hiddenCalendarIds = hiddenCalendarIds,
                 initialStartDate = initialStartDate,
+                initialStartTime = initialStartTime,
             ) as T
         }
     }

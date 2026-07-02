@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.arishawke.asala.calendar.AppViewModel
 import com.arishawke.asala.calendar.CalendarView
+import com.arishawke.asala.calendar.openCreateEditor
 import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.rescheduleEvent
 import com.arishawke.asala.calendar.ui.day.DayScreen
@@ -30,6 +31,8 @@ import com.arishawke.asala.calendar.ui.settings.toWorkingDaysMask
 import com.arishawke.asala.calendar.ui.threeday.ThreeDayScreen
 import com.arishawke.asala.calendar.ui.week.WeekScreen
 import com.arishawke.asala.calendar.ui.year.YearScreen
+import java.time.LocalDate
+import java.time.LocalTime
 
 // switches views with a slide-and-fade that collapses to None when system
 // accessibility disables animations
@@ -44,6 +47,13 @@ internal fun CalendarViewSwitcher(
 ) {
     // Set<DayOfWeek> isn't stable to Compose; pass a Long bitmask instead
     val workingDaysMask = remember(prefs.workingDays) { prefs.workingDays.toWorkingDaysMask() }
+    // timeline empty-slot tap: open the create editor prefilled at the snapped
+    // slot. shared by the three timeline views.
+    val onEmptySlotTap = remember(vm) {
+        { date: LocalDate, minutesOfDay: Int ->
+            vm.openCreateEditor(prefillDate = date, prefillTime = LocalTime.MIN.plusMinutes(minutesOfDay.toLong()))
+        }
+    }
     AnimatedContent(
         targetState = currentView,
         modifier = modifier,
@@ -112,6 +122,7 @@ internal fun CalendarViewSwitcher(
                 onReschedule = { eid, instMillis, newStart ->
                     vm.rescheduleEvent(eid, instMillis, newStart)
                 },
+                onEmptySlotTap = onEmptySlotTap,
                 onViewedDateChange = vm::setViewedDate,
             )
             CalendarView.ThreeDay -> ThreeDayScreen(
@@ -133,6 +144,7 @@ internal fun CalendarViewSwitcher(
                 onReschedule = { eid, instMillis, newStart ->
                     vm.rescheduleEvent(eid, instMillis, newStart)
                 },
+                onEmptySlotTap = onEmptySlotTap,
                 onViewedDateChange = vm::setViewedDate,
             )
             CalendarView.Day -> DayScreen(
@@ -154,6 +166,7 @@ internal fun CalendarViewSwitcher(
                 onReschedule = { eid, instMillis, newStart ->
                     vm.rescheduleEvent(eid, instMillis, newStart)
                 },
+                onEmptySlotTap = onEmptySlotTap,
                 onViewedDateChange = vm::setViewedDate,
             )
             CalendarView.Schedule -> ScheduleScreen(

@@ -81,6 +81,7 @@ fun WeekScreen(
     showWeekNumber: Boolean = false,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit = { _, _ -> },
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit = { _, _, _ -> },
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     onViewedDateChange: (LocalDate) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -183,6 +184,7 @@ fun WeekScreen(
             showWeekNumber = showWeekNumber,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            onEmptySlotTap = onEmptySlotTap,
             reveal = pageReveal,
             onConsumeReveal = onConsumeEventReveal,
         )
@@ -208,6 +210,7 @@ internal fun WeekPage(
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
     enableOverflow: Boolean = true,
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     reveal: PendingEventReveal? = null,
     onConsumeReveal: () -> Unit = {},
 ) {
@@ -272,6 +275,7 @@ internal fun WeekPage(
             enableOverflow = enableOverflow,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            onEmptySlotTap = onEmptySlotTap,
             reveal = reveal,
             onConsumeReveal = onConsumeReveal,
         )

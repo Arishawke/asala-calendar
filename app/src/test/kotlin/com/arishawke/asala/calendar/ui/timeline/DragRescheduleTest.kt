@@ -43,6 +43,20 @@ class DragRescheduleTest {
         assertEquals(0, pxToMinutes(100f, 0f))
     }
 
+    // tap-create: a column-local y resolves to a valid, snapped event start.
+    @Test fun tap_y_resolves_to_snapped_minutes() {
+        // top edge -> midnight; mid 10th hour (10.4h) -> 10:30 after snap
+        assertEquals(0, minutesAtY(0f, hourHeightPx))
+        assertEquals(10 * 60 + 30, minutesAtY(hourHeightPx * 10.4f, hourHeightPx))
+    }
+
+    // a bottom-edge tap must still start INSIDE the day, not at 24:00, and a
+    // degenerate hour height must not divide by zero.
+    @Test fun tap_at_day_bottom_clamps_inside_the_day() {
+        assertEquals(24 * 60 - 15, minutesAtY(hourHeightPx * 24f, hourHeightPx))
+        assertEquals(0, minutesAtY(100f, 0f))
+    }
+
     @Test fun snap_to_grid_rounds_to_nearest_fifteen() {
         assertEquals(0, snapToGrid(7))
         assertEquals(15, snapToGrid(8))

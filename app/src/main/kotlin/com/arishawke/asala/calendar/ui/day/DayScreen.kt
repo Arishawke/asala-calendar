@@ -100,6 +100,7 @@ fun DayScreen(
     workingDaysMask: Long = 0L,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit = { _, _ -> },
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit = { _, _, _ -> },
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     onViewedDateChange: (LocalDate) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -181,6 +182,7 @@ fun DayScreen(
             workingDaysMask = workingDaysMask,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            onEmptySlotTap = onEmptySlotTap,
             reveal = pageReveal,
             onConsumeReveal = onConsumeEventReveal,
         )
@@ -200,6 +202,7 @@ private fun DayPage(
     workingDaysMask: Long,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     reveal: PendingEventReveal? = null,
     onConsumeReveal: () -> Unit = {},
 ) {
@@ -233,6 +236,7 @@ private fun DayPage(
             isNonWorkingDay = isNonWorkingDay,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            onEmptySlotTap = onEmptySlotTap,
             reveal = reveal,
             onConsumeReveal = onConsumeReveal,
         )
@@ -297,6 +301,7 @@ private fun Timeline(
     isNonWorkingDay: Boolean,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit,
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit,
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     reveal: PendingEventReveal? = null,
     onConsumeReveal: () -> Unit = {},
 ) {
@@ -348,6 +353,7 @@ private fun Timeline(
                     zone = zone,
                     onEventClick = onEventClick,
                     onReschedule = onReschedule,
+                    onEmptySlotTap = onEmptySlotTap,
                     nowMinutes = nowMinutes,
                     workingHoursEnabled = workingHoursEnabled,
                     workingHoursStartHour = workingHoursStartHour,

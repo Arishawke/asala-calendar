@@ -17,6 +17,8 @@ import com.arishawke.asala.calendar.data.RecurringEditScope
 import com.arishawke.asala.calendar.data.shouldClearEventOverrideOnDelete
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 
 // detail-sheet + editor mutators for AppViewModel, extracted here so the
 // view-state orchestration stays in AppViewModel.kt. backers live there
@@ -38,9 +40,12 @@ fun AppViewModel.closeEventDetail() {
     deleteFailedBacker.update { false }
 }
 
-fun AppViewModel.openCreateEditor() {
+// FAB passes nothing (contextual date, next-round-hour time); a timeline
+// empty-slot tap passes the tapped column's date and snapped time.
+fun AppViewModel.openCreateEditor(prefillDate: LocalDate? = null, prefillTime: LocalTime? = null) {
     // snapshot viewedDate so the editor pre-fills the contextual date, not today
-    editInitialStartDateBacker.update { viewedDate.value }
+    editInitialStartDateBacker.update { prefillDate ?: viewedDate.value }
+    editInitialStartTimeBacker.update { prefillTime }
     editInstanceMillisBacker.update { null }
     editDuplicateSourceIdBacker.update { null }
     editEventIdBacker.update { -1L }
@@ -48,6 +53,7 @@ fun AppViewModel.openCreateEditor() {
 
 fun AppViewModel.openEditEditor(eventId: Long, instanceMillis: Long? = null) {
     editInitialStartDateBacker.update { null }
+    editInitialStartTimeBacker.update { null }
     editInstanceMillisBacker.update { instanceMillis }
     editDuplicateSourceIdBacker.update { null }
     editEventIdBacker.update { eventId }
@@ -57,6 +63,7 @@ fun AppViewModel.openEditEditor(eventId: Long, instanceMillis: Long? = null) {
 // instanceMillis is the opened occurrence so a recurring dup lands on it.
 fun AppViewModel.openDuplicateEditor(eventId: Long, instanceMillis: Long? = null) {
     editInitialStartDateBacker.update { null }
+    editInitialStartTimeBacker.update { null }
     editInstanceMillisBacker.update { instanceMillis }
     editDuplicateSourceIdBacker.update { eventId }
     editEventIdBacker.update { -1L }
@@ -66,6 +73,7 @@ fun AppViewModel.closeEditor() {
     editEventIdBacker.update { null }
     editInstanceMillisBacker.update { null }
     editInitialStartDateBacker.update { null }
+    editInitialStartTimeBacker.update { null }
     editDuplicateSourceIdBacker.update { null }
 }
 

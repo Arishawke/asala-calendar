@@ -7,6 +7,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- Tap an empty slot in the Day, Week, or 3-Day timeline to create an event
+  right there: the editor opens prefilled with that day and time, snapped to
+  15 minutes. The + button works as before.
+
 ## [0.23.0] - 2026-07-01
 
 ### Added

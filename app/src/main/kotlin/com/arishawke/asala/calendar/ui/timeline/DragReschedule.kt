@@ -27,6 +27,15 @@ internal fun snapToGrid(minutes: Int, snapMinutes: Int = ScheduleSnapMinutes): I
     return rounded * snapMinutes
 }
 
+// tap-create: a y offset inside a day column resolves to the snapped minutes
+// of day, clamped so a bottom-edge tap still yields a start inside the day.
+internal fun minutesAtY(yPx: Float, hourHeightPx: Float): Int {
+    val minutesPerDay = TimeUnits.HoursPerDay * TimeUnits.MinutesPerHour
+    if (hourHeightPx <= 0f) return 0
+    val raw = (yPx / hourHeightPx * TimeUnits.MinutesPerHour).toInt()
+    return snapToGrid(raw).coerceIn(0, minutesPerDay - ScheduleSnapMinutes)
+}
+
 // shifts by N days + M minutes via ZonedDateTime so wall-clock time is
 // preserved across DST; a flat 24h*dayDelta add would absorb/duplicate the
 // DST hour at the spring-forward/fall-back boundaries.

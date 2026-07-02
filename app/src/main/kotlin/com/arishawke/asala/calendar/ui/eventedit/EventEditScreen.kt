@@ -80,6 +80,11 @@ fun EventEditScreen(
     val initialStartDate = remember(eventId) {
         if (eventId == null) appViewModel.editInitialStartDate.value else null
     }
+    // time from a timeline empty-slot tap; null (FAB path) falls back to the
+    // next round hour inside forNewEvent.
+    val initialStartTime = remember(eventId) {
+        if (eventId == null) appViewModel.editInitialStartTime.value else null
+    }
     val vm: EventEditViewModel = viewModel(
         factory = EventEditViewModel.Factory(
             appContext = ctx.applicationContext,
@@ -93,6 +98,7 @@ fun EventEditScreen(
             initialColorOverrideArgb = initialColorOverrideArgb,
             hiddenCalendarIds = hiddenCalendarIds,
             initialStartDate = initialStartDate,
+            initialStartTime = initialStartTime,
         ),
     )
     val state by vm.form.collectAsStateWithLifecycle()

@@ -57,6 +57,7 @@ fun ThreeDayScreen(
     workingDaysMask: Long = 0L,
     onEventClick: (eventId: Long, instanceMillis: Long) -> Unit = { _, _ -> },
     onReschedule: (eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit = { _, _, _ -> },
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     onViewedDateChange: (LocalDate) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -150,6 +151,7 @@ fun ThreeDayScreen(
             enableOverflow = false,
             onEventClick = onEventClick,
             onReschedule = onReschedule,
+            onEmptySlotTap = onEmptySlotTap,
             reveal = pageReveal,
             onConsumeReveal = onConsumeEventReveal,
         )

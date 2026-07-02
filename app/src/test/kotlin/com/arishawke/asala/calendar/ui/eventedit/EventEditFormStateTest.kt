@@ -34,6 +34,21 @@ class EventEditFormStateTest {
         allDay = true,
     )
 
+    // tap-create: a timeline empty-slot tap prefills the exact snapped time and
+    // the end honors the default-duration preference; without a time the FAB
+    // path keeps its next-round-hour behavior.
+    @Test
+    fun `forNewEvent uses the tapped time when one is prefilled`() {
+        val s = EventEditFormState.forNewEvent(
+            defaultDurationMinutes = 45,
+            initialStartDate = LocalDate.of(2026, 7, 3),
+            initialStartTime = LocalTime.of(14, 15),
+        )
+        assertEquals(LocalDate.of(2026, 7, 3), s.startDate)
+        assertEquals(LocalTime.of(14, 15), s.startTime)
+        assertEquals(LocalTime.of(15, 0), s.endTime)
+    }
+
     // End date earlier than start date: clamp to start date so the
     // editor never holds an invalid range.
     @Test

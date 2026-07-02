@@ -9,6 +9,7 @@
 package com.arishawke.asala.calendar.ui.week
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.PendingEventReveal
@@ -53,6 +55,7 @@ import com.arishawke.asala.calendar.ui.timeline.RevealOverlay
 import com.arishawke.asala.calendar.ui.timeline.clipEventsByDay
 import com.arishawke.asala.calendar.ui.timeline.crowdedLayout
 import com.arishawke.asala.calendar.ui.timeline.isRescheduleAnchor
+import com.arishawke.asala.calendar.ui.timeline.minutesAtY
 import com.arishawke.asala.calendar.ui.timeline.rememberNowMinutes
 import com.arishawke.asala.calendar.ui.timeline.revealTargetPx
 import kotlinx.coroutines.delay
@@ -82,6 +85,7 @@ internal fun TimelineGrid(
     enableOverflow: Boolean = true,
     onEventClick: ((eventId: Long, instanceMillis: Long) -> Unit)? = null,
     onReschedule: ((eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit)? = null,
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     reveal: PendingEventReveal? = null,
     onConsumeReveal: () -> Unit = {},
 ) {
@@ -153,6 +157,7 @@ internal fun TimelineGrid(
                         onEventClick = onEventClick,
                         onOverflow = overflowCallback,
                         onReschedule = onReschedule,
+                        onEmptySlotTap = onEmptySlotTap,
                         nowMinutes = if (date == today) nowMinutes else null,
                         // non-working full-column dim supersedes the band dim; avoids double-dim.
                         workingHoursEnabled = workingHoursEnabled && !isNonWorkingDay,
@@ -206,6 +211,7 @@ internal fun DayColumn(
     weekDayCount: Int = 1,
     onEventClick: ((eventId: Long, instanceMillis: Long) -> Unit)? = null,
     onReschedule: ((eventId: Long, instanceMillis: Long, newStartMillis: Long) -> Unit)? = null,
+    onEmptySlotTap: ((date: LocalDate, minutesOfDay: Int) -> Unit)? = null,
     nowMinutes: Int? = null,
     workingHoursEnabled: Boolean = false,
     workingHoursStartHour: Int = 9,
@@ -222,6 +228,21 @@ internal fun DayColumn(
             .then(if (isPast) Modifier.alpha(PastDateAlpha) else Modifier)
             .padding(horizontal = 1.dp),
     ) {
+        // tap-create sits at the BOTTOM of the sibling stack: event blocks draw
+        // later, carry their own click/drag handlers, and win hit testing, so
+        // this layer only ever sees taps on empty timeline. never intercepts
+        // child gestures (the drag regression class).
+        onEmptySlotTap?.let { cb ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(date) {
+                        detectTapGestures { offset ->
+                            cb(date, minutesAtY(offset.y, HourHeight.toPx()))
+                        }
+                    },
+            )
+        }
         HourGuideLines()
         // order matters: dim sits over the hour lines, under the chips.
         if (workingHoursEnabled) {

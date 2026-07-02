@@ -412,6 +412,11 @@ class AppViewModel(
     internal val editInitialStartDateBacker = MutableStateFlow<LocalDate?>(null)
     val editInitialStartDate: StateFlow<LocalDate?> = editInitialStartDateBacker.asStateFlow()
 
+    // create-editor pre-fill time from a timeline empty-slot tap; null for the
+    // FAB path (editor falls back to the next round hour).
+    internal val editInitialStartTimeBacker = MutableStateFlow<LocalTime?>(null)
+    val editInitialStartTime: StateFlow<LocalTime?> = editInitialStartTimeBacker.asStateFlow()
+
     // recurring drag-reschedule held until the user picks a scope. null when
     // none in flight; non-recurring drags save immediately, bypassing this.
     internal val pendingRescheduleBacker = MutableStateFlow<PendingReschedule?>(null)
