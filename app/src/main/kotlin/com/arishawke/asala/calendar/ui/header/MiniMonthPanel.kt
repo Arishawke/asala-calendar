@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -67,6 +69,18 @@ private const val WeekRows = 6
 
 // horizontal travel before a swipe flips the month
 private val SwipeThreshold = 48.dp
+
+// touch-target floor for a mini-month cell; content grows past it at larger
+// font scale so the dot row is never pushed out.
+private val MiniMonthCellFloor = 48.dp
+private val MiniMonthBadgeSpacerHeight = 2.dp
+
+// dot diameter; dots are chrome, not text, so they do not scale with font size.
+private val MiniMonthDotRowHeight = 4.dp
+
+// breathing room around the digit; 16sp line height + 6dp reproduces the old
+// 22dp circle at default scale
+private val MiniMonthBadgePadding = 6.dp
 
 // LongMethod: one cohesive panel (title, swipe + a11y actions, animated grid);
 // splitting it would scatter the gesture and animation wiring.
@@ -234,9 +248,13 @@ private fun DateCell(
     val dateCd = remember(date, locale) {
         DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(date)
     }
+    val badgeDiameter = with(LocalDensity.current) {
+        MaterialTheme.typography.labelMedium.lineHeight.toDp()
+    } + MiniMonthBadgePadding
+    val cellContentHeight = badgeDiameter + MiniMonthBadgeSpacerHeight + MiniMonthDotRowHeight
     Box(
         modifier = modifier
-            .height(48.dp)
+            .heightIn(min = maxOf(MiniMonthCellFloor, cellContentHeight))
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {
                 contentDescription = dateCd
@@ -247,7 +265,7 @@ private fun DateCell(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
-                    .size(22.dp)
+                    .size(badgeDiameter)
                     .clip(CircleShape)
                     .background(if (isToday) CalendarTokens.todayHighlight else Color.Transparent),
                 contentAlignment = Alignment.Center,
@@ -263,7 +281,7 @@ private fun DateCell(
                     fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Normal,
                 )
             }
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(MiniMonthBadgeSpacerHeight))
             DotRow(events = events)
         }
     }
