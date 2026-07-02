@@ -122,7 +122,11 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             arrayOf(CalendarContract.Reminders.MINUTES),
             "${CalendarContract.Reminders.EVENT_ID} = ?",
             arrayOf(eventId.toString()),
-            null,
+            // deterministic first row: with several reminder rows (written by
+            // other clients) an unordered query can return a different one per
+            // read, flapping both the editor display and EventSave's
+            // unchanged-reminder comparison.
+            "${CalendarContract.Reminders.MINUTES} ASC, ${CalendarContract.Reminders._ID} ASC",
         )?.use { c ->
             if (!c.moveToFirst()) return@use null
             c.getInt(c.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES))

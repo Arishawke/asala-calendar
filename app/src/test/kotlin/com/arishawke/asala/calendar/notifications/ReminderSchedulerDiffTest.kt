@@ -69,6 +69,26 @@ class ReminderSchedulerDiffTest {
         assertTrue(plan.isEmpty())
     }
 
+    // only -1 (MINUTES_DEFAULT) is benign on the all-day path (-1/1440 = 0 days,
+    // 9am day-of). any other negative anchors whole days late (-1440 -> 9am the
+    // day AFTER the event), so it must be dropped like the timed negatives.
+    @Test
+    fun `all-day reminder with a negative offset other than the default is dropped`() {
+        val start =
+            java.time.LocalDate
+                .of(2026, 6, 1)
+                .atStartOfDay(java.time.ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        val plan =
+            ReminderScheduler.computePlan(
+                now = start - 24 * 60 * 60_000L,
+                zone = ny,
+                reminders = listOf(reminder(12L, start, -1440, allDay = true)),
+            )
+        assertTrue(plan.isEmpty())
+    }
+
     // the all-day path is benign: -1 / 1440 = 0 days, so a default all-day reminder
     // still fires at the 9am anchor day-of. keep it (only timed negatives are wrong).
     @Test
@@ -238,5 +258,32 @@ class ReminderSchedulerDiffTest {
         val snoozeKeys =
             ReminderScheduler.snoozeKeysToCancel(setOf(firedKey), liveOccurrences = setOf(2L to instance))
         assertTrue("a fired-but-still-present occurrence must keep its snooze", snoozeKeys.isEmpty())
+    }
+
+    // a failed provider read (null) must abort the replan. an empty plan diffed
+    // against the previous one would cancel every armed alarm and pending snooze
+    // and persist the wipe, so a failure must never read as "no events exist".
+    @Test
+    fun `failed provider read aborts the replan instead of wiping the plan`() {
+        val armed =
+            AlarmKey(eventId = 1L, instanceStartMillis = now + 60_000L, minutesBefore = 10, triggerAtMillis = now)
+        val decision = replanDecision(previousPlan = setOf(armed), now = now, zone = ny, reminders = null)
+        assertEquals(ReplanDecision.Abort, decision)
+    }
+
+    // a successful zero-row read is a genuinely empty window, not a failure: the
+    // replan must still apply, so deleting the last reminder-bearing event
+    // cancels both its alarm and its snooze slot.
+    @Test
+    fun `empty successful read still cancels stale alarms and snoozes`() {
+        val instance = now + 60_000L
+        val armed =
+            AlarmKey(eventId = 1L, instanceStartMillis = instance, minutesBefore = 10, triggerAtMillis = now)
+        val decision = replanDecision(previousPlan = setOf(armed), now = now, zone = ny, reminders = emptyList())
+        assertTrue("an empty read must still produce a plan to apply", decision is ReplanDecision.Apply)
+        decision as ReplanDecision.Apply
+        assertTrue(decision.newPlan.isEmpty())
+        assertEquals(setOf(armed), decision.toCancel)
+        assertEquals(setOf(1L to instance), decision.snoozeCancels)
     }
 }

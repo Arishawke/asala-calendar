@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.time.ZoneId
 
 internal data class ScheduledReminder(
@@ -41,6 +42,47 @@ internal data class AlarmKey(
 )
 
 internal data class ReminderInstance(val eventId: Long, val instanceStartMillis: Long, val allDay: Boolean)
+
+// outcome of one replan cycle. Abort keeps the armed plan untouched: a failed
+// provider read (null reminders) must never be diffed as an empty calendar, or
+// every armed alarm and pending snooze would be cancelled and the wipe
+// persisted (same rule as OccasionSync.readExisting). a successful zero-row
+// read still applies, so deleting the last reminder-bearing event cleans up.
+internal sealed interface ReplanDecision {
+    data object Abort : ReplanDecision
+
+    data class Apply(
+        val newPlan: Set<AlarmKey>,
+        val toCancel: Set<AlarmKey>,
+        val snoozeCancels: Set<Pair<Long, Long>>,
+    ) : ReplanDecision
+}
+
+// pure; tested by ReminderSchedulerDiffTest
+internal fun replanDecision(
+    previousPlan: Set<AlarmKey>,
+    now: Long,
+    zone: ZoneId,
+    reminders: List<ScheduledReminder>?,
+): ReplanDecision {
+    if (reminders == null) return ReplanDecision.Abort
+    val newPlan = ReminderScheduler.computePlan(now, zone, reminders)
+    // occurrences still present in the provider this cycle. a reminder can leave
+    // the plan because it fired (trigger passed) while its occurrence still
+    // lives; only occurrences that genuinely vanished (deleted or rescheduled,
+    // so no reminder row remains) should lose their snooze. liveness = "has a
+    // reminder row in the window"; residual gap: an occurrence whose event
+    // already ended falls out of the window, so a snooze set past the event's
+    // own end can still be dropped by a routine refresh. the full fix is the
+    // tracked robust-snooze-store work.
+    val liveOccurrences = reminders.mapTo(mutableSetOf<Pair<Long, Long>>()) { it.eventId to it.instanceStartMillis }
+    val toCancel = previousPlan - newPlan
+    return ReplanDecision.Apply(
+        newPlan = newPlan,
+        toCancel = toCancel,
+        snoozeCancels = ReminderScheduler.snoozeKeysToCancel(toCancel, liveOccurrences),
+    )
+}
 
 internal object ReminderScheduler {
     private const val WINDOW_DAYS = 30L
@@ -63,9 +105,10 @@ internal object ReminderScheduler {
         .asSequence()
         .filterNot { it.cancelled }
         // synced calendars can store MINUTES = -1 (MINUTES_DEFAULT). a timed one
-        // would arm at start - (-1) = one minute AFTER the start, so drop it; the
-        // all-day path is benign (-1/1440 = 0 days -> 9am day-of), so keep those.
-        .filterNot { !it.allDay && it.minutesBefore < 0 }
+        // would arm at start - (-1) = one minute AFTER the start, and an all-day
+        // negative other than -1 anchors whole days late (-1440 -> 9am the day
+        // AFTER). only the all-day -1 is benign (-1/1440 = 0 days -> 9am day-of).
+        .filterNot { it.minutesBefore < 0 && !(it.allDay && it.minutesBefore == -1) }
         // no instance-start pre-filter: all-day instances are at 00:00 UTC but fire
         // at 9am local, so a same-day all-day reminder has a past instance start and
         // a future trigger. the trailing triggerAtMillis > now is the real guard.
@@ -109,36 +152,31 @@ internal object ReminderScheduler {
             val now = System.currentTimeMillis()
             val zone = ZoneId.systemDefault()
             val reminders = readUpcomingReminders(context.contentResolver, now, now + WINDOW_MILLIS)
-            val newPlan = computePlan(now, zone, reminders)
-            // occurrences still present in the provider this cycle. a reminder can
-            // leave the plan because it fired (trigger passed) while its occurrence
-            // still lives; only occurrences that genuinely vanished (deleted or
-            // rescheduled, so no reminder row remains) should lose their snooze.
-            // liveness = "has a reminder row in [now, now+30d]"; residual gap: an
-            // occurrence whose event already ended falls out of the window, so a
-            // snooze set past the event's own end can still be dropped by a routine
-            // refresh. the full fix is the tracked robust-snooze-store work.
-            val liveOccurrences = reminders.mapTo(mutableSetOf()) { it.eventId to it.instanceStartMillis }
 
             val am = context.getSystemService<AlarmManager>() ?: return@withLock
             // seed from disk on the first run this process; thereafter the warm
             // in-memory cache is authoritative and equals the last persisted plan.
             val previousPlan = if (planLoaded) lastPlan else ArmedAlarmStore.load(context).also { planLoaded = true }
 
-            val toCancel = previousPlan - newPlan
-            toCancel.forEach { key ->
+            val decision = replanDecision(previousPlan, now, zone, reminders)
+            if (decision !is ReplanDecision.Apply) {
+                Timber.w("reminder replan aborted: provider read failed, keeping the armed plan")
+                return@withLock
+            }
+
+            decision.toCancel.forEach { key ->
                 am.cancel(buildAlarmPendingIntent(context, key))
             }
             // an occurrence that genuinely left the provider (event deleted or
             // rescheduled away) must also drop any pending snooze keyed on its old
             // (eventId, instance): a reschedule would otherwise ring the orphaned
-            // snooze at the stale time. a key that left the plan only because it fired
-            // is still in liveOccurrences, so its snooze survives (audit F1).
-            snoozeKeysToCancel(toCancel, liveOccurrences).forEach { (eventId, instance) ->
+            // snooze at the stale time. a key that left the plan only because it
+            // fired is still live, so its snooze survives (audit F1).
+            decision.snoozeCancels.forEach { (eventId, instance) ->
                 am.cancel(buildSnoozePendingIntent(context, eventId, instance))
             }
 
-            newPlan.forEach { key ->
+            decision.newPlan.forEach { key ->
                 val pi = buildAlarmPendingIntent(context, key)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
                     am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, key.triggerAtMillis, pi)
@@ -147,12 +185,12 @@ internal object ReminderScheduler {
                 }
             }
 
-            lastPlan = newPlan
+            lastPlan = decision.newPlan
             // arming above stays unconditional: a reboot clears the system alarms
             // while the persisted set still lists them, so a diff-gated arm would
             // skip re-arming them. only the disk write is skipped when nothing
             // changed, to avoid churning DataStore on every no-op observer fire.
-            if (newPlan != previousPlan) ArmedAlarmStore.save(context, newPlan)
+            if (decision.newPlan != previousPlan) ArmedAlarmStore.save(context, decision.newPlan)
         }
     }
 
@@ -191,15 +229,20 @@ internal object ReminderScheduler {
         )
     }
 
+    // null means a provider read failed (distinct from a window with no
+    // reminders); the caller aborts the replan rather than diffing against it.
     private fun readUpcomingReminders(
         cr: ContentResolver,
         windowStart: Long,
         windowEnd: Long,
-    ): List<ScheduledReminder> {
-        val instances = readInstances(cr, windowStart, windowEnd)
-        if (instances.isEmpty()) return emptyList()
-        val minutesByEvent = readReminderMinutes(cr, instances.mapTo(LinkedHashSet()) { it.eventId })
-        return expandReminders(instances, minutesByEvent)
+    ): List<ScheduledReminder>? {
+        val instances = readInstances(cr, windowStart, windowEnd) ?: return null
+        return when {
+            instances.isEmpty() -> emptyList()
+            else ->
+                readReminderMinutes(cr, instances.mapTo(LinkedHashSet()) { it.eventId })
+                    ?.let { expandReminders(instances, it) }
+        }
     }
 
     // pure join: one ScheduledReminder per (instance, reminder of its event).
@@ -221,10 +264,11 @@ internal object ReminderScheduler {
 
     // provider reads route through providerCall: CalendarContract.query throws on
     // revoked permission / provider death, and rescheduleAll runs unguarded from
-    // onResume, so an unwrapped throw here would crash the app.
-    private fun readInstances(cr: ContentResolver, windowStart: Long, windowEnd: Long): List<ReminderInstance> =
-        providerCall("readInstances", emptyList()) {
-            val out = mutableListOf<ReminderInstance>()
+    // onResume, so an unwrapped throw here would crash the app. failure returns
+    // null, never an empty list: the caller must be able to tell a failed read
+    // from a genuinely empty calendar (see ReplanDecision).
+    private fun readInstances(cr: ContentResolver, windowStart: Long, windowEnd: Long): List<ReminderInstance>? =
+        providerCall("readInstances", null) {
             val cols =
                 arrayOf(
                     CalendarContract.Instances.EVENT_ID,
@@ -233,7 +277,13 @@ internal object ReminderScheduler {
                     CalendarContract.Instances.STATUS,
                 )
             val uri = instancesUriFor(windowStart, windowEnd)
-            cr.query(uri, cols, null, null, "${CalendarContract.Instances.BEGIN} ASC")?.use { ic ->
+            // provider death presents as a null cursor, not a throw; that is a
+            // failed read too.
+            val cursor =
+                cr.query(uri, cols, null, null, "${CalendarContract.Instances.BEGIN} ASC")
+                    ?: return@providerCall null
+            cursor.use { ic ->
+                val out = mutableListOf<ReminderInstance>()
                 while (ic.moveToNext()) {
                     if (ic.getInt(3) == CalendarContract.Instances.STATUS_CANCELED) continue
                     out += ReminderInstance(
@@ -242,25 +292,29 @@ internal object ReminderScheduler {
                         allDay = ic.getInt(2) == 1,
                     )
                 }
+                out
             }
-            out
         }
 
     // one Reminders query per chunk of distinct event ids, replacing the old
-    // one-query-per-instance N+1.
-    private fun readReminderMinutes(cr: ContentResolver, eventIds: Collection<Long>): Map<Long, List<Int>> =
-        providerCall("readReminderMinutes", emptyMap()) {
+    // one-query-per-instance N+1. the whole read shares one providerCall and one
+    // null-on-failure contract: a silently dropped chunk would read as "those
+    // events lost their reminders" and cancel their alarms.
+    private fun readReminderMinutes(cr: ContentResolver, eventIds: Collection<Long>): Map<Long, List<Int>>? =
+        providerCall("readReminderMinutes", null) {
             val out = mutableMapOf<Long, MutableList<Int>>()
             val cols = arrayOf(CalendarContract.Reminders.EVENT_ID, CalendarContract.Reminders.MINUTES)
             eventIds.chunked(REMINDER_QUERY_CHUNK).forEach { chunk ->
                 val placeholders = chunk.joinToString(",") { "?" }
-                cr.query(
-                    CalendarContract.Reminders.CONTENT_URI,
-                    cols,
-                    "${CalendarContract.Reminders.EVENT_ID} IN ($placeholders)",
-                    chunk.map { it.toString() }.toTypedArray(),
-                    null,
-                )?.use { rc ->
+                val cursor =
+                    cr.query(
+                        CalendarContract.Reminders.CONTENT_URI,
+                        cols,
+                        "${CalendarContract.Reminders.EVENT_ID} IN ($placeholders)",
+                        chunk.map { it.toString() }.toTypedArray(),
+                        null,
+                    ) ?: return@providerCall null
+                cursor.use { rc ->
                     while (rc.moveToNext()) {
                         out.getOrPut(rc.getLong(0)) { mutableListOf() } += rc.getInt(1)
                     }
