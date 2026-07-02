@@ -29,7 +29,7 @@ class EventDetailWritabilityTest {
         rrule = null,
         displayColor = 0,
         calendarDisplayName = "Holidays",
-        reminderMinutesBefore = null,
+        reminderMinutes = emptyList(),
         accessLevel = accessLevel,
     )
 

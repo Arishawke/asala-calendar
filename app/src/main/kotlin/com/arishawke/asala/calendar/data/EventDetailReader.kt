@@ -20,7 +20,17 @@ import java.util.TimeZone
 internal fun resolveEventTimezone(stored: String?, allDay: Boolean): String =
     stored ?: if (allDay) "UTC" else TimeZone.getDefault().id
 
-// reads one Events row plus its first reminder. recurring rows store DURATION
+internal data class ReminderSplit(val editable: List<Int>, val preserved: List<Int>)
+
+// editable reminders are the non-negative offsets, sorted ascending for a stable
+// display and set comparison. negative offsets (the -1 synced default sentinel)
+// are not authorable, so carry them verbatim to write back on save.
+internal fun splitReminderRows(minutes: List<Int>): ReminderSplit {
+    val (negative, nonNegative) = minutes.partition { it < 0 }
+    return ReminderSplit(editable = nonNegative.sorted(), preserved = negative)
+}
+
+// reads one Events row plus all of its reminder rows. recurring rows store DURATION
 // not DTEND, so end millis is reconstructed via EventEndMillis.compute.
 internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail? = withContext(Dispatchers.IO) {
     val eventUri =
@@ -97,7 +107,6 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
                 rrule = c.getString(rruleIdx).takeUnless { it.isNullOrBlank() },
                 displayColor = c.getInt(colorIdx),
                 calendarDisplayName = calendarName,
-                reminderMinutesBefore = null,
                 status = if (c.isNull(statusIdx)) {
                     CalendarContract.Events.STATUS_CONFIRMED
                 } else {
@@ -120,21 +129,20 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             )
         } ?: return@withContext null
 
-    val reminderMinutes =
+    val reminderRows =
         query(
             CalendarContract.Reminders.CONTENT_URI,
             arrayOf(CalendarContract.Reminders.MINUTES),
             "${CalendarContract.Reminders.EVENT_ID} = ?",
             arrayOf(eventId.toString()),
-            // deterministic first row: with several reminder rows (written by
-            // other clients) an unordered query can return a different one per
-            // read, flapping both the editor display and EventSave's
-            // unchanged-reminder comparison.
+            // ordered so the editable list is ascending and the read is
+            // deterministic across several rows written by other clients.
             "${CalendarContract.Reminders.MINUTES} ASC, ${CalendarContract.Reminders._ID} ASC",
         )?.use { c ->
-            if (!c.moveToFirst()) return@use null
-            c.getInt(c.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES))
-        }
+            val minutesIdx = c.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES)
+            buildList { while (c.moveToNext()) add(c.getInt(minutesIdx)) }
+        }.orEmpty()
 
-    event.copy(reminderMinutesBefore = reminderMinutes)
+    val split = splitReminderRows(reminderRows)
+    event.copy(reminderMinutes = split.editable, preservedReminderMinutes = split.preserved)
 }

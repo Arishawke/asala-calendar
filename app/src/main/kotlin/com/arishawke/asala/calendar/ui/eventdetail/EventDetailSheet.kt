@@ -139,7 +139,7 @@ private fun EventDetailContent(
     // redundant "Notes" section, e.g. title "Alice turns 30" + Notes "Alice" (F13).
     // row-scoped: a hand-added event in an occasion calendar keeps its notes.
     val hasDescription = !detail.description.isNullOrBlank() && !detail.isOwnedOccasion
-    val hasReminder = detail.reminderMinutesBefore != null
+    val hasReminder = detail.reminderMinutes.isNotEmpty()
 
     val statusLabel = when (detail.status) {
         CalendarContract.Events.STATUS_TENTATIVE -> stringResource(R.string.status_tentative)
@@ -218,11 +218,12 @@ private fun EventDetailContent(
             if (!notificationPermissionGranted) {
                 NotificationsOffBanner(onTurnOn = onRequestNotificationPermission)
             }
-            Text(
-                // hasReminder already guards a non-null reminder here.
-                text = reminderLabel(detail.reminderMinutesBefore),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            detail.reminderMinutes.forEach { minutes ->
+                Text(
+                    text = reminderLabel(minutes),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
 
         if (deleteFailed) {

@@ -29,7 +29,7 @@ class RescheduleWriteTest {
         rrule = rrule,
         displayColor = 0,
         calendarDisplayName = "Personal",
-        reminderMinutesBefore = null,
+        reminderMinutes = emptyList(),
     )
 
     // The drag chip moves optimistically; on a provider rejection (read-only

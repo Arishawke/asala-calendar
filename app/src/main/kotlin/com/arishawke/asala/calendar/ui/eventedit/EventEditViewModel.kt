@@ -256,7 +256,8 @@ data class EventEditFormState(
                 endTime = range.endTime,
                 allDay = source.allDay,
                 recurrenceFrequency = null,
-                reminderMinutesBefore = source.reminderMinutesBefore,
+                // transitional (removed in Task 3)
+                reminderMinutesBefore = source.reminderMinutes.firstOrNull(),
                 defaultDurationMinutes = defaultDurationMinutes,
                 defaultTimedReminderMinutes = defaultTimedReminderMinutes,
                 defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
@@ -381,7 +382,8 @@ class EventEditViewModel(
                         recurrenceInterval = RecurrenceRule.intervalOf(existing.rrule),
                         recurrenceUntilDate = recurrenceUntil,
                         recurrenceCount = if (recurrenceUntil != null) null else RecurrenceRule.countOf(existing.rrule),
-                        reminderMinutesBefore = existing.reminderMinutesBefore,
+                        // transitional (removed in Task 3)
+                        reminderMinutesBefore = existing.reminderMinutes.firstOrNull(),
                         defaultDurationMinutes = defaultDurationMinutes,
                         defaultTimedReminderMinutes = defaultTimedReminderMinutes,
                         defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
@@ -440,7 +442,8 @@ class EventEditViewModel(
                 loadedStatus = loadedDetail?.status,
                 loadedAvailability = loadedDetail?.availability,
                 loadedTimezone = loadedDetail?.eventTimezone,
-                loadedReminderMinutes = loadedDetail?.reminderMinutesBefore,
+                // transitional (removed in Task 3)
+                loadedReminderMinutes = loadedDetail?.reminderMinutes?.firstOrNull(),
                 insertEvent = eventRepo::insertEvent,
                 updateEvent = eventRepo::updateEvent,
                 setReminder = remindersRepo::setReminder,

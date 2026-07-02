@@ -232,7 +232,7 @@ class EventEditFormStateTest {
         rrule = rrule,
         displayColor = 0xFF112233.toInt(),
         calendarDisplayName = "Work",
-        reminderMinutesBefore = 10,
+        reminderMinutes = listOf(10),
     )
 
     // A duplicate carries the source's content, lands on its calendar, and

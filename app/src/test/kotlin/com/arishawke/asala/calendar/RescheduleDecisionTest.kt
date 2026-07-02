@@ -23,7 +23,7 @@ class RescheduleDecisionTest {
             rrule = rrule,
             displayColor = 0,
             calendarDisplayName = "Personal",
-            reminderMinutesBefore = null,
+            reminderMinutes = emptyList(),
         )
 
     // a drag whose detail could not be loaded must revert the optimistic chip:

@@ -31,7 +31,7 @@ class EventDetailColorTest {
         rrule = null,
         displayColor = providerColor,
         calendarDisplayName = "Personal",
-        reminderMinutesBefore = null,
+        reminderMinutes = emptyList(),
     )
 
     @Test
