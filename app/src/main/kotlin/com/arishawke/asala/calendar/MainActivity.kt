@@ -6,6 +6,9 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
+
+@file:Suppress("TooManyFunctions")
+
 package com.arishawke.asala.calendar
 
 import android.Manifest
@@ -31,6 +34,7 @@ import java.time.LocalDate
 class MainActivity : ComponentActivity() {
     private var pendingNotificationOpen: Pair<Long, Long>? = null
     private var pendingDateOpen: Pair<LocalDate, CalendarView>? = null
+    private var pendingSharedText: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +42,11 @@ class MainActivity : ComponentActivity() {
         // change or process death between tap and consumption doesn't drop it
         savedInstanceState?.let { restorePendingNotificationOpen(it) }
         savedInstanceState?.let { restorePendingDateOpen(it) }
+        savedInstanceState?.let { restorePendingSharedText(it) }
         enableEdgeToEdge()
         handleNotificationDeepLink(intent)
         handleDateDeepLink(intent)
+        handleShareDeepLink(intent)
         setContent { App() }
     }
 
@@ -49,6 +55,7 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         handleNotificationDeepLink(intent)
         handleDateDeepLink(intent)
+        handleShareDeepLink(intent)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -61,6 +68,7 @@ class MainActivity : ComponentActivity() {
             outState.putLong(StatePendingEpochDay, date.toEpochDay())
             outState.putString(StatePendingView, view.name)
         }
+        pendingSharedText?.let { outState.putString(StatePendingSharedText, it) }
     }
 
     private fun restorePendingNotificationOpen(savedInstanceState: Bundle) {
@@ -135,10 +143,31 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun handleShareDeepLink(intent: Intent?) {
+        if (intent == null) return
+        if (intent.action != Intent.ACTION_SEND || intent.type != "text/plain") return
+        val normalized = ShareTextNormalizer.normalize(intent.getStringExtra(Intent.EXTRA_TEXT))
+        if (normalized != null) {
+            pendingSharedText = normalized
+        }
+        intent.removeExtra(Intent.EXTRA_TEXT)
+    }
+
+    fun consumePendingSharedText(): String? {
+        val cur = pendingSharedText
+        pendingSharedText = null
+        return cur
+    }
+
+    private fun restorePendingSharedText(savedInstanceState: Bundle) {
+        pendingSharedText = savedInstanceState.getString(StatePendingSharedText)
+    }
+
     private companion object {
         const val StatePendingEventId = "pending_notification_event_id"
         const val StatePendingInstanceMillis = "pending_notification_instance_millis"
         const val StatePendingEpochDay = "pending_widget_epochday"
         const val StatePendingView = "pending_widget_view"
+        const val StatePendingSharedText = "pending_shared_text"
     }
 }
