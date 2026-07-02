@@ -124,9 +124,10 @@ fun EventForm(
 
         RecurrenceSection(state = state, onChange = onChange)
 
+        // transitional single-value view (removed in Task 4).
         ReminderPicker(
-            minutesBefore = state.reminderMinutesBefore,
-            onChange = { onChange(state.copy(reminderMinutesBefore = it)) },
+            minutesBefore = state.reminderMinutes.firstOrNull(),
+            onChange = { onChange(state.copy(reminderMinutes = listOfNotNull(it))) },
         )
 
         OutlinedTextField(

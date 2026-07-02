@@ -44,8 +44,4 @@ class RemindersRepository(private val contentResolver: ContentResolver) {
             allInserted
         }
     }
-
-    // transitional single-value caller shim (removed in Task 3).
-    suspend fun setReminder(eventId: Long, minutesBefore: Int?): Boolean =
-        setReminders(eventId, listOfNotNull(minutesBefore))
 }

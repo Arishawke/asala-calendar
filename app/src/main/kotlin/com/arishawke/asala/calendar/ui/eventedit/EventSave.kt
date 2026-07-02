@@ -40,16 +40,18 @@ internal object EventSave {
         // preserve the authored EVENT_TIMEZONE on edit; only new events fall back
         // to the device zone. clobbering it shifts the intended-zone occurrences.
         loadedTimezone: String? = null,
-        // the event's loaded reminder (its first reminder row). setReminder deletes
-        // every reminder row then inserts one, so on an in-place edit whose reminder
-        // is unchanged we must NOT call it, or a multi-reminder event loses all but
-        // one. null for new events (no prior reminder).
-        loadedReminderMinutes: Int? = null,
+        // the event's loaded editable reminder set (non-negative offsets). skipped
+        // on an in-place edit whose set is unchanged, so a multi-reminder event
+        // does not lose rows to the delete-then-insert. empty for new events.
+        loadedReminderMinutes: List<Int> = emptyList(),
+        // negative-offset rows carried on the loaded event: not authorable, written
+        // back verbatim with the visible set so an edit does not drop them.
+        preservedReminderMinutes: List<Int> = emptyList(),
         insertEvent: suspend (EventDraft) -> Long?,
         // returns the id reminders attach to: original for AllEvents, or the
         // new exception/split id for the recurring scopes. null on failure.
         updateEvent: suspend (Long, EventDraft, RecurringEditScope, Long?, String?, Boolean) -> Long?,
-        setReminder: suspend (Long, Int?) -> Boolean,
+        setReminders: suspend (Long, List<Int>) -> Boolean,
     ): SaveResult {
         val calId = form.selectedCalendarId ?: return SaveResult.Failure
         val zone = ZoneId.systemDefault()
@@ -192,7 +194,7 @@ internal object EventSave {
             val id = insertEvent(draft) ?: return SaveResult.Failure
             // event exists even if the reminder write fails; surface failure
             // so the user knows the reminder did not stick.
-            if (!setReminder(id, form.reminderMinutesBefore)) return SaveResult.Failure
+            if (!setReminders(id, form.reminderMinutes)) return SaveResult.Failure
             SaveResult.Success(id)
         } else {
             // effectiveId is the row reminders attach to: original for
@@ -200,17 +202,24 @@ internal object EventSave {
             // reminder rewrites the parent series and the exception ships none.
             val effectiveId = updateEvent(editingEventId, draft, scope, instanceMillis, parentRrule, parentAllDay)
                 ?: return SaveResult.Failure
-            // setReminder deletes every reminder row then inserts one, so an
-            // in-place edit with an untouched reminder would drop a multi-reminder
-            // event's extras. skip the write only when the target is the original
-            // row AND the reminder is unchanged; a new exception/split row has no
+            // setReminders deletes every reminder row then inserts one per distinct
+            // value, so an in-place edit with an unchanged set would needlessly
+            // rewrite (and a stale single-value path would drop) a multi-reminder
+            // event's extras. skip only when the target is the original row AND the
+            // non-negative set is unchanged; a new exception/split row has no
             // reminders yet and must always be written.
             val reminderUnchanged = effectiveId == editingEventId &&
-                form.reminderMinutesBefore == loadedReminderMinutes
-            if (!reminderUnchanged && !setReminder(effectiveId, form.reminderMinutesBefore)) {
+                form.reminderMinutes.normalizedReminders() == loadedReminderMinutes.normalizedReminders()
+            if (!reminderUnchanged &&
+                !setReminders(effectiveId, form.reminderMinutes + preservedReminderMinutes)
+            ) {
                 return SaveResult.Failure
             }
             SaveResult.Success(effectiveId)
         }
     }
 }
+
+// compare reminder sets: order and duplicates are not meaningful, and the editor
+// only authors non-negative offsets, so distinct + sorted is the canonical form.
+private fun List<Int>.normalizedReminders(): List<Int> = distinct().sorted()

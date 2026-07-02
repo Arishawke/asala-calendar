@@ -169,9 +169,9 @@ class EventEditFormStateTest {
             isNewEvent = true,
             defaultTimedReminderMinutes = 15,
             defaultAllDayReminderMinutes = 540,
-            reminderMinutesBefore = 15, // matches the timed default
+            reminderMinutes = listOf(15), // matches the timed default
         )
-        assertEquals(540, s.withAllDay(true).reminderMinutesBefore)
+        assertEquals(listOf(540), s.withAllDay(true).reminderMinutes)
     }
 
     @Test
@@ -180,9 +180,9 @@ class EventEditFormStateTest {
             isNewEvent = true,
             defaultTimedReminderMinutes = 15,
             defaultAllDayReminderMinutes = 540,
-            reminderMinutesBefore = 5, // a custom pick, not the timed default
+            reminderMinutes = listOf(5), // a custom pick, not the timed default
         )
-        assertEquals(5, s.withAllDay(true).reminderMinutesBefore)
+        assertEquals(listOf(5), s.withAllDay(true).reminderMinutes)
     }
 
     @Test
@@ -193,9 +193,9 @@ class EventEditFormStateTest {
             isNewEvent = false,
             defaultTimedReminderMinutes = 15,
             defaultAllDayReminderMinutes = 540,
-            reminderMinutesBefore = 15,
+            reminderMinutes = listOf(15),
         )
-        assertEquals(15, s.withAllDay(true).reminderMinutesBefore)
+        assertEquals(listOf(15), s.withAllDay(true).reminderMinutes)
     }
 
     // the reverse direction: toggling all-day -> timed swaps the all-day default
@@ -206,9 +206,9 @@ class EventEditFormStateTest {
             isNewEvent = true,
             defaultTimedReminderMinutes = 15,
             defaultAllDayReminderMinutes = 540,
-            reminderMinutesBefore = 540, // matches the all-day default
+            reminderMinutes = listOf(540), // matches the all-day default
         )
-        assertEquals(15, s.withAllDay(false).reminderMinutesBefore)
+        assertEquals(listOf(15), s.withAllDay(false).reminderMinutes)
     }
 
     private fun utc(y: Int, mo: Int, d: Int, h: Int, mi: Int): Long =
@@ -250,7 +250,7 @@ class EventEditFormStateTest {
         assertEquals("notes", s.description)
         assertEquals("Room 1", s.location)
         assertEquals(7L, s.selectedCalendarId)
-        assertEquals(10, s.reminderMinutesBefore)
+        assertEquals(listOf(10), s.reminderMinutes)
         assertEquals(0xFFABCDEF.toInt(), s.colorOverrideArgb)
         assertEquals(true, s.isNewEvent)
         assertEquals(false, s.allDay)

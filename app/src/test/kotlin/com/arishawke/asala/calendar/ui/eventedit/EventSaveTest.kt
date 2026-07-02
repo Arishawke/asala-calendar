@@ -51,7 +51,7 @@ class EventSaveTest {
                     5L
                 },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
-                setReminder = { _, _ ->
+                setReminders = { _, _ ->
                     reminded = true
                     true
                 },
@@ -83,7 +83,7 @@ class EventSaveTest {
                     1L
                 },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
-                setReminder = { _, _ -> true },
+                setReminders = { _, _ -> true },
             )
         assertEquals(SaveResult.Failure, result)
         assertTrue("must not insert a zero-occurrence recurrence", !inserted)
@@ -110,7 +110,7 @@ class EventSaveTest {
                     42L
                 },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
-                setReminder = { _, _ -> true },
+                setReminders = { _, _ -> true },
             )
         assertEquals(SaveResult.Success(42L), result)
         assertTrue("a same-day UNTIL must still insert", inserted)
@@ -130,7 +130,7 @@ class EventSaveTest {
                 parentRrule = null,
                 insertEvent = { 42L },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called on create path") },
-                setReminder = { id, _ ->
+                setReminders = { id, _ ->
                     reminderEventId = id
                     true
                 },
@@ -159,7 +159,7 @@ class EventSaveTest {
                 parentRrule = "FREQ=DAILY",
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { _, _, _, _, _, _ -> newExceptionId },
-                setReminder = { id, _ ->
+                setReminders = { id, _ ->
                     reminderId = id
                     true
                 },
@@ -185,7 +185,7 @@ class EventSaveTest {
                 parentRrule = "FREQ=DAILY",
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { _, _, _, _, _, _ -> newSplitId },
-                setReminder = { id, _ ->
+                setReminders = { id, _ ->
                     reminderId = id
                     true
                 },
@@ -214,7 +214,7 @@ class EventSaveTest {
                     99L
                 },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called on create path") },
-                setReminder = { _, _ -> false },
+                setReminders = { _, _ -> false },
             )
         assertEquals(SaveResult.Failure, result)
         assertTrue("event must have been inserted before reminder rejection", insertCalled)
@@ -234,7 +234,7 @@ class EventSaveTest {
                 parentRrule = null,
                 insertEvent = { null },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called on create path") },
-                setReminder = { _, _ ->
+                setReminders = { _, _ ->
                     reminderCalled = true
                     true
                 },
@@ -253,18 +253,18 @@ class EventSaveTest {
         var reminderId: Long? = null
         val result =
             EventSave.attempt(
-                form = form().copy(reminderMinutesBefore = 30),
+                form = form().copy(reminderMinutes = listOf(30)),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
-                loadedReminderMinutes = 10,
+                loadedReminderMinutes = listOf(10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ ->
                     updateId = id
                     id
                 },
-                setReminder = { id, _ ->
+                setReminders = { id, _ ->
                     reminderId = id
                     true
                 },
@@ -303,7 +303,7 @@ class EventSaveTest {
                 savedRrule = draft.rrule
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals(original, savedRrule)
     }
@@ -334,7 +334,7 @@ class EventSaveTest {
                 savedRrule = draft.rrule
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals("FREQ=WEEKLY;UNTIL=20260308T235959Z", savedRrule)
     }
@@ -357,7 +357,7 @@ class EventSaveTest {
                 savedTz = draft.eventTimezone
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals("America/New_York", savedTz)
     }
@@ -377,7 +377,7 @@ class EventSaveTest {
                 5L
             },
             updateEvent = { _, _, _, _, _, _ -> error("must not be called on create path") },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals(TimeZone.getDefault().id, savedTz)
     }
@@ -406,7 +406,7 @@ class EventSaveTest {
                 savedRrule = draft.rrule
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         // 2026-12-31 23:59:59 EST = 2027-01-01 04:59:59 UTC.
         assertEquals("FREQ=DAILY;UNTIL=20270101T045959Z", savedRrule)
@@ -435,7 +435,7 @@ class EventSaveTest {
                     5L
                 },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
-                setReminder = { _, _ -> true },
+                setReminders = { _, _ -> true },
             )
         assertEquals(SaveResult.Failure, result)
         assertTrue("insert must not run for an inverted range", !inserted)
@@ -462,7 +462,7 @@ class EventSaveTest {
                     5L
                 },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
-                setReminder = { _, _ -> true },
+                setReminders = { _, _ -> true },
             )
         assertEquals(SaveResult.Failure, result)
         assertTrue("insert must not run for an inverted all-day range", !inserted)
@@ -486,7 +486,7 @@ class EventSaveTest {
                 parentRrule = null,
                 insertEvent = { 5L },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called") },
-                setReminder = { _, _ -> true },
+                setReminders = { _, _ -> true },
             )
         assertEquals(SaveResult.Success(5L), result)
     }
@@ -516,7 +516,7 @@ class EventSaveTest {
                 savedRrule = draft.rrule
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals("FREQ=WEEKLY;BYDAY=MO,WE", savedRrule)
     }
@@ -546,7 +546,7 @@ class EventSaveTest {
                 savedRrule = draft.rrule
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals("FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE", savedRrule)
     }
@@ -575,7 +575,7 @@ class EventSaveTest {
                 savedRrule = draft.rrule
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals("FREQ=MONTHLY", savedRrule)
     }
@@ -614,7 +614,7 @@ class EventSaveTest {
                 savedStart = draft.startMillis
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         // +1h occurrence move shifts the anchor +1h, NOT to 2026-06-15.
         assertEquals(parentStart + 3_600_000L, savedStart)
@@ -651,7 +651,7 @@ class EventSaveTest {
                 savedStart = draft.startMillis
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals(parentStart, savedStart)
     }
@@ -684,7 +684,7 @@ class EventSaveTest {
                 savedStart = draft.startMillis
                 7L
             },
-            setReminder = { _, _ -> true },
+            setReminders = { _, _ -> true },
         )
         assertEquals(parentStart + 86_400_000L, savedStart)
     }
@@ -697,15 +697,15 @@ class EventSaveTest {
     fun `edit path with reminder rejection returns Failure`() = runBlocking {
         val result =
             EventSave.attempt(
-                form = form().copy(reminderMinutesBefore = 30),
+                form = form().copy(reminderMinutes = listOf(30)),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
-                loadedReminderMinutes = 10,
+                loadedReminderMinutes = listOf(10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminder = { _, _ -> false },
+                setReminders = { _, _ -> false },
             )
         assertEquals(SaveResult.Failure, result)
     }

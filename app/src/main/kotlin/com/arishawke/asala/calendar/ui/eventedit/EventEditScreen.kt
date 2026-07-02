@@ -151,7 +151,7 @@ fun EventEditScreen(
     // rationale before the system prompt when a reminder is set but
     // notification permission is not yet granted.
     fun beginSave() {
-        if (state.reminderMinutesBefore != null && !notifGranted) {
+        if (state.reminderMinutes.isNotEmpty() && !notifGranted) {
             showRationale = true
         } else {
             doSave()

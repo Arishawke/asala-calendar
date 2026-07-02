@@ -48,7 +48,7 @@ data class EventEditFormState(
     val recurrenceInterval: Int = 1,
     val recurrenceUntilDate: LocalDate? = null,
     val recurrenceCount: Int? = null,
-    val reminderMinutesBefore: Int? = null,
+    val reminderMinutes: List<Int> = emptyList(),
     // seeds endTime on new-event construction and on first all-day toggle-off.
     val defaultDurationMinutes: Int = 60,
     // default reminders snapshotted at editor open. new events seed from the
@@ -122,16 +122,17 @@ data class EventEditFormState(
         // (custom picks left alone); avoids a timed default landing 11:45pm the
         // prior night on an all-day event. gated on isNewEvent so a saved
         // reminder matching the default isn't silently mutated.
-        val rebasedReminder = if (isNewEvent) {
+        val rebasedReminders = if (isNewEvent) {
             val oldDefault = if (allDay) defaultAllDayReminderMinutes else defaultTimedReminderMinutes
             val newDefault = if (newValue) defaultAllDayReminderMinutes else defaultTimedReminderMinutes
-            if (reminderMinutesBefore == oldDefault) newDefault else reminderMinutesBefore
+            // re-seed only when the list is exactly the previously seeded default.
+            if (reminderMinutes == listOfNotNull(oldDefault)) listOfNotNull(newDefault) else reminderMinutes
         } else {
-            reminderMinutesBefore
+            reminderMinutes
         }
 
         val isFirstToggleOff = allDay && !newValue && !convertedFromAllDay
-        if (!isFirstToggleOff) return copy(allDay = newValue, reminderMinutesBefore = rebasedReminder)
+        if (!isFirstToggleOff) return copy(allDay = newValue, reminderMinutes = rebasedReminders)
         val seedStart = nextRoundHour()
         val seedEnd = seedStart.plusMinutes(defaultDurationMinutes.toLong())
         return copy(
@@ -140,7 +141,7 @@ data class EventEditFormState(
             endDate = startDate,
             endTime = seedEnd,
             convertedFromAllDay = true,
-            reminderMinutesBefore = rebasedReminder,
+            reminderMinutes = rebasedReminders,
         )
     }
 
@@ -215,7 +216,7 @@ data class EventEditFormState(
                 endDate = if (end.isAfter(start)) date else date.plusDays(1),
                 startTime = start,
                 endTime = end,
-                reminderMinutesBefore = defaultTimedReminderMinutes,
+                reminderMinutes = listOfNotNull(defaultTimedReminderMinutes),
                 defaultDurationMinutes = defaultDurationMinutes,
                 defaultTimedReminderMinutes = defaultTimedReminderMinutes,
                 defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
@@ -256,8 +257,7 @@ data class EventEditFormState(
                 endTime = range.endTime,
                 allDay = source.allDay,
                 recurrenceFrequency = null,
-                // transitional (removed in Task 3)
-                reminderMinutesBefore = source.reminderMinutes.firstOrNull(),
+                reminderMinutes = source.reminderMinutes,
                 defaultDurationMinutes = defaultDurationMinutes,
                 defaultTimedReminderMinutes = defaultTimedReminderMinutes,
                 defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
@@ -382,8 +382,7 @@ class EventEditViewModel(
                         recurrenceInterval = RecurrenceRule.intervalOf(existing.rrule),
                         recurrenceUntilDate = recurrenceUntil,
                         recurrenceCount = if (recurrenceUntil != null) null else RecurrenceRule.countOf(existing.rrule),
-                        // transitional (removed in Task 3)
-                        reminderMinutesBefore = existing.reminderMinutes.firstOrNull(),
+                        reminderMinutes = existing.reminderMinutes,
                         defaultDurationMinutes = defaultDurationMinutes,
                         defaultTimedReminderMinutes = defaultTimedReminderMinutes,
                         defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
@@ -442,11 +441,11 @@ class EventEditViewModel(
                 loadedStatus = loadedDetail?.status,
                 loadedAvailability = loadedDetail?.availability,
                 loadedTimezone = loadedDetail?.eventTimezone,
-                // transitional (removed in Task 3)
-                loadedReminderMinutes = loadedDetail?.reminderMinutes?.firstOrNull(),
+                loadedReminderMinutes = loadedDetail?.reminderMinutes.orEmpty(),
+                preservedReminderMinutes = loadedDetail?.preservedReminderMinutes.orEmpty(),
                 insertEvent = eventRepo::insertEvent,
                 updateEvent = eventRepo::updateEvent,
-                setReminder = remindersRepo::setReminder,
+                setReminders = remindersRepo::setReminders,
             )
         if (result is SaveResult.Failure) _saveError.update { true }
         return result

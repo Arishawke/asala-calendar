@@ -16,10 +16,10 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
 
-// The reminder-preservation contract on the edit path. setReminder deletes every
-// reminder row for the event then inserts one, so EventSave must not call it on an
-// in-place edit whose reminder is unchanged, or a multi-reminder event loses all
-// but one. A new exception/split row has no reminders and must always be written.
+// The reminder-preservation contract on the edit path. setReminders deletes every
+// reminder row then inserts one per distinct value, so EventSave must skip the
+// write when the form's non-negative set equals the loaded set, and otherwise
+// write exactly the visible set plus any preserved negative rows.
 class EventSaveReminderTest {
     private fun form(selectedCalendarId: Long? = 1L): EventEditFormState = EventEditFormState(
         selectedCalendarId = selectedCalendarId,
@@ -33,110 +33,168 @@ class EventSaveReminderTest {
         allDay = false,
     )
 
-    // Pre-fix: setReminder ran on every save, so a 3-reminder synced event kept
-    // only 1 after editing its title. When the target is the original row and the
-    // reminder is unchanged, the write must be skipped entirely.
     @Test
-    fun `in-place edit with unchanged reminder does not rewrite reminders`() = runBlocking {
+    fun `in-place edit with an unchanged set does not rewrite reminders`() = runBlocking {
         var reminderCalled = false
         val result =
             EventSave.attempt(
-                form = form().copy(reminderMinutesBefore = 10),
+                form = form().copy(reminderMinutes = listOf(10, 30)),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
-                loadedReminderMinutes = 10,
+                loadedReminderMinutes = listOf(30, 10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminder = { _, _ ->
+                setReminders = { _, _ ->
                     reminderCalled = true
                     true
                 },
             )
         assertEquals(SaveResult.Success(7L), result)
-        assertTrue("setReminder must not run when the reminder is unchanged", !reminderCalled)
+        assertTrue("setReminders must not run when the set is unchanged", !reminderCalled)
     }
 
-    // When the user DID change the reminder, the write must run (the single-reminder
-    // model collapses to one until multi-reminder editing ships, but a deliberate
-    // reminder edit is expected to take effect).
     @Test
-    fun `in-place edit with changed reminder writes the new value`() = runBlocking {
-        var wrote: Int? = null
+    fun `unchanged comparison ignores order and duplicates`() = runBlocking {
         var called = false
         val result =
             EventSave.attempt(
-                form = form().copy(reminderMinutesBefore = 30),
+                form = form().copy(reminderMinutes = listOf(30, 10, 10)),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
-                loadedReminderMinutes = 10,
+                loadedReminderMinutes = listOf(10, 30),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminder = { _, m ->
+                setReminders = { _, _ ->
+                    called = true
+                    true
+                },
+            )
+        assertEquals(SaveResult.Success(7L), result)
+        assertTrue("a reorder or duplicate that collapses to the same set is not a change", !called)
+    }
+
+    @Test
+    fun `in-place edit with a changed set writes the new list`() = runBlocking {
+        var wrote: List<Int>? = null
+        val result =
+            EventSave.attempt(
+                form = form().copy(reminderMinutes = listOf(10, 60)),
+                editingEventId = 7L,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                loadedReminderMinutes = listOf(10),
+                insertEvent = { error("must not be called on edit path") },
+                updateEvent = { id, _, _, _, _, _ -> id },
+                setReminders = { _, m ->
+                    wrote = m
+                    true
+                },
+            )
+        assertEquals(SaveResult.Success(7L), result)
+        assertEquals(listOf(10, 60), wrote)
+    }
+
+    @Test
+    fun `clearing every reminder writes an empty list`() = runBlocking {
+        var called = false
+        var wrote: List<Int>? = null
+        val result =
+            EventSave.attempt(
+                form = form().copy(reminderMinutes = emptyList()),
+                editingEventId = 7L,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                loadedReminderMinutes = listOf(10),
+                insertEvent = { error("must not be called on edit path") },
+                updateEvent = { id, _, _, _, _, _ -> id },
+                setReminders = { _, m ->
                     called = true
                     wrote = m
                     true
                 },
             )
         assertEquals(SaveResult.Success(7L), result)
-        assertTrue("setReminder must run when the reminder changed", called)
-        assertEquals(30, wrote)
+        assertTrue("setReminders must run when reminders are cleared", called)
+        assertEquals(emptyList<Int>(), wrote)
     }
 
-    // Removing the reminder (non-null loaded -> null) is a change, so the write
-    // must run with null to clear the rows. This is the inverse of the unchanged-
-    // null skip; the two are one boolean flip apart, so pin the asymmetry.
+    // A synced event's negative-offset rows are not authorable; a changed visible
+    // set must write them back verbatim so the edit does not drop them.
     @Test
-    fun `in-place edit removing the reminder writes null`() = runBlocking {
-        var called = false
-        var wroteNull = false
+    fun `edit writes the visible set plus preserved negative rows`() = runBlocking {
+        var wrote: List<Int>? = null
         val result =
             EventSave.attempt(
-                form = form().copy(reminderMinutesBefore = null),
+                form = form().copy(reminderMinutes = listOf(10, 60)),
                 editingEventId = 7L,
                 scope = RecurringEditScope.AllEvents,
                 instanceMillis = null,
                 parentRrule = null,
-                loadedReminderMinutes = 10,
+                loadedReminderMinutes = listOf(10),
+                preservedReminderMinutes = listOf(-1),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminder = { _, m ->
-                    called = true
-                    wroteNull = m == null
+                setReminders = { _, m ->
+                    wrote = m
                     true
                 },
             )
         assertEquals(SaveResult.Success(7L), result)
-        assertTrue("setReminder must run when the reminder is removed", called)
-        assertTrue("setReminder must be called with null to clear the reminder", wroteNull)
+        assertEquals(listOf(10, 60, -1), wrote)
     }
 
-    // Editing one occurrence creates a NEW exception row that has no reminders, so
-    // the unchanged-skip must NOT apply (effectiveId != editingEventId). The reminder
-    // must still be written to the new row even when its value equals the parent's.
+    // A ThisInstance edit creates a NEW exception row with no reminders, so the
+    // unchanged-skip must not apply and the set must be written to the new row.
     @Test
-    fun `ThisInstance writes the reminder to the new exception even when unchanged`() = runBlocking {
+    fun `ThisInstance writes the set to the new exception even when unchanged`() = runBlocking {
         val newExceptionId = 999L
         var reminderId: Long? = null
+        var wrote: List<Int>? = null
         val result =
             EventSave.attempt(
-                form = form().copy(reminderMinutesBefore = 10),
+                form = form().copy(reminderMinutes = listOf(10)),
                 editingEventId = 7L,
                 scope = RecurringEditScope.ThisInstance,
                 instanceMillis = 1_700_000_000_000L,
                 parentRrule = "FREQ=DAILY",
-                loadedReminderMinutes = 10,
+                loadedReminderMinutes = listOf(10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { _, _, _, _, _, _ -> newExceptionId },
-                setReminder = { id, _ ->
+                setReminders = { id, m ->
                     reminderId = id
+                    wrote = m
                     true
                 },
             )
         assertEquals(SaveResult.Success(newExceptionId), result)
         assertEquals(newExceptionId, reminderId)
+        assertEquals(listOf(10), wrote)
+    }
+
+    @Test
+    fun `new event writes the form reminder list`() = runBlocking {
+        var wrote: List<Int>? = null
+        val result =
+            EventSave.attempt(
+                form = form().copy(reminderMinutes = listOf(5, 15)),
+                editingEventId = null,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                insertEvent = { 42L },
+                updateEvent = { _, _, _, _, _, _ -> error("must not be called on new path") },
+                setReminders = { _, m ->
+                    wrote = m
+                    true
+                },
+            )
+        assertEquals(SaveResult.Success(42L), result)
+        assertEquals(listOf(5, 15), wrote)
     }
 }
