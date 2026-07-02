@@ -9,29 +9,57 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class PendingIntentRequestCodesTest {
-    // two pending instances of one recurring event must get distinct notification
-    // ids, or the second reminder silently replaces the first in the shade.
+    // two pending instances of one recurring event, and two offsets of one
+    // occurrence, must each get distinct notification ids or one silently
+    // replaces the other in the shade.
     @Test
     fun `forNotification distinguishes instances of the same event`() {
         assertNotEquals(
-            PendingIntentRequestCodes.forNotification(1L, 100L),
-            PendingIntentRequestCodes.forNotification(1L, 200L),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 10),
+            PendingIntentRequestCodes.forNotification(1L, 200L, 10),
         )
     }
 
     @Test
-    fun `forNotification is stable for the same instance`() {
+    fun `forNotification distinguishes reminder offsets for the same instance`() {
+        assertNotEquals(
+            PendingIntentRequestCodes.forNotification(1L, 100L, 10),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 30),
+        )
+    }
+
+    @Test
+    fun `forNotification is stable for the same instance and offset`() {
         assertEquals(
-            PendingIntentRequestCodes.forNotification(1L, 100L),
-            PendingIntentRequestCodes.forNotification(1L, 100L),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 10),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 10),
         )
     }
 
     @Test
     fun `forNotification distinguishes different events`() {
         assertNotEquals(
-            PendingIntentRequestCodes.forNotification(1L, 100L),
-            PendingIntentRequestCodes.forNotification(2L, 100L),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 10),
+            PendingIntentRequestCodes.forNotification(2L, 100L, 10),
+        )
+    }
+
+    // each notification's action buttons must stay independent, or two offsets of
+    // one occurrence collapse their dismiss/snooze PendingIntents under
+    // FLAG_UPDATE_CURRENT and one button drives the wrong shade entry.
+    @Test
+    fun `dismiss and snooze actions distinguish reminder offsets`() {
+        assertNotEquals(
+            PendingIntentRequestCodes.forDismiss(1L, 100L, 10),
+            PendingIntentRequestCodes.forDismiss(1L, 100L, 30),
+        )
+        assertNotEquals(
+            PendingIntentRequestCodes.forSnoozeDefault(1L, 100L, 10),
+            PendingIntentRequestCodes.forSnoozeDefault(1L, 100L, 30),
+        )
+        assertNotEquals(
+            PendingIntentRequestCodes.forSnoozePicker(1L, 100L, 10),
+            PendingIntentRequestCodes.forSnoozePicker(1L, 100L, 30),
         )
     }
 
@@ -99,10 +127,10 @@ class PendingIntentRequestCodesTest {
             PendingIntentRequestCodes.forAlarm(1L, 100L, 10),
             PendingIntentRequestCodes.forSnoozeAlarm(1L, 100L),
             PendingIntentRequestCodes.forOpen(1L, 100L),
-            PendingIntentRequestCodes.forSnoozeDefault(1L, 100L),
-            PendingIntentRequestCodes.forSnoozePicker(1L, 100L),
-            PendingIntentRequestCodes.forDismiss(1L, 100L),
-            PendingIntentRequestCodes.forNotification(1L, 100L),
+            PendingIntentRequestCodes.forSnoozeDefault(1L, 100L, 10),
+            PendingIntentRequestCodes.forSnoozePicker(1L, 100L, 10),
+            PendingIntentRequestCodes.forDismiss(1L, 100L, 10),
+            PendingIntentRequestCodes.forNotification(1L, 100L, 10),
         )
         assertEquals(codes.size, codes.toSet().size)
     }

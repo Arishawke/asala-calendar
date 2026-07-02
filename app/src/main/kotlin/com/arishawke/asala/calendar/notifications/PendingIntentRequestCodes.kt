@@ -23,13 +23,19 @@ internal object PendingIntentRequestCodes {
 
     fun forOpen(eventId: Long, instanceMillis: Long): Int = "open:$eventId:$instanceMillis".hashCode()
 
-    fun forSnoozeDefault(eventId: Long, instanceMillis: Long): Int = "snoozeDefault:$eventId:$instanceMillis".hashCode()
+    fun forSnoozeDefault(eventId: Long, instanceMillis: Long, minutesBefore: Int): Int =
+        "snoozeDefault:$eventId:$instanceMillis:$minutesBefore".hashCode()
 
-    fun forSnoozePicker(eventId: Long, instanceMillis: Long): Int = "snoozePicker:$eventId:$instanceMillis".hashCode()
+    fun forSnoozePicker(eventId: Long, instanceMillis: Long, minutesBefore: Int): Int =
+        "snoozePicker:$eventId:$instanceMillis:$minutesBefore".hashCode()
 
-    fun forDismiss(eventId: Long, instanceMillis: Long): Int = "dismiss:$eventId:$instanceMillis".hashCode()
+    fun forDismiss(eventId: Long, instanceMillis: Long, minutesBefore: Int): Int =
+        "dismiss:$eventId:$instanceMillis:$minutesBefore".hashCode()
 
-    // per-instance so two pending reminders of one recurring event get distinct
-    // shade entries instead of the later one replacing the earlier.
-    fun forNotification(eventId: Long, instanceMillis: Long): Int = "notif:$eventId:$instanceMillis".hashCode()
+    // per-instance AND per-offset so two reminders firing for one occurrence get
+    // distinct shade entries instead of the later one replacing the earlier.
+    // forOpen omits the offset: its extras are identical across a fire's offsets,
+    // so a shared PendingIntent opens the same event either way.
+    fun forNotification(eventId: Long, instanceMillis: Long, minutesBefore: Int): Int =
+        "notif:$eventId:$instanceMillis:$minutesBefore".hashCode()
 }

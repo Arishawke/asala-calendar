@@ -42,8 +42,12 @@ internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, i
         minutes,
     )
 
-    // cancel first so it clears even if the provider writes fail
-    NotificationManagerCompat.from(context).cancel(PendingIntentRequestCodes.forNotification(eventId, instanceMillis))
+    // originalMinutes is the firing reminder's offset (the alert's MINUTES); the
+    // notification id is offset-scoped, so cancel the entry that was snoozed. the
+    // snooze alarm slot stays per-occurrence (forSnoozeAlarm), so a second offset's
+    // snooze still overwrites the first (documented v1 limitation).
+    NotificationManagerCompat.from(context)
+        .cancel(PendingIntentRequestCodes.forNotification(eventId, instanceMillis, originalMinutes))
 
     if (alertId > 0) {
         // mark original dismissed, then insert a fresh SCHEDULED row below

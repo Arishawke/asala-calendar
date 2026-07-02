@@ -82,10 +82,11 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
         val instanceMillis = intent.getLongExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, -1L)
+        val minutesBefore = intent.getIntExtra(ReminderConstants.EXTRA_REMINDER_MINUTES, 0)
         // cancel first so it clears even if the provider write fails
         if (eventId > 0) {
             NotificationManagerCompat.from(context)
-                .cancel(PendingIntentRequestCodes.forNotification(eventId, instanceMillis))
+                .cancel(PendingIntentRequestCodes.forNotification(eventId, instanceMillis, minutesBefore))
         }
         if (alertId > 0) markAlertState(context, alertId, CalendarContract.CalendarAlerts.STATE_DISMISSED)
     }

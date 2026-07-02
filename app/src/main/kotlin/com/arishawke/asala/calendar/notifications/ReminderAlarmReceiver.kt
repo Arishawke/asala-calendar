@@ -83,10 +83,12 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
                             eventId = eventId,
                             event = event,
                             instanceMillis = instanceMillis,
+                            minutesBefore = minutesBefore,
                             alertId = alertId,
                             defaultSnoozeMinutes = defaultSnoozeMinutes,
                         )
-                    val notificationId = PendingIntentRequestCodes.forNotification(eventId, instanceMillis)
+                    val notificationId =
+                        PendingIntentRequestCodes.forNotification(eventId, instanceMillis, minutesBefore)
                     val manager = NotificationManagerCompat.from(context)
                     // recheck at fire time: notifications can be revoked after the
                     // alarm was armed, in which case notify() silently no-ops.

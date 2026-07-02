@@ -70,6 +70,7 @@ internal fun buildReminderNotification(
     eventId: Long,
     event: ReminderEventSnapshot,
     instanceMillis: Long,
+    minutesBefore: Int,
     alertId: Long,
     defaultSnoozeMinutes: Int,
 ): Notification {
@@ -86,9 +87,9 @@ internal fun buildReminderNotification(
         }
 
     val openPi = openMainActivityPendingIntent(context, eventId, instanceMillis)
-    val snoozeDefaultPi = snoozeDefaultPendingIntent(context, eventId, instanceMillis, alertId)
-    val snoozePickerPi = snoozePickerPendingIntent(context, eventId, instanceMillis, alertId)
-    val dismissPi = dismissPendingIntent(context, eventId, instanceMillis, alertId)
+    val snoozeDefaultPi = snoozeDefaultPendingIntent(context, eventId, instanceMillis, minutesBefore, alertId)
+    val snoozePickerPi = snoozePickerPendingIntent(context, eventId, instanceMillis, minutesBefore, alertId)
+    val dismissPi = dismissPendingIntent(context, eventId, instanceMillis, minutesBefore, alertId)
 
     return NotificationCompat
         .Builder(context, ReminderConstants.CHANNEL_ID)
@@ -136,6 +137,7 @@ private fun snoozeDefaultPendingIntent(
     context: Context,
     eventId: Long,
     instanceMillis: Long,
+    minutesBefore: Int,
     alertId: Long,
 ): PendingIntent {
     val intent =
@@ -147,7 +149,7 @@ private fun snoozeDefaultPendingIntent(
         }
     return PendingIntent.getBroadcast(
         context,
-        PendingIntentRequestCodes.forSnoozeDefault(eventId, instanceMillis),
+        PendingIntentRequestCodes.forSnoozeDefault(eventId, instanceMillis, minutesBefore),
         intent,
         PendingIntentFlags.UPDATE_IMMUTABLE,
     )
@@ -159,6 +161,7 @@ private fun snoozePickerPendingIntent(
     context: Context,
     eventId: Long,
     instanceMillis: Long,
+    minutesBefore: Int,
     alertId: Long,
 ): PendingIntent {
     val intent =
@@ -170,25 +173,32 @@ private fun snoozePickerPendingIntent(
         }
     return PendingIntent.getActivity(
         context,
-        PendingIntentRequestCodes.forSnoozePicker(eventId, instanceMillis),
+        PendingIntentRequestCodes.forSnoozePicker(eventId, instanceMillis, minutesBefore),
         intent,
         PendingIntentFlags.UPDATE_IMMUTABLE,
     )
 }
 
-private fun dismissPendingIntent(context: Context, eventId: Long, instanceMillis: Long, alertId: Long): PendingIntent {
+private fun dismissPendingIntent(
+    context: Context,
+    eventId: Long,
+    instanceMillis: Long,
+    minutesBefore: Int,
+    alertId: Long,
+): PendingIntent {
     val intent =
         Intent(context, NotificationActionReceiver::class.java).apply {
             action = ReminderConstants.ACTION_DISMISS
             putExtra(ReminderConstants.EXTRA_ALERT_ID, alertId)
             putExtra(ReminderConstants.EXTRA_EVENT_ID, eventId)
-            // dismiss cancels the notification by its per-instance id, so it
-            // must carry the instance the notification was posted under.
             putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
+            // the notification id is offset-scoped, so dismiss must know which
+            // offset fired to cancel the right shade entry.
+            putExtra(ReminderConstants.EXTRA_REMINDER_MINUTES, minutesBefore)
         }
     return PendingIntent.getBroadcast(
         context,
-        PendingIntentRequestCodes.forDismiss(eventId, instanceMillis),
+        PendingIntentRequestCodes.forDismiss(eventId, instanceMillis, minutesBefore),
         intent,
         PendingIntentFlags.UPDATE_IMMUTABLE,
     )
