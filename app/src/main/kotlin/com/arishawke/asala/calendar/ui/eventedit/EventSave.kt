@@ -194,7 +194,7 @@ internal object EventSave {
             val id = insertEvent(draft) ?: return SaveResult.Failure
             // event exists even if the reminder write fails; surface failure
             // so the user knows the reminder did not stick.
-            if (!setReminders(id, form.reminderMinutes)) return SaveResult.Failure
+            if (!setReminders(id, form.reminderMinutes.distinct())) return SaveResult.Failure
             SaveResult.Success(id)
         } else {
             // effectiveId is the row reminders attach to: original for
@@ -211,7 +211,7 @@ internal object EventSave {
             val reminderUnchanged = effectiveId == editingEventId &&
                 form.reminderMinutes.normalizedReminders() == loadedReminderMinutes.normalizedReminders()
             if (!reminderUnchanged &&
-                !setReminders(effectiveId, form.reminderMinutes + preservedReminderMinutes)
+                !setReminders(effectiveId, (form.reminderMinutes + preservedReminderMinutes).distinct())
             ) {
                 return SaveResult.Failure
             }

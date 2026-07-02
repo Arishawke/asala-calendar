@@ -197,4 +197,28 @@ class EventSaveReminderTest {
         assertEquals(SaveResult.Success(42L), result)
         assertEquals(listOf(5, 15), wrote)
     }
+
+    // duplicate picker selections are reachable from the list UI (two rows can
+    // pick the same offset); the write must dedupe rather than insert twin rows.
+    @Test
+    fun `a duplicated offset writes once`() = runBlocking {
+        var wrote: List<Int>? = null
+        val result =
+            EventSave.attempt(
+                form = form().copy(reminderMinutes = listOf(10, 10)),
+                editingEventId = 7L,
+                scope = RecurringEditScope.AllEvents,
+                instanceMillis = null,
+                parentRrule = null,
+                loadedReminderMinutes = emptyList(),
+                insertEvent = { error("must not be called on edit path") },
+                updateEvent = { id, _, _, _, _, _ -> id },
+                setReminders = { _, m ->
+                    wrote = m
+                    true
+                },
+            )
+        assertEquals(SaveResult.Success(7L), result)
+        assertEquals(listOf(10), wrote)
+    }
 }
