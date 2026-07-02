@@ -11,8 +11,22 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Anniversary events now show a heart icon everywhere birthday events show the
   cake: timeline blocks, all-day bars, day and schedule lists, and the event
   detail sheet.
+- Events can now carry several reminders. The event editor shows one reminder
+  row per alert with a remove button and an "Add reminder" row (up to ten), and
+  each reminder fires as its own notification so two reminders for the same
+  event now stack in the shade instead of replacing each other.
 
 ### Fixed
+- Editing an event that carries more than one reminder no longer drops the
+  extras. Changing a reminder used to delete every reminder row and keep only
+  one; the editor now shows and writes the full set, and rows written by another
+  app (such as a synced calendar's defaults) are preserved across an edit.
+- Two reminders on the same event occurrence now appear as two separate
+  notifications. They used to share one notification id, so whichever fired
+  second replaced the first in the shade instead of stacking beside it.
+- Snoozing an all-day event's default reminder (one set by a synced calendar
+  rather than chosen in the editor) now cancels the original notification
+  instead of occasionally leaving it in the shade next to the snoozed one.
 - Contact birthdays and anniversaries now show when the app is in sync-only
   storage mode. The two generated calendars are feature-owned, so they are no
   longer hidden with the rest of the on-device calendars, and they stay
