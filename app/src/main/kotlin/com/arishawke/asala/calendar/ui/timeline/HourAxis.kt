@@ -37,7 +37,7 @@ internal fun HourAxis(labelOffsetY: Dp = 0.dp) {
     val hourFmt = remember(is24Hour, locale) {
         if (is24Hour) DateTimeFormatter.ofPattern("HH:mm", locale) else DateTimeFormatter.ofPattern("h a", locale)
     }
-    Column(modifier = Modifier.width(HourAxisWidth)) {
+    Column(modifier = Modifier.width(rememberHourAxisWidth())) {
         for (h in 0..23) {
             Box(
                 modifier = Modifier

@@ -44,7 +44,7 @@ import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
 import com.arishawke.asala.calendar.ui.theme.rememberCalendarPagerFling
-import com.arishawke.asala.calendar.ui.timeline.HourAxisWidth
+import com.arishawke.asala.calendar.ui.timeline.rememberHourAxisWidth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import kotlinx.coroutines.flow.StateFlow
 import java.text.FieldPosition
@@ -218,6 +218,7 @@ internal fun WeekPage(
         events.filter { it.isVisibleIn(days.first(), days.last(), zone) }
     }
     val (allDayEvents, timedEvents) = remember(visibleEvents) { visibleEvents.partition { it.allDay } }
+    val hourAxisWidth = rememberHourAxisWidth()
 
     Column(modifier = Modifier.fillMaxSize()) {
         // leading slot matches hour-axis width so headers align with columns;
@@ -227,7 +228,7 @@ internal fun WeekPage(
                 val isoMonday = days.first().with(java.time.DayOfWeek.MONDAY)
                 val weekNumber = isoMonday.get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear())
                 Box(
-                    modifier = Modifier.width(HourAxisWidth),
+                    modifier = Modifier.width(hourAxisWidth),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -237,7 +238,7 @@ internal fun WeekPage(
                     )
                 }
             } else {
-                Spacer(modifier = Modifier.width(HourAxisWidth))
+                Spacer(modifier = Modifier.width(hourAxisWidth))
             }
             days.forEach { date ->
                 WeekDayHeader(

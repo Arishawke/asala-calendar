@@ -26,7 +26,7 @@ import com.arishawke.asala.calendar.ui.multidaybars.LaneAssigner
 import com.arishawke.asala.calendar.ui.multidaybars.MultiDayBarRow
 import com.arishawke.asala.calendar.ui.multidaybars.WeekBucketer
 import com.arishawke.asala.calendar.ui.multidaybars.overflowEventIds
-import com.arishawke.asala.calendar.ui.timeline.HourAxisWidth
+import com.arishawke.asala.calendar.ui.timeline.rememberHourAxisWidth
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -56,7 +56,7 @@ internal fun AllDayRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = HourAxisWidth, top = 4.dp, bottom = 4.dp),
+            .padding(start = rememberHourAxisWidth(), top = 4.dp, bottom = 4.dp),
     ) {
         BoxWithConstraints(
             modifier = Modifier

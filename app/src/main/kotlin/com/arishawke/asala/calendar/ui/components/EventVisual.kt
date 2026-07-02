@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -221,6 +222,8 @@ internal fun EventChipBlock(
 }
 
 // title + (when tall enough) times, inset past the 3dp color bar.
+private val EventBlockLabelTopPadding: Dp = 2.dp
+
 @Suppress("LongParameterList")
 @Composable
 private fun EventBlockLabels(
@@ -235,6 +238,8 @@ private fun EventBlockLabels(
     anchorMillis: Long?,
 ) {
     val timeFmt = rememberTimeFormatter()
+    val labelLineHeight = with(LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() }
+    val timeLabelMinHeight = EventBlockLabelTopPadding + labelLineHeight * 2
     val multiDay = segmentCount > 1
     val baseTitle = occasionDisplayTitle(event).ifBlank { stringResource(R.string.event_no_title) }
     // midnight crosser gets a "N/total" badge so a later slice reads
@@ -261,7 +266,7 @@ private fun EventBlockLabels(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 6.dp, top = 2.dp, end = 4.dp),
+            .padding(start = 6.dp, top = EventBlockLabelTopPadding, end = 4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (event.occasion != OccasionKind.None) {
@@ -279,7 +284,7 @@ private fun EventBlockLabels(
                 textDecoration = styling.titleDecoration,
             )
         }
-        if (timeLabel != null && heightDp >= TimeLabelMinHeight) {
+        if (timeLabel != null && heightDp >= timeLabelMinHeight) {
             Text(
                 text = timeLabel,
                 style = MaterialTheme.typography.labelSmall,
@@ -289,9 +294,6 @@ private fun EventBlockLabels(
         }
     }
 }
-
-// below this height the time row would clip; title only on small blocks.
-private val TimeLabelMinHeight: Dp = 32.dp
 
 // schedule + search list. min-height 48dp meets the touch-target floor.
 @Composable
