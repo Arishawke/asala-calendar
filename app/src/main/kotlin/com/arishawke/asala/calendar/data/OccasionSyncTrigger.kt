@@ -51,14 +51,17 @@ suspend fun syncOccasionsIfEnabled(context: Context) {
             appPackage = appContext.packageName,
         )
         val provisioner = OccasionProvisioner(calendars, userPreferences, sync)
-        val ids = provisioner.ensureCalendars(
-            appContext.getString(R.string.occasion_birthday_calendar),
-            appContext.getString(R.string.occasion_anniversary_calendar),
-        ) ?: return@withContext
         // same base-title formatter as SettingsViewModel, so a title stored by a
         // background sync matches one stored by the initial enable-time sync.
         val titleFor: (Occasion) -> String = { occasion -> occasionBaseTitle(appContext, occasion) }
-        sync.sync(ids.birthdays, ids.anniversaries, prefs.contactReminderMinutesBefore, titleFor)
+        // resolve + sync under one provision lock so a concurrent disable() can't
+        // delete the calendars between the id resolution and the writes.
+        provisioner.ensureAndSync(
+            appContext.getString(R.string.occasion_birthday_calendar),
+            appContext.getString(R.string.occasion_anniversary_calendar),
+            prefs.contactReminderMinutesBefore,
+            titleFor,
+        )
     }
 }
 

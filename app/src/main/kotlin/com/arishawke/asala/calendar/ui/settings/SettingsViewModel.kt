@@ -163,7 +163,7 @@ class SettingsViewModel(
 
     fun disableContactOccasions() {
         viewModelScope.launch {
-            occasionProvisioner.disable(state.value.birthdaysCalendarId, state.value.anniversariesCalendarId)
+            occasionProvisioner.disable()
         }
     }
 

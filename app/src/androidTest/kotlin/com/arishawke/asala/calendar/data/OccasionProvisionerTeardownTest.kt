@@ -104,7 +104,8 @@ class OccasionProvisionerTeardownTest {
         prefs.setBirthdaysCalendarId(birthdays)
         prefs.setAnniversariesCalendarId(anniversaries)
 
-        provisioner.disable(birthdays, anniversaries)
+        // ids come from the seeded prefs, read inside the provision lock
+        provisioner.disable()
 
         val present = presentCalendarIds()
         assertFalse("birthdays calendar removed", birthdays in present)

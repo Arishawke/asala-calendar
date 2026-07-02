@@ -55,6 +55,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   is now re-created on the next refresh (or when you turn the feature on again)
   instead of silently staying empty. Turning the feature on again no longer creates
   a duplicate calendar pair.
+- Turning contact occasions off while a background refresh is in flight can no
+  longer leave a stray calendar pair behind or write events into just-deleted
+  calendars.
 - A synced calendar's "default" reminder no longer schedules a timed reminder a
   minute after the event has already started, and a malformed negative offset on
   an all-day event no longer fires days late; both are skipped instead.

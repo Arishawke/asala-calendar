@@ -36,55 +36,77 @@ class OccasionProvisioner(
         reminderMinutes: Int?,
         titleFor: (Occasion) -> String,
     ): Boolean {
-        // mark intent before ensureCalendars so its in-lock enabled check passes for
+        // mark intent before ensureAndSync so its in-lock enabled check passes for
         // the enable path (a background heal reads the same flag and must see it on);
         // roll back if provisioning fails so we don't leave the feature half-enabled.
         prefs.setContactOccasionsEnabled(true)
-        val ids = ensureCalendars(birthdaysName, anniversariesName)
-        if (ids == null) {
-            prefs.setContactOccasionsEnabled(false)
-            return false
-        }
-        sync.sync(ids.birthdays, ids.anniversaries, reminderMinutes, titleFor)
-        return true
+        val ok = ensureAndSync(birthdaysName, anniversariesName, reminderMinutes, titleFor)
+        if (!ok) prefs.setContactOccasionsEnabled(false)
+        return ok
     }
+
+    // resolves the ids and runs the sync without releasing provisionMutex in
+    // between: a disable() interleaving in that gap would delete the calendars
+    // and clear the prefs, and the in-flight sync would then write the full
+    // event set against dead calendar ids, leaving orphan rows nothing cleans up.
+    suspend fun ensureAndSync(
+        birthdaysName: String,
+        anniversariesName: String,
+        reminderMinutes: Int?,
+        titleFor: (Occasion) -> String,
+    ): Boolean = provisionMutex.withLock {
+        val ids = ensureCalendarsLocked(birthdaysName, anniversariesName) ?: return@withLock false
+        sync.sync(ids.birthdays, ids.anniversaries, reminderMinutes, titleFor)
+        true
+    }
+
+    // lock-taking wrapper kept for the device tests, which exercise the
+    // reuse / heal / disabled-bail branches in isolation.
+    internal suspend fun ensureCalendars(birthdaysName: String, anniversariesName: String): OccasionCalendarIds? =
+        provisionMutex.withLock { ensureCalendarsLocked(birthdaysName, anniversariesName) }
 
     // resolves the two occasion calendar ids, re-creating any the user deleted (or
     // that were never provisioned) and persisting the result, so both enable() and
     // a background sync heal instead of writing into a dead id (F5). already-present
     // ids are reused rather than duplicated, which also makes enable() idempotent
-    // against a double-tap in the initial-render OFF window (F12). serialized so
-    // concurrent callers (enable + contacts observer + daily tick) can't race into
-    // a duplicate pair.
-    internal suspend fun ensureCalendars(birthdaysName: String, anniversariesName: String): OccasionCalendarIds? =
-        provisionMutex.withLock {
-            val current = prefs.prefs.first()
-            // re-check under the lock: the feature may have been disabled between the
-            // caller's gate and here, in which case a background heal must create
-            // nothing (disable() also holds this lock, so the two can't interleave).
-            if (!current.contactOccasionsEnabled) return@withLock null
-            val existing = calendars.calendars().mapTo(HashSet()) { it.id }
-            val birthdaysId = resolveOccasionCalendarId(current.birthdaysCalendarId, existing)
-                ?: calendars.createLocalCalendar(birthdaysName, BIRTHDAYS_DEFAULT_COLOR)
-            val anniversariesId = resolveOccasionCalendarId(current.anniversariesCalendarId, existing)
-                ?: calendars.createLocalCalendar(anniversariesName, ANNIVERSARIES_DEFAULT_COLOR)
-            if (birthdaysId == null || anniversariesId == null) {
-                // a create failed: roll back only a newly-created calendar (leave a
-                // reused existing one alone) so no orphan is left behind.
-                if (birthdaysId != current.birthdaysCalendarId) birthdaysId?.let { calendars.deleteLocalCalendar(it) }
-                if (anniversariesId != current.anniversariesCalendarId) {
-                    anniversariesId?.let { calendars.deleteLocalCalendar(it) }
-                }
-                return@withLock null
+    // against a double-tap in the initial-render OFF window (F12). callers hold
+    // provisionMutex so concurrent callers (enable + contacts observer + daily
+    // tick) can't race into a duplicate pair.
+    private suspend fun ensureCalendarsLocked(birthdaysName: String, anniversariesName: String): OccasionCalendarIds? {
+        val current = prefs.prefs.first()
+        // re-check under the lock: the feature may have been disabled between the
+        // caller's gate and here, in which case a background heal must create
+        // nothing (disable() also holds this lock, so the two can't interleave).
+        if (!current.contactOccasionsEnabled) return null
+        val existing = calendars.calendars().mapTo(HashSet()) { it.id }
+        val birthdaysId = resolveOccasionCalendarId(current.birthdaysCalendarId, existing)
+            ?: calendars.createLocalCalendar(birthdaysName, BIRTHDAYS_DEFAULT_COLOR)
+        val anniversariesId = resolveOccasionCalendarId(current.anniversariesCalendarId, existing)
+            ?: calendars.createLocalCalendar(anniversariesName, ANNIVERSARIES_DEFAULT_COLOR)
+        return if (birthdaysId == null || anniversariesId == null) {
+            // a create failed: roll back only a newly-created calendar (leave a
+            // reused existing one alone) so no orphan is left behind.
+            if (birthdaysId != current.birthdaysCalendarId) birthdaysId?.let { calendars.deleteLocalCalendar(it) }
+            if (anniversariesId != current.anniversariesCalendarId) {
+                anniversariesId?.let { calendars.deleteLocalCalendar(it) }
             }
+            null
+        } else {
             if (birthdaysId != current.birthdaysCalendarId) prefs.setBirthdaysCalendarId(birthdaysId)
             if (anniversariesId != current.anniversariesCalendarId) prefs.setAnniversariesCalendarId(anniversariesId)
             OccasionCalendarIds(birthdaysId, anniversariesId)
         }
+    }
 
     // under provisionMutex so a concurrent background heal can't re-create the pair
-    // mid-teardown (it re-reads the now-disabled flag and bails).
-    suspend fun disable(birthdaysCalendarId: Long?, anniversariesCalendarId: Long?) = provisionMutex.withLock {
+    // mid-teardown (it re-reads the now-disabled flag and bails). the ids are read
+    // from prefs inside the lock: a caller-captured snapshot can be stale when a
+    // heal re-provisioned in flight, and deleting the stale ids would orphan the
+    // freshly healed, populated pair.
+    suspend fun disable() = provisionMutex.withLock {
+        val current = prefs.prefs.first()
+        val birthdaysCalendarId = current.birthdaysCalendarId
+        val anniversariesCalendarId = current.anniversariesCalendarId
         if (birthdaysCalendarId != null && anniversariesCalendarId != null) {
             // drop reminder rows first so no orphan alarm survives the calendar delete
             sync.reapplyReminders(birthdaysCalendarId, anniversariesCalendarId, reminderMinutes = null)
