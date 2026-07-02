@@ -50,8 +50,11 @@ import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.OccasionKind
+import com.arishawke.asala.calendar.data.TimeUnits
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
+import com.arishawke.asala.calendar.ui.theme.rememberWidestTextWidth
 import java.time.Instant
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -325,7 +328,7 @@ internal fun EventChipRow(
         )
         Spacer(modifier = Modifier.width(12.dp))
         Box(
-            modifier = Modifier.width(72.dp),
+            modifier = Modifier.width(rememberTimeColumnWidth(timeFmt)),
             contentAlignment = Alignment.CenterStart,
         ) {
             if (event.allDay) {
@@ -361,3 +364,27 @@ internal fun EventChipRow(
         )
     }
 }
+
+// old fixed time-column width; floors the measured width so 100% scale can
+// only match or widen it, never shrink the default look.
+private val TimeColumnWidthFloor: Dp = 72.dp
+
+// schedule + search time column: widest of "All day" and every on-the-hour
+// worst-case minute, at the current locale/format/scale, so a 24h "23:59" or
+// a 12h "12:59 pm" locale never clips against the title.
+@Composable
+private fun rememberTimeColumnWidth(timeFmt: DateTimeFormatter): Dp {
+    val allDayLabel = stringResource(R.string.schedule_all_day)
+    val candidates = remember(timeFmt, allDayLabel) {
+        buildList {
+            add(allDayLabel)
+            for (hour in 0 until TimeUnits.HoursPerDay) {
+                add(timeFmt.format(LocalTime.of(hour, MaxMinutesPastHour)))
+            }
+        }
+    }
+    val measured = rememberWidestTextWidth(candidates, MaterialTheme.typography.labelSmall)
+    return maxOf(TimeColumnWidthFloor, measured)
+}
+
+private const val MaxMinutesPastHour = 59
