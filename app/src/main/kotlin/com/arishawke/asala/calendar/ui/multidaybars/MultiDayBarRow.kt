@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -41,7 +42,6 @@ import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.theme.WcagContrast
 
 private const val DaysPerWeek = 7
-private val BarHeight = 16.dp
 private val BarVerticalGap = 2.dp
 private val NaturalCorner = 6.dp
 private val CutCorner = 0.dp
@@ -60,7 +60,8 @@ fun MultiDayBarRow(
 ) {
     if (segments.isEmpty()) return
     val cellWidth = rowWidth / DaysPerWeek
-    val laneSpan = BarHeight + BarVerticalGap
+    val barHeight = with(LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() }
+    val laneSpan = barHeight + BarVerticalGap
     val visibleLanes = (segments.maxOfOrNull { it.lane }?.plus(1) ?: 0).coerceAtMost(maxLanes)
     Box(
         modifier = modifier
@@ -89,7 +90,7 @@ fun MultiDayBarRow(
                             y = laneSpan * s.lane,
                         )
                         .width(cellWidth * (s.endCol - s.startCol + 1))
-                        .height(BarHeight)
+                        .height(barHeight)
                         .padding(horizontal = 1.dp)
                         .clip(shape)
                         .background(bg)

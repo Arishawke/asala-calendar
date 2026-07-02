@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,6 +79,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.max
 
 private const val HighlightClearMs = 2_000L
+private val AllDayRowVerticalPadding: Dp = 1.dp
 
 @Composable
 // pager state + jumps + workingHours/workingDays params exceed detekt's
@@ -252,12 +254,15 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
             .heightIn(min = 28.dp)
             .padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
+        val allDayRowHeight = with(LocalDensity.current) {
+            MaterialTheme.typography.bodyMedium.lineHeight.toDp()
+        } + AllDayRowVerticalPadding * 2
         events.forEach { ev ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(20.dp)
-                    .padding(vertical = 1.dp)
+                    .height(allDayRowHeight)
+                    .padding(vertical = AllDayRowVerticalPadding)
                     .clip(RoundedCornerShape(3.dp))
                     .background(Color(ev.displayColor).copy(alpha = 0.85f))
                     .clickable { onEventClick(ev.eventId, ev.startMillis) }
