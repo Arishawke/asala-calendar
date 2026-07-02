@@ -256,7 +256,7 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
     ) {
         val allDayRowHeight = with(LocalDensity.current) {
             MaterialTheme.typography.bodyMedium.lineHeight.toDp()
-        } + AllDayRowVerticalPadding * 2
+        }
         events.forEach { ev ->
             Row(
                 modifier = Modifier
