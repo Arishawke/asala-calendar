@@ -51,7 +51,7 @@ Asala keeps no calendar data of its own. Your events live in your phone's system
 - **Private and offline.** No telemetry, no trackers, no account to create. Your events never leave the device unless you set up a sync account yourself.
 - **Type events in plain words.** Write "lunch at Cafe Rio tomorrow at noon" in the new-event field and the title, location, date, and time fill in for you to review before saving.
 - **Continuous or paged month.** Read months as one endless vertical scroll, or swipe a page at a time.
-- **Search everything.** Find any event by title, location, or notes, across every calendar and any date, past or future.
+- **Search everything.** Find events by title, location, or notes across all your visible calendars, from a year back to two years ahead.
 - **All your calendars in one app.** Work, personal, local, and CalDAV (through the DAVx5 companion app), each event colored by the calendar it came from.
 - **Birthdays and anniversaries from your contacts.** An optional toggle turns the dates already on your phone into two on-device calendars, ages included, with their own reminder. Everything stays on the device.
 - **Six views.** Year, Month, Week, 3-Day, Day, and Schedule.
