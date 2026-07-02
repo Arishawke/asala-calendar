@@ -75,6 +75,10 @@ Ideas and opportunities. May not happen. Kept for reference.
   simplified Chinese).
 - Subscribe to a holiday calendar (ICS feed); optionally bundle one
   in-app.
+- Show February 29 birthdays on Feb 28 (or Mar 1) in non-leap years. The
+  provider expands a leap-day `FREQ=YEARLY` only in leap years (verified
+  on-device), so this needs explicit `BYMONTH`/`BYMONTHDAY` handling in the
+  occasion event rule.
 - Email reminders (needs a server or carefully scoped SMTP; defer);
   custom-snooze IME choice.
 - Fuzzy / typo-tolerant search on top of the existing exact-substring

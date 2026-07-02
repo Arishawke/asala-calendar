@@ -55,7 +55,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   potentially different one on each open.
 - Contact birthdays and anniversaries no longer crash the app when a contact's date
   is February 29 stored with a non-leap year (as some imported contacts are). The
-  occasion still shows; only the age is omitted for that entry.
+  entry is kept with its age omitted and, like any February 29 date, appears on
+  leap-day occurrences.
 - Age and anniversary labels ("Alice turns 30", "5th anniversary") now appear only
   on the app's own birthday and anniversary calendars, not on a separate calendar
   that merely has "Birthdays" or "Anniversaries" in its name.
