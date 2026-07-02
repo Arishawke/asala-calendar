@@ -49,6 +49,7 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.ui.BarScaffold
 import com.arishawke.asala.calendar.ui.components.EventChipRow
+import com.arishawke.asala.calendar.ui.theme.rememberDayNumberWidth
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
@@ -184,6 +185,7 @@ fun SearchScreen(
 
 @Composable
 private fun SearchDayHeader(date: LocalDate, text: String) {
+    val dayNumberWidth = rememberDayNumberWidth()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,7 +193,7 @@ private fun SearchDayHeader(date: LocalDate, text: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier.width(40.dp),
+            modifier = Modifier.width(dayNumberWidth),
             contentAlignment = Alignment.Center,
         ) {
             Text(

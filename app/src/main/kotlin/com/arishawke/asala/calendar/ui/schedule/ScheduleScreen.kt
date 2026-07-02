@@ -37,7 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,8 +47,8 @@ import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.TimeUnits
 import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.components.EventChipRow
+import com.arishawke.asala.calendar.ui.theme.rememberDayNumberWidth
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
-import com.arishawke.asala.calendar.ui.theme.rememberWidestTextWidth
 import com.arishawke.asala.calendar.ui.timeline.NowLineRow
 import com.arishawke.asala.calendar.ui.timeline.rememberNowMinutes
 import kotlinx.coroutines.flow.StateFlow
@@ -244,16 +243,9 @@ private fun DaySection(
     }
 }
 
-// old fixed day-number column width; floors the measured width so 100% scale
-// can only match or widen it, never shrink the default look.
-private val DayNumberWidthFloor: Dp = 40.dp
-private const val MaxDayOfMonth = 31
-private val DayNumberWidthCandidates: List<String> = (1..MaxDayOfMonth).map(Int::toString)
-
 @Composable
 private fun DayHeader(date: LocalDate, isToday: Boolean, text: String) {
-    val measuredWidth = rememberWidestTextWidth(DayNumberWidthCandidates, MaterialTheme.typography.headlineSmall)
-    val dayNumberWidth = maxOf(DayNumberWidthFloor, measuredWidth)
+    val dayNumberWidth = rememberDayNumberWidth()
     Row(
         modifier = Modifier
             .fillMaxWidth()

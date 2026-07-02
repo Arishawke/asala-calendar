@@ -8,6 +8,7 @@
  */
 package com.arishawke.asala.calendar.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 // widest-of-N-candidates text width at the current density/fontScale, memoized
 // so a scale or locale change re-measures but an unrelated recomposition does
@@ -34,4 +36,17 @@ internal fun rememberWidestTextWidth(candidates: List<String>, style: TextStyle)
         }
         with(density) { widestPx.toDp() }
     }
+}
+
+// old fixed day-number column width; floors the measured width so 100% scale
+// can only match or widen it, never shrink the default look. shared by every
+// day-number-in-a-fixed-box header (schedule list, search results).
+private val DayNumberWidthFloor: Dp = 40.dp
+private const val MaxDayOfMonth = 31
+private val DayNumberWidthCandidates: List<String> = (1..MaxDayOfMonth).map(Int::toString)
+
+@Composable
+internal fun rememberDayNumberWidth(): Dp {
+    val measuredWidth = rememberWidestTextWidth(DayNumberWidthCandidates, MaterialTheme.typography.headlineSmall)
+    return maxOf(DayNumberWidthFloor, measuredWidth)
 }
