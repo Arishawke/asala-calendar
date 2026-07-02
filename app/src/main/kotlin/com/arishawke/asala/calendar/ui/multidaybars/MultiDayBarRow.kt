@@ -35,7 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.data.OccasionKind
+import com.arishawke.asala.calendar.ui.components.OccasionLeadingIcon
 import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.theme.WcagContrast
 
@@ -110,8 +111,8 @@ fun MultiDayBarRow(
                         modifier = Modifier.padding(horizontal = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (s.isBirthday) {
-                            BirthdayLeadingIcon(size = 10.dp, tint = fg)
+                        if (s.occasion != OccasionKind.None) {
+                            OccasionLeadingIcon(kind = s.occasion, size = 10.dp, tint = fg)
                             Spacer(modifier = Modifier.width(4.dp))
                         }
                         Text(

@@ -90,6 +90,27 @@ class OccasionProvisionerRollbackTest {
         assertNull("no anniversaries id persisted", after.anniversariesCalendarId)
     }
 
+    // a provisioned pair whose FIRST sync fails (a failed contacts read is a
+    // no-op sync) must not read as success: the toggle would claim the feature
+    // is on over two silently empty calendars. rollback is flag-only, keeping
+    // the created pair and its persisted ids for reuse on the retry, because a
+    // teardown here would delete hand-added rows on a transient re-enable failure.
+    @Test
+    fun `failed first sync rolls back the flag but keeps the provisioned pair`() = runBlocking {
+        val calendarOps = FakeOccasionCalendarOps()
+        val syncOps = FakeOccasionSyncOps(syncResult = false)
+        val provisioner = OccasionProvisioner(calendarOps, prefs, syncOps)
+
+        val ok = provisioner.enable(BIRTHDAYS_NAME, ANNIVERSARIES_NAME, REMINDER_MINUTES, titleFor)
+
+        assertFalse("enable reports failure", ok)
+        val after = prefs.prefs.first()
+        assertFalse("enabled flag rolled back", after.contactOccasionsEnabled)
+        assertEquals("no calendar deleted", emptyList<Long>(), calendarOps.deleteCalls)
+        assertEquals("birthdays id kept for the retry", calendarOps.createdIds[0], after.birthdaysCalendarId)
+        assertEquals("anniversaries id kept for the retry", calendarOps.createdIds[1], after.anniversariesCalendarId)
+    }
+
     // both creates succeeding is the only path that persists ids and runs a
     // sync; the sync must fire exactly once, with the ids just created.
     @Test
@@ -110,20 +131,129 @@ class OccasionProvisionerRollbackTest {
         assertEquals(birthdaysId to anniversariesId, syncOps.syncCalls.single())
     }
 
+    // a reinstall wipes the stored ids but not the provider rows: enable must
+    // re-adopt the orphaned pair (identified by app-owned occasion rows), not
+    // create a fresh pair next to it and duplicate every occasion event.
+    @Test
+    fun `enable adopts an orphaned provisioned pair instead of creating duplicates`() = runBlocking {
+        val calendarOps = FakeOccasionCalendarOps(
+            preexisting = listOf(localCal(19L, BIRTHDAYS_NAME), localCal(20L, ANNIVERSARIES_NAME)),
+            ownedOccasionIds = mapOf(
+                OccasionType.Birthday to setOf(19L),
+                OccasionType.Anniversary to setOf(20L),
+            ),
+        )
+        val syncOps = FakeOccasionSyncOps()
+        val provisioner = OccasionProvisioner(calendarOps, prefs, syncOps)
+
+        val ok = provisioner.enable(BIRTHDAYS_NAME, ANNIVERSARIES_NAME, REMINDER_MINUTES, titleFor)
+
+        assertTrue("enable reports success", ok)
+        assertTrue("no new calendar created", calendarOps.createdIds.isEmpty())
+        val after = prefs.prefs.first()
+        assertEquals("adopted birthdays id persisted", 19L, after.birthdaysCalendarId)
+        assertEquals("adopted anniversaries id persisted", 20L, after.anniversariesCalendarId)
+        assertEquals("sync ran against the adopted pair", 19L to 20L, syncOps.syncCalls.single())
+    }
+
+    // several reinstall cycles can leave more than one orphan generation; the
+    // newest (highest id) is the one the latest install actually populated.
+    @Test
+    fun `adoption picks the newest orphan generation`() = runBlocking {
+        val calendarOps = FakeOccasionCalendarOps(
+            preexisting = listOf(
+                localCal(14L, BIRTHDAYS_NAME),
+                localCal(19L, BIRTHDAYS_NAME),
+                localCal(20L, ANNIVERSARIES_NAME),
+            ),
+            ownedOccasionIds = mapOf(
+                OccasionType.Birthday to setOf(14L, 19L),
+                OccasionType.Anniversary to setOf(20L),
+            ),
+        )
+        val provisioner = OccasionProvisioner(calendarOps, prefs, FakeOccasionSyncOps())
+
+        provisioner.enable(BIRTHDAYS_NAME, ANNIVERSARIES_NAME, REMINDER_MINUTES, titleFor)
+
+        assertEquals("newest orphan adopted", 19L, prefs.prefs.first().birthdaysCalendarId)
+    }
+
+    // a same-named local calendar WITHOUT owned rows may be the user's own
+    // (drawer-created calendars share the local account), and disable()
+    // deleting an annexed user calendar would be data loss: adoption must key
+    // strictly on owned rows and create a fresh calendar otherwise.
+    @Test
+    fun `adoption never annexes a same-named calendar without owned rows`() = runBlocking {
+        val calendarOps = FakeOccasionCalendarOps(
+            preexisting = listOf(localCal(19L, BIRTHDAYS_NAME), localCal(20L, ANNIVERSARIES_NAME)),
+            ownedOccasionIds = mapOf(OccasionType.Birthday to setOf(19L)),
+        )
+        val provisioner = OccasionProvisioner(calendarOps, prefs, FakeOccasionSyncOps())
+
+        provisioner.enable(BIRTHDAYS_NAME, ANNIVERSARIES_NAME, REMINDER_MINUTES, titleFor)
+
+        val after = prefs.prefs.first()
+        assertEquals("birthdays orphan adopted via owned rows", 19L, after.birthdaysCalendarId)
+        assertEquals("anniversaries calendar freshly created", 1, calendarOps.createdIds.size)
+        assertEquals(
+            "created id persisted, same-named calendar untouched",
+            calendarOps.createdIds.single(),
+            after.anniversariesCalendarId,
+        )
+    }
+
+    // an occasion row copied into a synced (non-local) calendar must never make
+    // the app adopt that calendar; with no local orphan a fresh pair is created.
+    @Test
+    fun `adoption ignores occasion rows outside local calendars`() = runBlocking {
+        val calendarOps = FakeOccasionCalendarOps(
+            preexisting = listOf(syncedCal(99L, BIRTHDAYS_NAME)),
+            ownedOccasionIds = mapOf(OccasionType.Birthday to setOf(99L)),
+        )
+        val provisioner = OccasionProvisioner(calendarOps, prefs, FakeOccasionSyncOps())
+
+        val ok = provisioner.enable(BIRTHDAYS_NAME, ANNIVERSARIES_NAME, REMINDER_MINUTES, titleFor)
+
+        assertTrue("enable reports success", ok)
+        assertEquals("both calendars freshly created", 2, calendarOps.createdIds.size)
+        assertTrue("synced calendar never adopted", prefs.prefs.first().birthdaysCalendarId != 99L)
+    }
+
     private companion object {
         const val BIRTHDAYS_NAME = "Birthdays"
         const val ANNIVERSARIES_NAME = "Anniversaries"
         const val REMINDER_MINUTES = 30
+        const val OWNER_ACCESS = 700
+
+        fun localCal(id: Long, name: String) = CalendarItem(
+            id = id,
+            displayName = name,
+            accountName = "Asala Local",
+            accountType = android.provider.CalendarContract.ACCOUNT_TYPE_LOCAL,
+            color = 0,
+            visible = true,
+            accessLevel = OWNER_ACCESS,
+        )
+
+        fun syncedCal(id: Long, name: String) = localCal(id, name).copy(accountType = "com.google")
     }
 }
 
 // records every create/delete call; createLocalCalendar fails (returns null)
 // for any display name in failNames, without mutating the fake's calendar set.
-private class FakeOccasionCalendarOps(private val failNames: Set<String> = emptySet()) : OccasionCalendarOps {
+// preexisting + ownedOccasionIds model orphaned provisioned calendars left
+// behind by a reinstall, for the adoption tests.
+private class FakeOccasionCalendarOps(
+    private val failNames: Set<String> = emptySet(),
+    preexisting: List<CalendarItem> = emptyList(),
+    private val ownedOccasionIds: Map<OccasionType, Set<Long>> = emptyMap(),
+) : OccasionCalendarOps {
     val createdIds = mutableListOf<Long>()
     val deleteCalls = mutableListOf<Long>()
-    private val items = mutableMapOf<Long, CalendarItem>()
-    private var nextId = 1L
+    private val items = preexisting.associateBy { it.id }.toMutableMap()
+    private var nextId = (preexisting.maxOfOrNull { it.id } ?: 0L) + 1
+
+    override suspend fun ownedOccasionCalendarIds(type: OccasionType): Set<Long> = ownedOccasionIds[type].orEmpty()
 
     override suspend fun calendars(): List<CalendarItem> = items.values.toList()
 
@@ -153,9 +283,9 @@ private class FakeOccasionCalendarOps(private val failNames: Set<String> = empty
     }
 }
 
-// records sync() invocations; always reports success since these tests exercise
-// the provisioning rollback, not sync's own failure modes.
-private class FakeOccasionSyncOps : OccasionSyncOps {
+// records sync() invocations; syncResult=false models a failed contacts read
+// (OccasionSync.sync's no-op path) for the flag-only rollback test.
+private class FakeOccasionSyncOps(private val syncResult: Boolean = true) : OccasionSyncOps {
     val syncCalls = mutableListOf<Pair<Long, Long>>()
 
     override suspend fun sync(
@@ -165,7 +295,7 @@ private class FakeOccasionSyncOps : OccasionSyncOps {
         titleFor: (Occasion) -> String,
     ): Boolean {
         syncCalls += birthdaysCalendarId to anniversariesCalendarId
-        return true
+        return syncResult
     }
 
     override suspend fun reapplyReminders(

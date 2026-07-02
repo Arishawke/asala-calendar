@@ -25,14 +25,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -64,6 +69,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -180,13 +187,18 @@ internal fun AppShell(vm: AppViewModel) {
                     palette = prefs.paletteId,
                     localOnly = prefs.storageMode == StorageMode.LocalOnly,
                     syncOnly = prefs.storageMode == StorageMode.SyncOnly,
+                    isOccasionCalendar = { id ->
+                        id == prefs.birthdaysCalendarId || id == prefs.anniversariesCalendarId
+                    },
                 )
             },
         ) {
             val toolbarAtBottom = LocalToolbarPosition.current == ToolbarPosition.Bottom
             // bottom bar clears the system nav; top keeps the status-bar default.
+            // horizontal included to mirror TopAppBarDefaults, so a landscape
+            // side nav bar (3-button) can't sit over the bar's action icons.
             val barInsets = if (toolbarAtBottom) {
-                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+                WindowInsets.systemBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
             } else {
                 TopAppBarDefaults.windowInsets
             }
@@ -234,22 +246,10 @@ internal fun AppShell(vm: AppViewModel) {
                     )
                 }
                 val panel = @Composable {
-                    AnimatedVisibility(
+                    HeaderPanelReveal(
                         visible = headerExpanded && canExpandHeader,
-                        // 180ms (down from ~250ms default): the chip strip's
-                        // small height delta felt sluggish at the default
-                        enter = if (animationsEnabled) {
-                            expandVertically(animationSpec = tween(durationMillis = 180)) +
-                                fadeIn(animationSpec = tween(durationMillis = 180))
-                        } else {
-                            EnterTransition.None
-                        },
-                        exit = if (animationsEnabled) {
-                            shrinkVertically(animationSpec = tween(durationMillis = 180)) +
-                                fadeOut(animationSpec = tween(durationMillis = 180))
-                        } else {
-                            ExitTransition.None
-                        },
+                        toolbarAtBottom = toolbarAtBottom,
+                        animationsEnabled = animationsEnabled,
                     ) {
                         HeaderDropdownPanel(
                             currentView = state.currentView,
@@ -290,9 +290,11 @@ internal fun AppShell(vm: AppViewModel) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 floatingActionButton = {
-                    FloatingActionButton(onClick = { vm.openCreateEditor() }) {
-                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.fab_new_event))
-                    }
+                    CreateEventFab(
+                        visible = !(toolbarAtBottom && headerExpanded),
+                        animationsEnabled = animationsEnabled,
+                        onClick = { vm.openCreateEditor() },
+                    )
                 },
                 topBar = { if (!toolbarAtBottom) barWithPanel() },
                 bottomBar = { if (toolbarAtBottom) barWithPanel() },
@@ -303,9 +305,12 @@ internal fun AppShell(vm: AppViewModel) {
                     prefs = prefs,
                     animationsEnabled = animationsEnabled,
                     onTitleChange = { title = it },
+                    // consume alongside padding (M3 Scaffold contract) so a future
+                    // in-screen insets read can't double-apply what's reserved here.
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
                 )
             }
         }
@@ -316,6 +321,70 @@ internal fun AppShell(vm: AppViewModel) {
             onDismissCreateCalendar = { showCreateCalendar = false },
             notifPermissionLauncher = notifPermissionLauncher,
         )
+    }
+}
+
+// mini-month cap: the largest fraction of the screen the header panel may
+// occupy before it scrolls internally (landscape viewports are ~360-410dp).
+private const val PanelMaxScreenFraction = 0.6f
+
+// expandable header panel wrapper. reveal grows from the bar's edge: top mode
+// downward (title row first), bottom mode upward; the default Bottom alignment
+// showed the grid's last row first in top mode. 180ms (down from the ~250ms
+// default): the chip strip's small height delta felt sluggish at the default.
+@Composable
+private fun HeaderPanelReveal(
+    visible: Boolean,
+    toolbarAtBottom: Boolean,
+    animationsEnabled: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val revealEdge = if (toolbarAtBottom) Alignment.Bottom else Alignment.Top
+    AnimatedVisibility(
+        visible = visible,
+        enter = if (animationsEnabled) {
+            expandVertically(animationSpec = tween(durationMillis = 180), expandFrom = revealEdge) +
+                fadeIn(animationSpec = tween(durationMillis = 180))
+        } else {
+            EnterTransition.None
+        },
+        exit = if (animationsEnabled) {
+            shrinkVertically(animationSpec = tween(durationMillis = 180), shrinkTowards = revealEdge) +
+                fadeOut(animationSpec = tween(durationMillis = 180))
+        } else {
+            ExitTransition.None
+        },
+    ) {
+        // cap: the mini month's intrinsic height (~350dp) can exceed a
+        // landscape viewport; scroll inside the cap rather than squeezing
+        // the calendar content to nothing.
+        val windowHeightPx = LocalWindowInfo.current.containerSize.height
+        val maxPanelHeight = with(LocalDensity.current) {
+            (windowHeightPx * PanelMaxScreenFraction).toDp()
+        }
+        Box(
+            modifier = Modifier
+                .heightIn(max = maxPanelHeight)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            content()
+        }
+    }
+}
+
+// Scaffold offsets the FAB by the full bottomBar slot height, so in bottom
+// mode an expanded header panel would launch it into the middle of the
+// content; callers hide it while the panel is open.
+@Composable
+private fun CreateEventFab(visible: Boolean, animationsEnabled: Boolean, onClick: () -> Unit) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = if (animationsEnabled) fadeIn() else EnterTransition.None,
+        exit = if (animationsEnabled) fadeOut() else ExitTransition.None,
+    ) {
+        FloatingActionButton(onClick = onClick) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.fab_new_event))
+        }
     }
 }
 

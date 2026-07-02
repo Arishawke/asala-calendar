@@ -7,6 +7,40 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+- Anniversary events now show a heart icon everywhere birthday events show the
+  cake: timeline blocks, all-day bars, day and schedule lists, and the event
+  detail sheet.
+
+### Fixed
+- Contact birthdays and anniversaries now show when the app is in sync-only
+  storage mode. The two generated calendars are feature-owned, so they are no
+  longer hidden with the rest of the on-device calendars, and they stay
+  listed in the navigation drawer.
+- Generated birthday and anniversary events no longer offer Edit and Delete:
+  any change was silently undone by the next contacts sync. The detail sheet
+  says the event comes from your contacts instead. Same for the two generated
+  calendars in the drawer: deleting or renaming them fought the sync (a
+  deleted calendar healed back, a rename could mislabel every event), so
+  those actions now live only behind the Settings toggle.
+- Turning on contact birthdays and anniversaries now reports failure (the
+  toggle switches back off) when the first contacts read fails, instead of
+  claiming success over two empty calendars, and a failed background sync no
+  longer suppresses the retry-on-open for an hour.
+- Contacts that carry two birthday rows (merged duplicates) no longer risk
+  their generated birthday flipping between the two dates on every sync.
+- Turning contact birthdays and anniversaries on after a reinstall (or after
+  clearing the app's data) now reuses the Birthdays and Anniversaries
+  calendars the app created before, instead of provisioning a duplicate pair
+  and doubling every birthday on the calendar.
+- With the toolbar at the bottom, opening the mini month no longer launches
+  the + button into the middle of the calendar; it now tucks away while the
+  panel is open and returns when it closes. The panel also opens with the
+  title row first in top-toolbar mode, is capped to 60% of the screen height
+  (scrolling inside itself in landscape instead of squeezing the calendar
+  away), and the bottom toolbar's icons now respect a side navigation bar in
+  landscape.
+
 ## [0.23.0] - 2026-07-01
 
 ### Added

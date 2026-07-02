@@ -68,18 +68,16 @@ fun CalendarDrawerContent(
     onRenameCalendar: (Long, String) -> Unit = { _, _ -> },
     localOnly: Boolean = false,
     syncOnly: Boolean = false,
+    // lookup fn not a Set: keeps the @Composable param list stable (a Set<Long>
+    // param trips ComposeUnstableCollections), same trick as avatarOverrideFor.
+    isOccasionCalendar: (Long) -> Boolean = { false },
 ) {
     var showDeleteDialogFor by remember { mutableStateOf<CalendarItem?>(null) }
     var showRenameDialogFor by remember { mutableStateOf<CalendarItem?>(null) }
     var showRecolorCalendarFor by remember { mutableStateOf<CalendarItem?>(null) }
     var showRecolorAccountFor by remember { mutableStateOf<AccountGroup?>(null) }
 
-    // storage mode filters the drawer only, nothing is deleted
-    val modeFiltered = when {
-        localOnly -> calendars.filter { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
-        syncOnly -> calendars.filter { it.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL }
-        else -> calendars
-    }
+    val modeFiltered = modeFilteredCalendars(calendars, localOnly, syncOnly, isOccasionCalendar)
     // drop accounts hidden from the drawer (key matches accountOverrideKey); restore from Settings
     val displayed = modeFiltered.filter {
         accountOverrideKey(it.accountType, it.accountName) !in drawerHiddenAccountKeys
@@ -135,17 +133,23 @@ fun CalendarDrawerContent(
                 }
                 if (!collapsed) {
                     items(items = group.calendars, key = { "cal-${it.id}" }) { cal ->
-                        val isLocal = cal.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL
+                        // the provisioned occasion calendars are feature-owned: the
+                        // Settings toggle owns their lifecycle (a drawer delete is
+                        // healed back by the next sync), and a rename into the other
+                        // kind's keyword would mislabel every event, so neither is
+                        // offered. recolor stays available.
+                        val userManaged = cal.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL &&
+                            !isOccasionCalendar(cal.id)
                         CalendarRow(
                             calendar = cal,
                             checked = cal.id !in hiddenCalendarIds,
                             onCheckedChange = { onToggle(cal.id) },
-                            onDelete = if (isLocal) {
+                            onDelete = if (userManaged) {
                                 { showDeleteDialogFor = cal }
                             } else {
                                 null
                             },
-                            onRename = if (isLocal) {
+                            onRename = if (userManaged) {
                                 { showRenameDialogFor = cal }
                             } else {
                                 null
@@ -234,4 +238,19 @@ fun CalendarDrawerContent(
             onDismiss = { showRecolorAccountFor = null },
         )
     }
+}
+
+// storage mode filters the drawer only, nothing is deleted. the provisioned
+// occasion calendars are feature-owned, so SyncOnly keeps them listed.
+private fun modeFilteredCalendars(
+    calendars: List<CalendarItem>,
+    localOnly: Boolean,
+    syncOnly: Boolean,
+    isOccasionCalendar: (Long) -> Boolean,
+): List<CalendarItem> = when {
+    localOnly -> calendars.filter { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
+    syncOnly -> calendars.filter {
+        it.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL || isOccasionCalendar(it.id)
+    }
+    else -> calendars
 }

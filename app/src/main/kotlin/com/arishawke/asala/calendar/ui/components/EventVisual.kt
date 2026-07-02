@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.data.OccasionKind
 import com.arishawke.asala.calendar.ui.theme.rememberTimeFormatter
 import java.time.Instant
 import java.time.ZoneId
@@ -64,14 +65,20 @@ internal data class StatusStyling(
 // callers on tinted backgrounds pass their own contrast tint so the
 // glyph reads against the bar fill, not the sheet surface.
 @Composable
-internal fun BirthdayLeadingIcon(
+internal fun OccasionLeadingIcon(
+    kind: OccasionKind,
     size: Dp,
     modifier: Modifier = Modifier,
     tint: Color = MaterialTheme.colorScheme.onSurface,
 ) {
+    val (iconRes, cdRes) = when (kind) {
+        OccasionKind.Birthday -> R.drawable.ic_cake to R.string.cd_birthday
+        OccasionKind.Anniversary -> R.drawable.ic_heart to R.string.cd_anniversary
+        OccasionKind.None -> return
+    }
     Icon(
-        painter = painterResource(R.drawable.ic_cake),
-        contentDescription = stringResource(R.string.cd_birthday),
+        painter = painterResource(iconRes),
+        contentDescription = stringResource(cdRes),
         modifier = modifier.size(size),
         tint = tint,
     )
@@ -252,8 +259,8 @@ private fun EventBlockLabels(
             .padding(start = 6.dp, top = 2.dp, end = 4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (event.isBirthday) {
-                BirthdayLeadingIcon(size = 12.dp)
+            if (event.occasion != OccasionKind.None) {
+                OccasionLeadingIcon(kind = event.occasion, size = 12.dp)
                 Spacer(modifier = Modifier.width(4.dp))
             }
             Text(
@@ -327,8 +334,8 @@ internal fun EventChipRow(
             }
         }
         Spacer(modifier = Modifier.width(8.dp))
-        if (event.isBirthday) {
-            BirthdayLeadingIcon(size = 16.dp)
+        if (event.occasion != OccasionKind.None) {
+            OccasionLeadingIcon(kind = event.occasion, size = 16.dp)
             Spacer(modifier = Modifier.width(6.dp))
         }
         val titleText = occasionDisplayTitle(event).ifBlank { stringResource(R.string.event_no_title) }

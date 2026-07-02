@@ -58,7 +58,6 @@ object WeekBucketer {
             endCol = endCol,
             isContinuedLeft = firstVisible.isBefore(weekStart),
             isContinuedRight = lastVisible.isAfter(weekEnd),
-            isBirthday = e.isBirthday,
             occasion = e.occasion,
             occasionName = e.occasionName,
             parentDtStartMillis = e.parentDtStartMillis,

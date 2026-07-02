@@ -51,6 +51,26 @@ class CalendarRepository(private val contentResolver: ContentResolver) : Occasio
         }
     }
 
+    // the LIKE pattern pins prefix and type, leaving % for the contact id, so
+    // only this app's occasion rows of that type match.
+    override suspend fun ownedOccasionCalendarIds(type: OccasionType): Set<Long> = withContext(Dispatchers.IO) {
+        providerCall("ownedOccasionCalendarIds", onError = emptySet()) {
+            val cursor =
+                contentResolver.query(
+                    CalendarContract.Events.CONTENT_URI,
+                    arrayOf(CalendarContract.Events.CALENDAR_ID),
+                    "${CalendarContract.Events.CUSTOM_APP_URI} LIKE ?",
+                    arrayOf("$OCCASION_URI_PREFIX%/${type.name}"),
+                    null,
+                ) ?: return@providerCall emptySet()
+            cursor.use {
+                val ids = mutableSetOf<Long>()
+                while (it.moveToNext()) ids.add(it.getLong(0))
+                ids
+            }
+        }
+    }
+
     override suspend fun deleteLocalCalendar(calendarId: Long): Boolean = withContext(Dispatchers.IO) {
         val uri =
             ContentUris

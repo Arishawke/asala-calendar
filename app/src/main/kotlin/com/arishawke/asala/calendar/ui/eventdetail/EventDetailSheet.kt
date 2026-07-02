@@ -42,9 +42,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventDetail
+import com.arishawke.asala.calendar.data.OccasionKind
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
-import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.OccasionLeadingIcon
 import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.components.reminderLabel
 import com.arishawke.asala.calendar.ui.components.statusStyling
@@ -154,8 +155,8 @@ private fun EventDetailContent(
         // a glance (shared with the chips via statusStyling), badge below names it.
         val styling = statusStyling(detail.status)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (detail.isBirthday) {
-                BirthdayLeadingIcon(size = 24.dp)
+            if (detail.occasion != OccasionKind.None) {
+                OccasionLeadingIcon(kind = detail.occasion, size = 24.dp)
                 Spacer(Modifier.width(Spacing.sm))
             }
             Text(
@@ -234,13 +235,25 @@ private fun EventDetailContent(
 
         Spacer(Modifier.height(Spacing.sm))
 
+        // owned occasion rows are reconciled from contacts: an edit is reverted
+        // and a whole-series delete is re-inserted by the next sync, so hide
+        // both and say where the data lives instead.
+        if (detail.isOwnedOccasion) {
+            Text(
+                text = stringResource(R.string.occasion_managed_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             // edit/delete only for writable calendars; read-only sources
             // (holidays, birthdays, subscriptions) reject the provider write.
-            if (detail.isWritable) {
+            val userManaged = detail.isWritable && !detail.isOwnedOccasion
+            if (userManaged) {
                 TextButton(onClick = {
                     if (isRecurring) showDeleteScopeDialog = true else showConfirmDelete = true
                 }) { Text(stringResource(R.string.action_delete)) }
@@ -248,7 +261,7 @@ private fun EventDetailContent(
             TextButton(onClick = onDuplicate) { Text(stringResource(R.string.action_duplicate)) }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onClose) { Text(stringResource(R.string.action_close)) }
-            if (detail.isWritable) {
+            if (userManaged) {
                 Button(onClick = onEdit) { Text(stringResource(R.string.action_edit)) }
             }
         }

@@ -15,11 +15,13 @@ import java.time.ZoneOffset
 // all-day event, so a fixed placeholder year stands in (never rendered).
 const val OCCASION_NO_YEAR_SENTINEL = 1604
 
+const val OCCASION_URI_PREFIX = "asala://occasion/"
+
 private val OCCASION_URI_RE = Regex("^asala://occasion/(\\d+)/(\\w+)$")
 
 // identity for app-owned occasion events (ADR-0002 rule 7: no sync-adapter
 // writes, so CUSTOM_APP_PACKAGE/CUSTOM_APP_URI stand in for _SYNC_ID).
-fun occasionCustomAppUri(o: Occasion): String = "asala://occasion/${o.contactId}/${o.type.name}"
+fun occasionCustomAppUri(o: Occasion): String = "$OCCASION_URI_PREFIX${o.contactId}/${o.type.name}"
 
 fun parseOccasionUri(uri: String?): Pair<Long, OccasionType>? {
     val match = uri?.let { OCCASION_URI_RE.matchEntire(it) } ?: return null

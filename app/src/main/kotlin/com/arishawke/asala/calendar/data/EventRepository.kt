@@ -129,7 +129,6 @@ class EventRepository(private val contentResolver: ContentResolver) {
                     } else {
                         getInt(statusIdx)
                     },
-                    isBirthday = kind == OccasionKind.Birthday,
                     occasion = kind,
                     // DTSTART can be null on some provider rows; BEGIN (this
                     // occurrence's start) is the safe fallback.

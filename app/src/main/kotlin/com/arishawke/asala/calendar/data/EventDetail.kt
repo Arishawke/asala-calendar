@@ -30,7 +30,6 @@ data class EventDetail(
     // BUSY/FREE/TENTATIVE. carried through edits so a server-set value
     // (e.g. DAVx5) isn't clobbered by a local title edit.
     val availability: Int = CalendarContract.Events.AVAILABILITY_BUSY,
-    val isBirthday: Boolean = false,
     val occasion: OccasionKind = OccasionKind.None,
     // row carries the app's occasion CUSTOM_APP_URI (see isOwnedOccasionUri);
     // gates both the age/ordinal relabel and the Notes suppression.

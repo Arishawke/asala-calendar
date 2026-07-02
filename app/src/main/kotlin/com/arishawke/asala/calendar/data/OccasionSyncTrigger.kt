@@ -72,15 +72,15 @@ suspend fun syncOccasionsIfEnabled(context: Context, skipIfFresh: Boolean = fals
         val titleFor: (Occasion) -> String = { occasion -> occasionBaseTitle(appContext, occasion) }
         // resolve + sync under one provision lock so a concurrent disable() can't
         // delete the calendars between the id resolution and the writes.
-        provisioner.ensureAndSync(
+        val synced = provisioner.ensureAndSync(
             appContext.getString(R.string.occasion_birthday_calendar),
             appContext.getString(R.string.occasion_anniversary_calendar),
             prefs.contactReminderMinutesBefore,
             titleFor,
         )
-        // stamped only after a pass actually ran, so a thrown sync doesn't
-        // suppress the resume retry for an hour.
-        lastSyncElapsedMillis = elapsed
+        // stamped only after a pass actually reconciled, so neither a thrown
+        // sync nor a failed contacts read suppresses the resume retry for an hour.
+        if (synced) lastSyncElapsedMillis = elapsed
     }
 }
 

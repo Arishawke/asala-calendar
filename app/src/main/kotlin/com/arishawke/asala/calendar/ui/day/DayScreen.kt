@@ -54,8 +54,9 @@ import com.arishawke.asala.calendar.PendingDateJump
 import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
+import com.arishawke.asala.calendar.data.OccasionKind
 import com.arishawke.asala.calendar.ui.EventViewModelFactory
-import com.arishawke.asala.calendar.ui.components.BirthdayLeadingIcon
+import com.arishawke.asala.calendar.ui.components.OccasionLeadingIcon
 import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
 import com.arishawke.asala.calendar.ui.theme.WcagContrast
@@ -271,8 +272,8 @@ private fun AllDayList(events: List<EventItem>, onEventClick: (eventId: Long, in
                     color = rowFg,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                if (ev.isBirthday) {
-                    BirthdayLeadingIcon(size = 14.dp, tint = rowFg)
+                if (ev.occasion != OccasionKind.None) {
+                    OccasionLeadingIcon(kind = ev.occasion, size = 14.dp, tint = rowFg)
                     Spacer(modifier = Modifier.width(4.dp))
                 }
                 Text(

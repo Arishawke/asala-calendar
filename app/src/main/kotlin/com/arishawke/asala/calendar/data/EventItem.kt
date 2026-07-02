@@ -26,7 +26,6 @@ data class EventItem(
     val displayColor: Int,
     // RFC 5545 STATUS; chip renderer treats null/confirmed identically.
     val status: Int = CalendarContract.Events.STATUS_CONFIRMED,
-    val isBirthday: Boolean = false,
     val occasion: OccasionKind = OccasionKind.None,
     // parent event's original DTSTART, for computing age from the occurrence year.
     val parentDtStartMillis: Long = 0L,

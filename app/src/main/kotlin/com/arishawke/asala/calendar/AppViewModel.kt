@@ -111,6 +111,7 @@ class AppViewModel(
                 drawerHiddenAccountKeys = p.drawerHiddenAccountKeys,
                 storageMode = p.storageMode,
                 calendars = cals,
+                occasionCalendarIds = setOfNotNull(p.birthdaysCalendarId, p.anniversariesCalendarId),
             )
         }.stateIn(
             scope = viewModelScope,
@@ -235,12 +236,20 @@ class AppViewModel(
             val keys = prefs.drawerHiddenAccountKeys
             if (keys.isEmpty()) return@combine emptyList()
             // one entry per hidden key, sorted by name for stable emissions
+            val occasionIds = setOfNotNull(prefs.birthdaysCalendarId, prefs.anniversariesCalendarId)
             keys.mapNotNull { key ->
                 val match = cals.firstOrNull { drawerAccountKey(it.accountType, it.accountName) == key }
                     ?: return@mapNotNull null
                 // mode-excluded account types read as nonexistent: drop from
-                // the restore list too (the drawer already hides them)
-                if (StorageModeFilter.accountHiddenByMode(match.accountType, prefs.storageMode)) {
+                // the restore list too (the drawer already hides them). except
+                // when the account holds a provisioned occasion calendar: the
+                // drawer still lists those in SyncOnly, so keep it restorable.
+                val holdsOccasionCalendar = cals.any {
+                    it.id in occasionIds && drawerAccountKey(it.accountType, it.accountName) == key
+                }
+                if (StorageModeFilter.accountHiddenByMode(match.accountType, prefs.storageMode) &&
+                    !holdsOccasionCalendar
+                ) {
                     return@mapNotNull null
                 }
                 DrawerHiddenAccount(

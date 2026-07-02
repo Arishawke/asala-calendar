@@ -108,7 +108,6 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
                 } else {
                     c.getInt(availabilityIdx)
                 },
-                isBirthday = BirthdayDetection.isBirthdayCalendar(calendarName),
                 occasion = OccasionDetection.classify(calendarName),
                 // row-scoped: hand-added rows in the app's own occasion calendars
                 // carry no occasion URI and must keep their titles and notes.

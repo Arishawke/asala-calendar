@@ -201,6 +201,9 @@
     <!-- Accessibility label for the cake leading-icon on birthday-type events. -->
     <string name="cd_birthday">Birthday</string>
 
+    <!-- Accessibility label for the heart leading-icon on anniversary-type events. -->
+    <string name="cd_anniversary">Anniversary</string>
+
     <!-- ISO 8601 week number on the left rail of Month and Week views. -->
     <string name="settings_show_week_number_label">Show week number</string>
     <string name="settings_show_week_number_supporting">Show ISO 8601 week-of-year on the left of Month and Week views.</string>
@@ -364,6 +367,8 @@
     <string name="occasion_birthday_calendar" translatable="false">Birthdays</string>
     <!-- name drives OccasionDetection.classify keyword matching; a translation could misclassify the calendar -->
     <string name="occasion_anniversary_calendar" translatable="false">Anniversaries</string>
+    <!-- Detail-sheet hint on app-generated occasion events, shown in place of Edit/Delete. -->
+    <string name="occasion_managed_hint">From your contacts. To change or remove it, edit the contact.</string>
     <string name="occasion_birthday_base">%1$s\'s birthday</string>
     <string name="occasion_anniversary_base">%1$s\'s anniversary</string>
     <!-- Render-time birthday title once the birth year is known, e.g. "Alice turns 30". -->

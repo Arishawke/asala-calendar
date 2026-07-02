@@ -45,7 +45,10 @@ class ContactsRepository(private val contentResolver: ContentResolver) {
                 Projection,
                 Selection,
                 SelectionArgs,
-                null,
+                // deterministic row order: a merged contact can carry two rows of
+                // the same event type, and the keep-first dedup would otherwise
+                // flip dates between syncs on unspecified cursor order.
+                "${ContactsContract.Data._ID} ASC",
             ) ?: return null
 
         return cursor.use {

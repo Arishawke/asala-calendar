@@ -23,7 +23,6 @@ data class WeekSegment(
     val isContinuedLeft: Boolean,
     val isContinuedRight: Boolean,
     val lane: Int = UNASSIGNED_LANE,
-    val isBirthday: Boolean = false,
     val occasion: OccasionKind = OccasionKind.None,
     val occasionName: String? = null,
     // parent event's original DTSTART, for computing age from the occurrence year.

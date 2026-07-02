@@ -36,6 +36,7 @@ object WidgetEventSource {
             drawerHiddenAccountKeys = prefs.drawerHiddenAccountKeys,
             storageMode = prefs.storageMode,
             calendars = calendars,
+            occasionCalendarIds = setOfNotNull(prefs.birthdaysCalendarId, prefs.anniversariesCalendarId),
         )
         return Visible(prefs, calendars, hidden)
     }

@@ -21,9 +21,14 @@ internal fun computeHiddenCalendarIds(
     drawerHiddenAccountKeys: Set<String>,
     storageMode: StorageMode,
     calendars: List<CalendarItem>,
+    occasionCalendarIds: Set<Long>,
 ): Set<Long> {
     val accountHidden = calendars
         .filter { drawerAccountKey(it.accountType, it.accountName) in drawerHiddenAccountKeys }
         .mapTo(mutableSetOf()) { it.id }
-    return hiddenCalendarIds + accountHidden + StorageModeFilter.modeHiddenIds(storageMode, calendars)
+    // the provisioned occasion calendars are feature-owned, not "local storage
+    // the user opted out of": SyncOnly must not mode-hide them or contact
+    // occasions never render for sync-only users. manual hides still win.
+    return hiddenCalendarIds + accountHidden +
+        (StorageModeFilter.modeHiddenIds(storageMode, calendars) - occasionCalendarIds)
 }

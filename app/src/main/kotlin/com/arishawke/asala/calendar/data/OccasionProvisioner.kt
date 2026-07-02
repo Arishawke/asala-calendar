@@ -8,6 +8,7 @@
  */
 package com.arishawke.asala.calendar.data
 
+import android.provider.CalendarContract
 import com.arishawke.asala.calendar.ui.settings.UserPreferences
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -32,6 +33,10 @@ interface OccasionCalendarOps {
     suspend fun createLocalCalendar(displayName: String, color: Int): Long?
 
     suspend fun deleteLocalCalendar(calendarId: Long): Boolean
+
+    // ids of calendars holding app-owned occasion rows of the given type; lets
+    // provisioning re-adopt an orphaned pair after a reinstall wiped the prefs.
+    suspend fun ownedOccasionCalendarIds(type: OccasionType): Set<Long>
 }
 
 // testability seam: the exact OccasionSync surface OccasionProvisioner calls.
@@ -61,7 +66,10 @@ class OccasionProvisioner(
     ): Boolean {
         // mark intent before ensureAndSync so its in-lock enabled check passes for
         // the enable path (a background heal reads the same flag and must see it on);
-        // roll back if provisioning fails so we don't leave the feature half-enabled.
+        // roll back the flag if provisioning or the first sync fails so the toggle
+        // reflects reality. flag-only, not disable(): a full teardown on a transient
+        // contacts read failure would delete hand-added rows in an already-populated
+        // pair; the persisted ids are reused on the retry instead.
         prefs.setContactOccasionsEnabled(true)
         val ok = ensureAndSync(birthdaysName, anniversariesName, reminderMinutes, titleFor)
         if (!ok) prefs.setContactOccasionsEnabled(false)
@@ -79,8 +87,10 @@ class OccasionProvisioner(
         titleFor: (Occasion) -> String,
     ): Boolean = provisionMutex.withLock {
         val ids = ensureCalendarsLocked(birthdaysName, anniversariesName) ?: return@withLock false
+        // propagated, not discarded: a failed contacts read is a no-op sync,
+        // and both the enable() rollback and the sync trigger's freshness
+        // stamp must not mistake it for a completed reconcile.
         sync.sync(ids.birthdays, ids.anniversaries, reminderMinutes, titleFor)
-        true
     }
 
     // lock-taking wrapper kept for the device tests, which exercise the
@@ -101,24 +111,51 @@ class OccasionProvisioner(
         // caller's gate and here, in which case a background heal must create
         // nothing (disable() also holds this lock, so the two can't interleave).
         if (!current.contactOccasionsEnabled) return null
-        val existing = calendars.calendars().mapTo(HashSet()) { it.id }
-        val birthdaysId = resolveOccasionCalendarId(current.birthdaysCalendarId, existing)
-            ?: calendars.createLocalCalendar(birthdaysName, BIRTHDAYS_DEFAULT_COLOR)
-        val anniversariesId = resolveOccasionCalendarId(current.anniversariesCalendarId, existing)
-            ?: calendars.createLocalCalendar(anniversariesName, ANNIVERSARIES_DEFAULT_COLOR)
+        val existing = calendars.calendars()
+        val existingIds = existing.mapTo(HashSet()) { it.id }
+        // reuse the stored id, else re-adopt an orphaned provisioned calendar (a
+        // reinstall wipes the prefs but not the provider rows, and creating a
+        // fresh pair next to the orphan would duplicate every occasion event),
+        // else create a new one.
+        val reusedBirthdays = resolveOccasionCalendarId(current.birthdaysCalendarId, existingIds)
+            ?: adoptOrphanedCalendar(OccasionType.Birthday, existing)
+        val createdBirthdays =
+            if (reusedBirthdays == null) calendars.createLocalCalendar(birthdaysName, BIRTHDAYS_DEFAULT_COLOR) else null
+        val reusedAnniversaries = resolveOccasionCalendarId(current.anniversariesCalendarId, existingIds)
+            ?: adoptOrphanedCalendar(OccasionType.Anniversary, existing)
+        val createdAnniversaries = if (reusedAnniversaries == null) {
+            calendars.createLocalCalendar(anniversariesName, ANNIVERSARIES_DEFAULT_COLOR)
+        } else {
+            null
+        }
+        val birthdaysId = reusedBirthdays ?: createdBirthdays
+        val anniversariesId = reusedAnniversaries ?: createdAnniversaries
         return if (birthdaysId == null || anniversariesId == null) {
-            // a create failed: roll back only a newly-created calendar (leave a
-            // reused existing one alone) so no orphan is left behind.
-            if (birthdaysId != current.birthdaysCalendarId) birthdaysId?.let { calendars.deleteLocalCalendar(it) }
-            if (anniversariesId != current.anniversariesCalendarId) {
-                anniversariesId?.let { calendars.deleteLocalCalendar(it) }
-            }
+            // a create failed: roll back only a freshly-created calendar (never
+            // a reused or adopted one, which holds real events) so no orphan is
+            // left behind.
+            createdBirthdays?.let { calendars.deleteLocalCalendar(it) }
+            createdAnniversaries?.let { calendars.deleteLocalCalendar(it) }
             null
         } else {
             if (birthdaysId != current.birthdaysCalendarId) prefs.setBirthdaysCalendarId(birthdaysId)
             if (anniversariesId != current.anniversariesCalendarId) prefs.setAnniversariesCalendarId(anniversariesId)
             OccasionCalendarIds(birthdaysId, anniversariesId)
         }
+    }
+
+    // newest orphan generation wins when several reinstall cycles left more
+    // than one behind; only LOCAL calendars qualify (an occasion row copied
+    // into a synced calendar must never make the app adopt it). adoption keys
+    // strictly on owned rows: an EMPTY orphan is deliberately NOT re-adopted
+    // by name, because a same-named empty calendar can be the user's own, and
+    // disable() deleting an annexed user calendar would be data loss. worst
+    // case is one harmless empty duplicate after a reinstall.
+    private suspend fun adoptOrphanedCalendar(type: OccasionType, existing: List<CalendarItem>): Long? {
+        val localIds = existing
+            .filter { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
+            .mapTo(HashSet()) { it.id }
+        return calendars.ownedOccasionCalendarIds(type).filter { it in localIds }.maxOrNull()
     }
 
     // under provisionMutex so a concurrent background heal can't re-create the pair
