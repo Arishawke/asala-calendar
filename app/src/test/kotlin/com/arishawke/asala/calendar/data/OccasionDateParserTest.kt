@@ -45,6 +45,12 @@ class OccasionDateParserTest {
         assertEquals(ParsedOccasionDate(4, 30, 1990), OccasionDateParser.parse("1990-04-30"))
     }
 
+    // pins LONG_MONTH_MAX_DAY = 31: a regression to 30 would silently drop
+    // every Dec-31 birthday.
+    @Test fun `accepts the last day of a 31-day month`() {
+        assertEquals(ParsedOccasionDate(12, 31, 1990), OccasionDateParser.parse("1990-12-31"))
+    }
+
     // Feb 29 is accepted regardless of year here; leap-validity is deferred to
     // occasionDtStartMillis (see OccasionEventTest). documents the contract F2 relies on.
     @Test fun `accepts Feb 29 with a non-leap year (deferred to dtstart)`() {

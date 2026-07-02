@@ -19,15 +19,15 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-class CalendarRepository(private val contentResolver: ContentResolver) {
+class CalendarRepository(private val contentResolver: ContentResolver) : OccasionCalendarOps {
     fun observeCalendars(): Flow<List<CalendarItem>> = contentResolver
         .observeChanges(CalendarContract.Calendars.CONTENT_URI)
         .map { queryCalendars() }
         .flowOn(Dispatchers.IO)
 
-    suspend fun calendars(): List<CalendarItem> = withContext(Dispatchers.IO) { queryCalendars() }
+    override suspend fun calendars(): List<CalendarItem> = withContext(Dispatchers.IO) { queryCalendars() }
 
-    suspend fun createLocalCalendar(displayName: String, color: Int): Long? = withContext(Dispatchers.IO) {
+    override suspend fun createLocalCalendar(displayName: String, color: Int): Long? = withContext(Dispatchers.IO) {
         val account = LocalCalendar.AccountName
         val values =
             ContentValues().apply {
@@ -51,7 +51,7 @@ class CalendarRepository(private val contentResolver: ContentResolver) {
         }
     }
 
-    suspend fun deleteLocalCalendar(calendarId: Long): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun deleteLocalCalendar(calendarId: Long): Boolean = withContext(Dispatchers.IO) {
         val uri =
             ContentUris
                 .withAppendedId(

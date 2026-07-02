@@ -38,6 +38,7 @@ class OccasionSyncApplyTest {
     private lateinit var cr: ContentResolver
     private lateinit var calendars: CalendarRepository
     private lateinit var events: EventRepository
+    private lateinit var reminders: RemindersRepository
     private lateinit var sync: OccasionSync
     private val createdCalendarIds = mutableListOf<Long>()
 
@@ -49,11 +50,12 @@ class OccasionSyncApplyTest {
         cr = context.contentResolver
         calendars = CalendarRepository(cr)
         events = EventRepository(cr)
+        reminders = RemindersRepository(cr)
         sync = OccasionSync(
             contentResolver = cr,
             contacts = ContactsRepository(cr),
             events = events,
-            reminders = RemindersRepository(cr),
+            reminders = reminders,
             appPackage = context.packageName,
         )
     }
@@ -93,6 +95,15 @@ class OccasionSyncApplyTest {
         val calId = newCalendar("Asala Apply Update")
         val eventId = insertOccasion(ALICE, calId)
         val renamed = ALICE.copy(displayName = "Alicia")
+        // pre-seed a different reminder so the post-update assertion can tell
+        // set (replace) from append: an append regression would leave both
+        // OLD_REMINDER_MIN and REMINDER_MIN on the row instead of just the latter.
+        reminders.setReminder(eventId, OLD_REMINDER_MIN)
+        assertEquals(
+            "precondition: the old reminder is in place",
+            listOf(OLD_REMINDER_MIN),
+            cr.reminderMinutesFor(eventId),
+        )
 
         sync.applyDiff(
             OccasionDiff(emptyList(), listOf(eventId to renamed), emptyList()),
@@ -103,7 +114,11 @@ class OccasionSyncApplyTest {
 
         assertEquals("same row updated in place", listOf(eventId), cr.occasionEventIdsIn(calId))
         assertEquals("title reflects the new name", titleFor(renamed), cr.titleOf(eventId))
-        assertEquals("update re-sets the reminder", listOf(REMINDER_MIN), cr.reminderMinutesFor(eventId))
+        assertEquals(
+            "update replaces the reminder, not appends to it",
+            listOf(REMINDER_MIN),
+            cr.reminderMinutesFor(eventId),
+        )
     }
 
     @Test
@@ -134,17 +149,24 @@ class OccasionSyncApplyTest {
         val birthdays = newCalendar("Asala Clear B")
         val anniversaries = newCalendar("Asala Clear A")
         val birthdayId = insertOccasion(ALICE, birthdays)
+        val anniversaryId = insertOccasion(BOB, anniversaries)
         sync.reapplyReminders(birthdays, anniversaries, REMINDER_MIN)
         assertEquals("reminder present before the clear", listOf(REMINDER_MIN), cr.reminderMinutesFor(birthdayId))
+        assertEquals("reminder present before the clear", listOf(REMINDER_MIN), cr.reminderMinutesFor(anniversaryId))
 
         sync.reapplyReminders(birthdays, anniversaries, null)
 
-        assertTrue("null offset drops the reminder row", cr.reminderMinutesFor(birthdayId).isEmpty())
+        assertTrue("null offset drops the reminder row on birthdays", cr.reminderMinutesFor(birthdayId).isEmpty())
+        assertTrue(
+            "null offset drops the reminder row on anniversaries",
+            cr.reminderMinutesFor(anniversaryId).isEmpty(),
+        )
     }
 
     private companion object {
         const val CALENDAR_COLOR = 0xFF999999.toInt()
         const val REMINDER_MIN = 30
+        const val OLD_REMINDER_MIN = 15
         val ALICE = Occasion(1001, "Alice", OccasionType.Birthday, 6, 15, 1990)
         val BOB = Occasion(1002, "Bob", OccasionType.Anniversary, 3, 4, 2005)
     }

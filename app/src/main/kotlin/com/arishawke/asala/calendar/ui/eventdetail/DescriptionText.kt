@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -26,20 +27,23 @@ private val HtmlTagHint =
 
 internal fun looksLikeHtml(description: String): Boolean = HtmlTagHint.containsMatchIn(description)
 
+// the looksLikeHtml branch IS the security control (audit F7/T3): AnnotatedString.fromHtml
+// turns any <a href> into a clickable link with no scheme check, so the html path is routed
+// through the same allowlist stripDisallowedLinkSchemes already enforces for it.
+internal fun descriptionAnnotated(text: String, linkColor: Color): AnnotatedString = if (looksLikeHtml(text)) {
+    AnnotatedString.fromHtml(
+        htmlString = text,
+        linkStyles = TextLinkStyles(
+            style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline),
+        ),
+    ).stripDisallowedLinkSchemes()
+} else {
+    linkifyAnnotated(text, linkColor)
+}
+
 @Composable
 internal fun DescriptionText(description: String, modifier: Modifier = Modifier) {
     val linkColor = MaterialTheme.colorScheme.primary
-    val rendered = remember(description, linkColor) {
-        if (looksLikeHtml(description)) {
-            AnnotatedString.fromHtml(
-                htmlString = description,
-                linkStyles = TextLinkStyles(
-                    style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline),
-                ),
-            ).stripDisallowedLinkSchemes()
-        } else {
-            linkifyAnnotated(description, linkColor)
-        }
-    }
+    val rendered = remember(description, linkColor) { descriptionAnnotated(description, linkColor) }
     Text(text = rendered, style = MaterialTheme.typography.bodyMedium, modifier = modifier)
 }

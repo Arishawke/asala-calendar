@@ -63,12 +63,12 @@ class OccasionSync(
     private val events: EventRepository,
     private val reminders: RemindersRepository,
     private val appPackage: String,
-) {
+) : OccasionSyncOps {
     // syncMutex is companion-scoped (one lock for every instance), since each
     // syncOccasionsIfEnabled call builds a fresh OccasionSync; without a shared
     // lock, two interleaved syncs can both read-before-either-writes and insert
     // the same occasion twice.
-    suspend fun sync(
+    override suspend fun sync(
         birthdaysCalendarId: Long,
         anniversariesCalendarId: Long,
         reminderMinutes: Int?,
@@ -87,13 +87,16 @@ class OccasionSync(
         true
     }
 
-    suspend fun reapplyReminders(birthdaysCalendarId: Long, anniversariesCalendarId: Long, reminderMinutes: Int?) =
-        syncMutex.withLock {
-            // a failed read has nothing to reapply reminders to; skip that calendar this cycle
-            val existing =
-                readExisting(birthdaysCalendarId).orEmpty() + readExisting(anniversariesCalendarId).orEmpty()
-            for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
-        }
+    override suspend fun reapplyReminders(
+        birthdaysCalendarId: Long,
+        anniversariesCalendarId: Long,
+        reminderMinutes: Int?,
+    ) = syncMutex.withLock {
+        // a failed read has nothing to reapply reminders to; skip that calendar this cycle
+        val existing =
+            readExisting(birthdaysCalendarId).orEmpty() + readExisting(anniversariesCalendarId).orEmpty()
+        for (event in existing) reminders.setReminder(event.eventId, reminderMinutes)
+    }
 
     // internal (not private) so the androidTest can drive the insert/update/delete
     // write wiring with a hand-built diff, without the non-deterministic contacts read.

@@ -23,12 +23,35 @@ const val ANNIVERSARIES_DEFAULT_COLOR: Int = 0xFF56B4E9.toInt()
 // self-heal (F5).
 fun resolveOccasionCalendarId(storedId: Long?, existingIds: Set<Long>): Long? = storedId?.takeIf { it in existingIds }
 
+// testability seam: the exact CalendarRepository surface OccasionProvisioner
+// calls, so its rollback paths are unit-testable behind a fake instead of the
+// real CalendarProvider (see OccasionProvisionerRollbackTest).
+interface OccasionCalendarOps {
+    suspend fun calendars(): List<CalendarItem>
+
+    suspend fun createLocalCalendar(displayName: String, color: Int): Long?
+
+    suspend fun deleteLocalCalendar(calendarId: Long): Boolean
+}
+
+// testability seam: the exact OccasionSync surface OccasionProvisioner calls.
+interface OccasionSyncOps {
+    suspend fun sync(
+        birthdaysCalendarId: Long,
+        anniversariesCalendarId: Long,
+        reminderMinutes: Int?,
+        titleFor: (Occasion) -> String,
+    ): Boolean
+
+    suspend fun reapplyReminders(birthdaysCalendarId: Long, anniversariesCalendarId: Long, reminderMinutes: Int?)
+}
+
 // turns the contact-occasions feature on and off: provisions/tears down the
 // two local calendars that own the generated events, and drives the first sync.
 class OccasionProvisioner(
-    private val calendars: CalendarRepository,
+    private val calendars: OccasionCalendarOps,
     private val prefs: UserPreferences,
-    private val sync: OccasionSync,
+    private val sync: OccasionSyncOps,
 ) {
     suspend fun enable(
         birthdaysName: String,

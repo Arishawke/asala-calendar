@@ -18,7 +18,7 @@ class DescriptionLinkTest {
     // audit F7: descriptions rendered from HTML (AnnotatedString.fromHtml) turned
     // any <a href> into a clickable link with no scheme check, unlike the plain-text
     // path which only ever links http/https/mailto/tel. drop the rest so a calendar
-    // description another app wrote can't launch tel:/sms:/market:/javascript: etc.
+    // description another app wrote can't launch sms:/market:/javascript: etc.
     @Test fun `strips non-allowlisted link schemes and keeps http https mailto tel`() {
         val source = buildAnnotatedString {
             withLink(LinkAnnotation.Url("https://ok.example")) { append("site") }
