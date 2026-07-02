@@ -79,6 +79,10 @@ class SettingsViewModel(
         viewModelScope.launch { prefs.setToolbarPosition(pos) }
     }
 
+    fun setFontScaleOption(option: FontScaleOption) {
+        viewModelScope.launch { prefs.setFontScaleOption(option) }
+    }
+
     fun setWidgetThemeMode(mode: WidgetThemeMode) {
         viewModelScope.launch {
             prefs.setWidgetThemeMode(mode)

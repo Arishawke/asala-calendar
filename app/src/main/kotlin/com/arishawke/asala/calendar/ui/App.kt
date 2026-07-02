@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -64,9 +66,14 @@ internal fun App() {
     val resolvedIs24Hour = prefs.is24HourOverride ?: systemIs24Hour
 
     AsalaCalendarTheme(darkTheme = darkTheme, amoled = amoled) {
+        val baseDensity = LocalDensity.current
         CompositionLocalProvider(
             LocalIs24Hour provides resolvedIs24Hour,
             LocalToolbarPosition provides prefs.toolbarPosition,
+            LocalDensity provides Density(
+                density = baseDensity.density,
+                fontScale = baseDensity.fontScale * prefs.fontScaleOption.factor,
+            ),
         ) {
             CalendarPermissionGate {
                 AppShell(vm = vm)

@@ -108,6 +108,36 @@ private fun toolbarPositionLabel(pos: ToolbarPosition): Int = when (pos) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+internal fun FontSizeRow(current: FontScaleOption, onChange: (FontScaleOption) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }) {
+        OutlinedTextField(
+            value = stringResource(R.string.settings_font_size_percent, current.percent),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.settings_font_size_label)) },
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.lg, vertical = Spacing.xs),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
+        )
+        ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            FontScaleOption.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.settings_font_size_percent, option.percent)) },
+                    onClick = {
+                        onChange(option)
+                        open = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 internal fun DefaultDurationDropdown(current: Int, onChange: (Int) -> Unit) {
     val options = DefaultDurationOptionsMinutes
     var open by remember { mutableStateOf(false) }

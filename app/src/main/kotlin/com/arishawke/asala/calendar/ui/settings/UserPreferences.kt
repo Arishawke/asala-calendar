@@ -108,6 +108,9 @@ data class UserPrefs(
     val monthScrollStyle: MonthScrollStyle,
     // where the app bar sits across every screen. see [[ToolbarPosition]].
     val toolbarPosition: ToolbarPosition,
+    // in-app text-size multiplier, composed on top of the OS font scale. see
+    // App.kt's LocalDensity seam and FontScaleOption.
+    val fontScaleOption: FontScaleOption,
     // home-screen widget appearance, independent of the app theme. FollowApp
     // reproduces the prior behavior (widgets track themeMode).
     val widgetThemeMode: WidgetThemeMode,
@@ -151,6 +154,7 @@ data class UserPrefs(
             showWeekNumber = false,
             monthScrollStyle = MonthScrollStyle.Continuous,
             toolbarPosition = ToolbarPosition.Top,
+            fontScaleOption = FontScaleOption.Default,
             widgetThemeMode = WidgetThemeMode.FollowApp,
             widgetTranslucent = false,
             contactOccasionsEnabled = false,
@@ -200,6 +204,9 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                 },
                 toolbarPosition = parseEnum(p[KEY_TOOLBAR_POSITION], d.toolbarPosition) {
                     ToolbarPosition.valueOf(it)
+                },
+                fontScaleOption = parseEnum(p[KEY_FONT_SCALE], d.fontScaleOption) {
+                    FontScaleOption.valueOf(it)
                 },
                 widgetThemeMode = parseEnum(p[KEY_WIDGET_THEME_MODE], d.widgetThemeMode) {
                     WidgetThemeMode.valueOf(it)
@@ -390,6 +397,10 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[KEY_TOOLBAR_POSITION] = pos.name }
     }
 
+    suspend fun setFontScaleOption(option: FontScaleOption) {
+        dataStore.edit { it[KEY_FONT_SCALE] = option.name }
+    }
+
     suspend fun setWidgetThemeMode(mode: WidgetThemeMode) {
         dataStore.edit { it[KEY_WIDGET_THEME_MODE] = mode.name }
     }
@@ -458,6 +469,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val KEY_SHOW_WEEK_NUMBER = booleanPreferencesKey("show_week_number")
         val KEY_MONTH_SCROLL_STYLE = stringPreferencesKey("month_scroll_style")
         val KEY_TOOLBAR_POSITION = stringPreferencesKey("toolbar_position")
+        val KEY_FONT_SCALE = stringPreferencesKey("font_scale")
         val KEY_WIDGET_THEME_MODE = stringPreferencesKey("widget_theme_mode")
         val KEY_WIDGET_TRANSLUCENT = booleanPreferencesKey("widget_translucent")
         val KEY_CONTACT_OCCASIONS_ENABLED = booleanPreferencesKey("contact_occasions_enabled")

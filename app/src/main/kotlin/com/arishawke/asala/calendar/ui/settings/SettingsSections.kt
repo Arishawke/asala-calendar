@@ -47,6 +47,7 @@ internal fun AppearanceSettings(s: UserPrefs, vm: SettingsViewModel) {
     ThemeRow(s.themeMode, vm::setTheme)
     PaletteRow(s.paletteId, vm::setPaletteId)
     ToolbarPositionRow(current = s.toolbarPosition, onChange = vm::setToolbarPosition)
+    FontSizeRow(current = s.fontScaleOption, onChange = vm::setFontScaleOption)
     SwitchRow(
         label = stringResource(R.string.settings_dim_past_dates),
         checked = s.dimPastDates,

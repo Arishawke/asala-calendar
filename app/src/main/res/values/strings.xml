@@ -289,6 +289,8 @@
     <string name="settings_toolbar_position">Toolbar position</string>
     <string name="settings_toolbar_position_top">Top</string>
     <string name="settings_toolbar_position_bottom">Bottom</string>
+    <string name="settings_font_size_label">Font size</string>
+    <string name="settings_font_size_percent">%1$d%%</string>
     <string name="settings_section_widgets">Widgets</string>
     <string name="settings_widget_theme">Widget theme</string>
     <string name="settings_widget_theme_follow_app">Follow app theme</string>
