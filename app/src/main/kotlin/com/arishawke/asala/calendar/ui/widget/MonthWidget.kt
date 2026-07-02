@@ -175,7 +175,7 @@ private fun DayCell(
             ) {
                 Text(
                     text = cell.date.dayOfMonth.toString(),
-                    style = TextStyle(color = ColorProvider(Color.White), fontWeight = FontWeight.Bold),
+                    style = TextStyle(color = monthOnAccent(theme), fontWeight = FontWeight.Bold),
                 )
             }
         } else {

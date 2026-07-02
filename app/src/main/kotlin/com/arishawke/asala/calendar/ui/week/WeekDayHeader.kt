@@ -61,8 +61,8 @@ internal fun WeekDayHeader(
             .then(if (isPast) Modifier.alpha(PastDateAlpha) else Modifier)
             .then(
                 if (isNonWorkingDay) {
-                    // same 12% black as TimelineGrid dims so the surfaces match.
-                    Modifier.background(Color.Black.copy(alpha = 0.12f))
+                    // same adaptive dim as the TimelineGrid bands so the surfaces match.
+                    Modifier.background(timelineDimColor())
                 } else {
                     Modifier
                 },

@@ -71,6 +71,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Quick add no longer turns "every Monday" into a single one-off event on the next
   Monday. It cannot create a repeat, so it leaves the phrase in place for you to
   finish setting up in the editor.
+- The "+N" overflow chip in the week and 3-day views now has a full-size touch
+  target.
+- The working-hours and weekend shading in the week and 3-day views is now
+  visible in the dark and AMOLED themes, where the old dim disappeared.
+- The month widget's today number now keeps readable contrast on its accent
+  circle in every theme.
 
 ## [0.22.0] - 2026-06-19
 

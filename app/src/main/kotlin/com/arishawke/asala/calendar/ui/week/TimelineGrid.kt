@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.PendingEventReveal
@@ -308,20 +309,32 @@ private fun HourGuideLines() {
     }
 }
 
-// plain black, not a theme token: surfaceVariant was invisible on dark/AMOLED.
-// same 12% alpha as WorkingHoursDim so the two treatments match.
+// not a theme token (surfaceVariant was invisible on dark/AMOLED) but
+// luminance-adaptive: a black wash disappears on dark and AMOLED surfaces too,
+// so those get a white wash instead. shared with WeekDayHeader so the
+// treatments match.
+private const val LightDimAlpha = 0.12f
+private const val DarkDimAlpha = 0.08f
+private const val DarkSurfaceLuminance = 0.5f
+
+@Composable
+internal fun timelineDimColor(): Color {
+    val dark = MaterialTheme.colorScheme.surface.luminance() < DarkSurfaceLuminance
+    return if (dark) Color.White.copy(alpha = DarkDimAlpha) else Color.Black.copy(alpha = LightDimAlpha)
+}
+
 @Composable
 private fun NonWorkingDayDim() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.12f)),
+            .background(timelineDimColor()),
     )
 }
 
 @Composable
 private fun WorkingHoursDim(startHour: Int, endHour: Int) {
-    val dim = Color.Black.copy(alpha = 0.12f)
+    val dim = timelineDimColor()
     val safeStart = startHour.coerceIn(0, TimeUnits.MaxStartHour)
     val safeEnd = endHour.coerceIn(safeStart + 1, TimeUnits.HoursPerDay)
     Column(modifier = Modifier.fillMaxSize()) {

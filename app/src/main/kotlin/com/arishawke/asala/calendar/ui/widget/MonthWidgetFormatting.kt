@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.ui.widget
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.unit.ColorProvider
+import com.arishawke.asala.calendar.ui.theme.WcagContrast
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -28,6 +29,13 @@ internal fun weekdayNarrow(day: DayOfWeek): String = day.getDisplayName(TextStyl
 internal fun monthAccent(theme: ResolvedTheme): ColorProvider = when (theme) {
     ResolvedTheme.Light -> ColorProvider(Color(ACCENT_LIGHT))
     ResolvedTheme.Dark, ResolvedTheme.Amoled -> ColorProvider(Color(ACCENT_DARK))
+}
+
+// today-number color with guaranteed contrast on the accent circle, instead of
+// a hardcoded white that sits near 3:1 on the dark accent.
+internal fun monthOnAccent(theme: ResolvedTheme): ColorProvider = when (theme) {
+    ResolvedTheme.Light -> ColorProvider(Color(WcagContrast.onColor(ACCENT_LIGHT.toInt())))
+    ResolvedTheme.Dark, ResolvedTheme.Amoled -> ColorProvider(Color(WcagContrast.onColor(ACCENT_DARK.toInt())))
 }
 
 // how many event chips fit per day cell at a given widget height (dp) and grid
