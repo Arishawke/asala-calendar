@@ -145,7 +145,8 @@ class MainActivity : ComponentActivity() {
 
     private fun handleShareDeepLink(intent: Intent?) {
         if (intent == null) return
-        if (intent.action != Intent.ACTION_SEND || intent.type != "text/plain") return
+        // senders may append mime params the filter ignores
+        if (intent.action != Intent.ACTION_SEND || intent.type?.substringBefore(';')?.trim() != "text/plain") return
         val normalized = ShareTextNormalizer.normalize(intent.getStringExtra(Intent.EXTRA_TEXT))
         if (normalized != null) {
             pendingSharedText = normalized
