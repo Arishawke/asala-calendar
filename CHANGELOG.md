@@ -26,6 +26,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   saved until you tap Save.
 
 ### Fixed
+- The "Repeats every N" and "After N times" fields in the event editor can
+  now actually be retyped: deleting the last digit used to be silently
+  undone, snapping the old value back. Both fields now allow clearing while
+  typing, flag out-of-range input, restore the last valid value when focus
+  leaves, and use a compact box sized for a number instead of a third of
+  the screen. The end-condition choices (Forever, On date, After a number
+  of times) also accept taps on their labels, not just the radio circles.
 - With the toolbar at the bottom, the view switcher menu now opens flush
   above the bar and aligned to its icon. It used to float partway up the
   screen and could sit on top of the new-event button.

@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -21,7 +23,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
@@ -37,11 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.Role
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.RecurrenceFrequency
 import com.arishawke.asala.calendar.data.utcDate
+import com.arishawke.asala.calendar.ui.theme.Spacing
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -52,12 +54,13 @@ fun RecurrenceSection(state: EventEditFormState, onChange: (EventEditFormState) 
     var showFreqMenu by remember { mutableStateOf(false) }
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         Text(
             stringResource(R.string.repeats),
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
         ExposedDropdownMenuBox(
@@ -110,7 +113,9 @@ fun RecurrenceSection(state: EventEditFormState, onChange: (EventEditFormState) 
 }
 
 private const val MaxRecurrenceInterval = 99
-private const val IntervalFieldWidthFraction = 0.3f
+private const val MaxIntervalDigits = 2
+private const val MaxRecurrenceCount = 999
+private const val MaxCountDigits = 3
 
 // "Every N weeks" stepper; the data path (save, parse-back, splits) already
 // carries INTERVAL, this is just the missing authoring surface.
@@ -118,21 +123,22 @@ private const val IntervalFieldWidthFraction = 0.3f
 private fun IntervalSection(state: EventEditFormState, onChange: (EventEditFormState) -> Unit) {
     val freq = state.recurrenceFrequency ?: return
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = Spacing.lg, top = Spacing.xs, bottom = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
-        Text(stringResource(R.string.repeats_every))
-        OutlinedTextField(
-            value = state.recurrenceInterval.toString(),
-            onValueChange = { v ->
-                val n = v.toIntOrNull()
-                if (n != null && n in 1..MaxRecurrenceInterval) onChange(state.copy(recurrenceInterval = n))
-            },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(IntervalFieldWidthFraction),
+        Text(stringResource(R.string.repeats_every), style = MaterialTheme.typography.bodyMedium)
+        CompactNumberField(
+            value = state.recurrenceInterval,
+            maxDigits = MaxIntervalDigits,
+            range = 1..MaxRecurrenceInterval,
+            width = IntervalFieldWidth,
+            onCommit = { onChange(state.copy(recurrenceInterval = it)) },
         )
-        Text(pluralStringResource(intervalUnitPlural(freq), state.recurrenceInterval))
+        Text(
+            pluralStringResource(intervalUnitPlural(freq), state.recurrenceInterval),
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 
@@ -151,49 +157,44 @@ private fun EndConditionSection(state: EventEditFormState, onChange: (EventEditF
     val dateFmt = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = Spacing.lg).selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = state.recurrenceUntilDate == null && state.recurrenceCount == null,
-                onClick = { onChange(state.copy(recurrenceUntilDate = null, recurrenceCount = null)) },
-            )
-            Text(stringResource(R.string.ends_never))
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = state.recurrenceUntilDate != null,
-                onClick = {
-                    onChange(state.copy(recurrenceUntilDate = state.endDate.plusMonths(1), recurrenceCount = null))
-                },
-            )
-            Text(stringResource(R.string.ends_on_date))
-            if (state.recurrenceUntilDate != null) {
+        EndConditionRow(
+            selected = state.recurrenceUntilDate == null && state.recurrenceCount == null,
+            label = stringResource(R.string.ends_never),
+            onSelect = { onChange(state.copy(recurrenceUntilDate = null, recurrenceCount = null)) },
+        )
+        EndConditionRow(
+            selected = state.recurrenceUntilDate != null,
+            label = stringResource(R.string.ends_on_date),
+            onSelect = {
+                onChange(state.copy(recurrenceUntilDate = state.endDate.plusMonths(1), recurrenceCount = null))
+            },
+        ) {
+            state.recurrenceUntilDate?.let { until ->
                 AssistChip(
                     onClick = { showDatePicker = true },
-                    label = { Text(dateFmt.format(state.recurrenceUntilDate)) },
-                    modifier = Modifier.padding(start = 8.dp),
+                    label = { Text(dateFmt.format(until)) },
                 )
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = state.recurrenceCount != null,
-                onClick = {
-                    onChange(state.copy(recurrenceCount = state.recurrenceCount ?: 10, recurrenceUntilDate = null))
-                },
-            )
-            Text(stringResource(R.string.ends_after_count))
-            if (state.recurrenceCount != null) {
-                OutlinedTextField(
-                    value = state.recurrenceCount.toString(),
-                    onValueChange = { v ->
-                        val n = v.toIntOrNull()
-                        if (n != null && n > 0) onChange(state.copy(recurrenceCount = n))
-                    },
-                    singleLine = true,
-                    modifier = Modifier.padding(start = 8.dp).fillMaxWidth(0.3f),
+        EndConditionRow(
+            selected = state.recurrenceCount != null,
+            label = stringResource(R.string.ends_after_count),
+            onSelect = {
+                onChange(state.copy(recurrenceCount = state.recurrenceCount ?: 10, recurrenceUntilDate = null))
+            },
+        ) {
+            state.recurrenceCount?.let { count ->
+                // a synced RRULE may carry COUNT above the authoring cap; widen
+                // the bounds to the loaded value so it stays valid and retypeable
+                CompactNumberField(
+                    value = count,
+                    maxDigits = maxOf(MaxCountDigits, count.toString().length),
+                    range = 1..maxOf(MaxRecurrenceCount, count),
+                    width = CountFieldWidth,
+                    onCommit = { onChange(state.copy(recurrenceCount = it)) },
                 )
             }
         }
@@ -227,6 +228,33 @@ private fun EndConditionSection(state: EventEditFormState, onChange: (EventEditF
                 TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) { DatePicker(state = pickerState) }
+    }
+}
+
+// radio + label form the selectable unit (Role.RadioButton, radio itself
+// decorative); the trailing widget sits OUTSIDE it so a text field or chip
+// keeps its own semantics node instead of merging into the row announcement.
+@Composable
+private fun EndConditionRow(
+    selected: Boolean,
+    label: String,
+    onSelect: () -> Unit,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+    ) {
+        Row(
+            modifier = Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onSelect),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        ) {
+            RadioButton(selected = selected, onClick = null)
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+        }
+        trailing?.invoke()
     }
 }
 
