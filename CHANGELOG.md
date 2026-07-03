@@ -26,6 +26,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   saved until you tap Save.
 
 ### Fixed
+- With the toolbar at the bottom, the view switcher menu now opens flush
+  above the bar and aligned to its icon. It used to float partway up the
+  screen and could sit on top of the new-event button.
 - With the toolbar at the bottom, expanding the header's mini month panel now
   slides the day, week, and schedule content up in step with the panel, the
   mirror of how it pushes content down in top-toolbar mode. The rows used to
