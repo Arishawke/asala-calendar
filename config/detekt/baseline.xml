@@ -35,7 +35,6 @@
     <ID>LongParameterList:MiniMonthPanel.kt$( displayedMonth: YearMonth, today: LocalDate, firstDayOfWeek: DayOfWeek, eventsByDate: Map&lt;LocalDate, List&lt;EventItem&gt;&gt;, onSelectDate: (LocalDate) -&gt; Unit, onShiftMonth: (Int) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:RecolorDialog.kt$( title: String, palette: PaletteId, currentArgb: Int, onPick: (Int) -&gt; Unit, onDismiss: () -&gt; Unit, onReset: (() -&gt; Unit)? = null, )</ID>
     <ID>LongParameterList:ReminderNotification.kt$( context: Context, eventId: Long, event: ReminderEventSnapshot, instanceMillis: Long, minutesBefore: Int, alertId: Long, defaultSnoozeMinutes: Int, )</ID>
-    <ID>MagicNumber:AppViewModel.kt$AppViewModel$5_000</ID>
     <ID>MagicNumber:CalendarItem.kt$CalendarItem$500</ID>
     <ID>MagicNumber:ColorSwatchGrid.kt$0xFFFFFF</ID>
     <ID>MagicNumber:DateGrammar.kt$DateGrammar$100</ID>
@@ -51,7 +50,6 @@
     <ID>MagicNumber:DayCellPreviews.kt$5</ID>
     <ID>MagicNumber:DayCellPreviews.kt$6</ID>
     <ID>MagicNumber:DayScreen.kt$7</ID>
-    <ID>MagicNumber:DayViewModel.kt$DayViewModel$5_000</ID>
     <ID>MagicNumber:EventBlock.kt$10</ID>
     <ID>MagicNumber:EventBlock.kt$15</ID>
     <ID>MagicNumber:EventBlock.kt$2026</ID>
@@ -79,11 +77,9 @@
     <ID>MagicNumber:EventTextParser.kt$EventTextParser$6</ID>
     <ID>MagicNumber:EventTextParser.kt$EventTextParser$60</ID>
     <ID>MagicNumber:HourAxis.kt$23</ID>
-    <ID>MagicNumber:MiniMonthViewModel.kt$MiniMonthViewModel$5_000</ID>
     <ID>MagicNumber:MonthGrid.kt$42</ID>
     <ID>MagicNumber:MonthGrid.kt$6</ID>
     <ID>MagicNumber:MonthGrid.kt$7</ID>
-    <ID>MagicNumber:MonthViewModel.kt$MonthViewModel$5_000</ID>
     <ID>MagicNumber:PagedMonthScreen.kt$6</ID>
     <ID>MagicNumber:Palette.kt$0xFF0072B2</ID>
     <ID>MagicNumber:Palette.kt$0xFF009E73</ID>
@@ -117,10 +113,7 @@
     <ID>MagicNumber:ReminderScheduler.kt$ReminderScheduler$3</ID>
     <ID>MagicNumber:ReminderTimeMath.kt$ReminderTimeMath$1440L</ID>
     <ID>MagicNumber:ReminderTimeMath.kt$ReminderTimeMath$60_000L</ID>
-    <ID>MagicNumber:ScheduleViewModel.kt$ScheduleViewModel$5_000</ID>
     <ID>MagicNumber:SearchViewModel.kt$SearchViewModel$200L</ID>
-    <ID>MagicNumber:SearchViewModel.kt$SearchViewModel$5_000</ID>
-    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$5_000</ID>
     <ID>MagicNumber:SnoozePickerActivity.kt$10</ID>
     <ID>MagicNumber:SnoozePickerActivity.kt$15</ID>
     <ID>MagicNumber:SnoozePickerActivity.kt$30</ID>
@@ -134,7 +127,6 @@
     <ID>MagicNumber:Theme.kt$0xFF2A282F</ID>
     <ID>MagicNumber:Theme.kt$0xFF353339</ID>
     <ID>MagicNumber:Theme.kt$0xFF403E44</ID>
-    <ID>MagicNumber:ThreeDayViewModel.kt$ThreeDayViewModel$5_000</ID>
     <ID>MagicNumber:TimelineGrid.kt$60f</ID>
     <ID>MagicNumber:TimelineGrid.kt$7</ID>
     <ID>MagicNumber:TimelineMetrics.kt$24</ID>
@@ -155,9 +147,7 @@
     <ID>MagicNumber:WcagContrast.kt$WcagContrast$8</ID>
     <ID>MagicNumber:WeekScreen.kt$6</ID>
     <ID>MagicNumber:WeekViewModel.kt$WeekViewModel$14</ID>
-    <ID>MagicNumber:WeekViewModel.kt$WeekViewModel$5_000</ID>
     <ID>MagicNumber:WeekViewModel.kt$WeekViewModel$7</ID>
-    <ID>NestedBlockDepth:ReminderScheduler.kt$ReminderScheduler$private fun readUpcomingReminders( cr: ContentResolver, windowStart: Long, windowEnd: Long, ): List&lt;ScheduledReminder&gt;</ID>
     <ID>ReturnCount:AccountSection.kt$internal fun avatarColor(accountType: String, account: String, overrideArgb: Int?): Color</ID>
     <ID>ReturnCount:DateGrammar.kt$DateGrammar$fun find(work: String, today: LocalDate, locale: Locale, vocab: Vocabulary = Vocabulary.English): DateMatch?</ID>
     <ID>ReturnCount:DateGrammar.kt$DateGrammar$private fun monthNameDate(work: String, today: LocalDate, vocab: Vocabulary, grammar: CompiledGrammar): DateMatch?</ID>
@@ -167,7 +157,6 @@
     <ID>ReturnCount:DayClippedEvent.kt$internal fun clipToDay(event: EventItem, date: LocalDate, zone: ZoneId): DayClippedEvent?</ID>
     <ID>ReturnCount:EventDraft.kt$EventDraft.Companion$fun parseIso8601DurationMs(raw: String?): Long?</ID>
     <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractSingleTime(acc: Acc, vocab: Vocabulary, grammar: CompiledGrammar)</ID>
-    <ID>ReturnCount:EventTextParser.kt$EventTextParser$private fun extractTimeRange(acc: Acc, vocab: Vocabulary)</ID>
     <ID>ReturnCount:RecurrenceRule.kt$RecurrenceRule$fun frequencyOf(rrule: String?): RecurrenceFrequency?</ID>
     <ID>TooGenericExceptionCaught:NotificationActionReceiver.kt$NotificationActionReceiver$t: Throwable</ID>
     <ID>TooGenericExceptionCaught:SnoozeApplier.kt$t: Throwable</ID>
