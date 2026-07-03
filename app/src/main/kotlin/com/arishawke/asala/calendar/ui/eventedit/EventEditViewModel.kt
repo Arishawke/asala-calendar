@@ -334,6 +334,8 @@ class EventEditViewModel(
             ),
             shareText = shareText,
             now = LocalDateTime.now(),
+            // diverges from QuickAddField's composition locale; inert while the
+            // parser is English-only (ADR-0008).
             locale = Locale.getDefault(),
         ),
     )

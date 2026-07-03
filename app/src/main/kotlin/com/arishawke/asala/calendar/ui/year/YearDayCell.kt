@@ -70,6 +70,7 @@ internal fun YearDayCell(
         null
     }
     val stateLabel = listOfNotNull(todayLabel, countLabel).joinToString(", ").ifEmpty { null }
+    // 16sp line height reproduces the old 16dp at default scale
     val badgeDiameter = with(LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() }
     Box(
         modifier = Modifier

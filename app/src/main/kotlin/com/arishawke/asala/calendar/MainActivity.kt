@@ -147,7 +147,8 @@ class MainActivity : ComponentActivity() {
         if (intent == null) return
         // senders may append mime params the filter ignores
         if (intent.action != Intent.ACTION_SEND || intent.type?.substringBefore(';')?.trim() != "text/plain") return
-        val normalized = ShareTextNormalizer.normalize(intent.getStringExtra(Intent.EXTRA_TEXT))
+        // styled senders deliver a Spanned; getStringExtra would drop it
+        val normalized = ShareTextNormalizer.normalize(intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString())
         if (normalized != null) {
             pendingSharedText = normalized
         }

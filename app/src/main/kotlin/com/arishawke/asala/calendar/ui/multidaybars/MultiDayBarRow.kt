@@ -60,6 +60,7 @@ fun MultiDayBarRow(
 ) {
     if (segments.isEmpty()) return
     val cellWidth = rowWidth / DaysPerWeek
+    // 16sp line height reproduces the old 16dp at default scale
     val barHeight = with(LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() }
     val laneSpan = barHeight + BarVerticalGap
     val visibleLanes = (segments.maxOfOrNull { it.lane }?.plus(1) ?: 0).coerceAtMost(maxLanes)
