@@ -91,6 +91,7 @@ import com.arishawke.asala.calendar.MainActivity
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.StorageMode
 import com.arishawke.asala.calendar.openCreateEditor
+import com.arishawke.asala.calendar.openCreateEditorFromShare
 import com.arishawke.asala.calendar.openEventDetail
 import com.arishawke.asala.calendar.ui.accessibility.rememberAnimationsEnabled
 import com.arishawke.asala.calendar.ui.header.HeaderDropdownPanel
@@ -144,6 +145,7 @@ internal fun AppShell(vm: AppViewModel) {
                 activity?.consumePendingDateOpen()?.let { (date, view) ->
                     vm.requestJumpTo(date, view)
                 }
+                activity?.consumePendingSharedText()?.let { vm.openCreateEditorFromShare(it) }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

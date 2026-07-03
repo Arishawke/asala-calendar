@@ -426,6 +426,11 @@ class AppViewModel(
     internal val editInitialStartTimeBacker = MutableStateFlow<LocalTime?>(null)
     val editInitialStartTime: StateFlow<LocalTime?> = editInitialStartTimeBacker.asStateFlow()
 
+    // raw text from a share-sheet intent, read once by EventEditScreen at
+    // create-editor open. null outside the share flow.
+    internal val pendingShareTextBacker = MutableStateFlow<String?>(null)
+    val pendingShareText: StateFlow<String?> = pendingShareTextBacker.asStateFlow()
+
     // recurring drag-reschedule held until the user picks a scope. null when
     // none in flight; non-recurring drags save immediately, bypassing this.
     internal val pendingRescheduleBacker = MutableStateFlow<PendingReschedule?>(null)

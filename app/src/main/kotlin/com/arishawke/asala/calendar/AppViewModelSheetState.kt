@@ -48,6 +48,7 @@ fun AppViewModel.openCreateEditor(prefillDate: LocalDate? = null, prefillTime: L
     editInitialStartTimeBacker.update { prefillTime }
     editInstanceMillisBacker.update { null }
     editDuplicateSourceIdBacker.update { null }
+    pendingShareTextBacker.update { null }
     editEventIdBacker.update { -1L }
 }
 
@@ -56,6 +57,7 @@ fun AppViewModel.openEditEditor(eventId: Long, instanceMillis: Long? = null) {
     editInitialStartTimeBacker.update { null }
     editInstanceMillisBacker.update { instanceMillis }
     editDuplicateSourceIdBacker.update { null }
+    pendingShareTextBacker.update { null }
     editEventIdBacker.update { eventId }
 }
 
@@ -66,6 +68,7 @@ fun AppViewModel.openDuplicateEditor(eventId: Long, instanceMillis: Long? = null
     editInitialStartTimeBacker.update { null }
     editInstanceMillisBacker.update { instanceMillis }
     editDuplicateSourceIdBacker.update { eventId }
+    pendingShareTextBacker.update { null }
     editEventIdBacker.update { -1L }
 }
 
@@ -75,6 +78,16 @@ fun AppViewModel.closeEditor() {
     editInitialStartDateBacker.update { null }
     editInitialStartTimeBacker.update { null }
     editDuplicateSourceIdBacker.update { null }
+    pendingShareTextBacker.update { null }
+}
+
+// arriving from the share sheet: an already-open editor (create or edit) is
+// replaced rather than silently dropping the share, per the design decision
+// that an explicit share always wins over an unsaved draft.
+fun AppViewModel.openCreateEditorFromShare(text: String) {
+    if (editEventIdBacker.value != null) closeEditor()
+    openCreateEditor()
+    pendingShareTextBacker.update { text }
 }
 
 fun AppViewModel.deleteEvent(
