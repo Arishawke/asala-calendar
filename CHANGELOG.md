@@ -26,6 +26,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   saved until you tap Save.
 
 ### Fixed
+- With the toolbar at the bottom, expanding the header's mini month panel now
+  slides the day, week, and schedule content up in step with the panel, the
+  mirror of how it pushes content down in top-toolbar mode. The rows used to
+  stay put while the panel rose over them, so it read as the panel covering
+  the calendar; collapsing slides them back.
 - Editing an event that carries more than one reminder no longer drops the
   extras. Changing a reminder used to delete every reminder row and keep only
   one; the editor now shows and writes the full set, and rows written by another

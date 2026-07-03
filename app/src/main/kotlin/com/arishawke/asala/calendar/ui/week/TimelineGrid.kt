@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.TimeUnits
+import com.arishawke.asala.calendar.ui.CompensateBottomPanelIntrusion
 import com.arishawke.asala.calendar.ui.month.DayOverflowSheet
 import com.arishawke.asala.calendar.ui.settings.containsWorkingDay
 import com.arishawke.asala.calendar.ui.theme.PastDateAlpha
@@ -90,6 +91,7 @@ internal fun TimelineGrid(
     onConsumeReveal: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
+    CompensateBottomPanelIntrusion(scrollState)
     val density = LocalDensity.current
     val hourHeightPx = with(density) { HourHeight.toPx() }
     val showNowLine = today in days

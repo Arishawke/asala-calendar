@@ -56,6 +56,7 @@ import com.arishawke.asala.calendar.PendingEventReveal
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.EventItem
 import com.arishawke.asala.calendar.data.OccasionKind
+import com.arishawke.asala.calendar.ui.CompensateBottomPanelIntrusion
 import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.components.OccasionLeadingIcon
 import com.arishawke.asala.calendar.ui.components.occasionDisplayTitle
@@ -312,6 +313,7 @@ private fun Timeline(
     onConsumeReveal: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
+    CompensateBottomPanelIntrusion(scrollState)
     val density = LocalDensity.current
     val hourHeightPx = with(density) { HourHeight.toPx() }
     val initialHour = if (isToday) {

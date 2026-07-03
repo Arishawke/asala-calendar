@@ -198,6 +198,17 @@
     <issue
         id="ComposeCompositionLocalUsage"
         message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
+        errorLine1="// animated height in px of the header panel expanding above a bottom"
+        errorLine2="^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/BottomPanelIntrusion.kt"
+            line="21"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="ComposeCompositionLocalUsage"
+        message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
         errorLine1="// the app bar position, provided once at the root so every screen&apos;s bar"
         errorLine2="^">
         <location

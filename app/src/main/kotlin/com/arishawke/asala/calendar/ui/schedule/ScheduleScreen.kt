@@ -45,6 +45,7 @@ import com.arishawke.asala.calendar.CalendarView
 import com.arishawke.asala.calendar.PendingDateJump
 import com.arishawke.asala.calendar.R
 import com.arishawke.asala.calendar.data.TimeUnits
+import com.arishawke.asala.calendar.ui.CompensateBottomPanelIntrusion
 import com.arishawke.asala.calendar.ui.EventViewModelFactory
 import com.arishawke.asala.calendar.ui.components.EventChipRow
 import com.arishawke.asala.calendar.ui.theme.rememberDayNumberWidth
@@ -113,6 +114,7 @@ fun ScheduleScreen(
     }
 
     val listState = rememberLazyListState()
+    CompensateBottomPanelIntrusion(listState)
     val todayIndex = remember(state.daysInOrder, state.today) {
         val idx = state.daysInOrder.indexOfFirst { !it.isBefore(state.today) }
         if (idx < 0) state.daysInOrder.lastIndex else idx

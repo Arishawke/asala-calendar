@@ -60,6 +60,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,6 +69,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -196,6 +198,10 @@ internal fun AppShell(vm: AppViewModel) {
             },
         ) {
             val toolbarAtBottom = LocalToolbarPosition.current == ToolbarPosition.Bottom
+            val panelIntrusion = remember { mutableIntStateOf(0) }
+            LaunchedEffect(toolbarAtBottom) {
+                if (!toolbarAtBottom) panelIntrusion.intValue = 0
+            }
             // bottom bar clears the system nav; top keeps the status-bar default.
             // horizontal included to mirror TopAppBarDefaults, so a landscape
             // side nav bar (3-button) can't sit over the bar's action icons.
@@ -281,7 +287,11 @@ internal fun AppShell(vm: AppViewModel) {
                     // bottom mode stacks the panel above the bar so it grows
                     // upward from it; top keeps the panel below the bar.
                     if (toolbarAtBottom) {
-                        panel()
+                        // measured per animation frame; timeline scrolls follow
+                        // the delta so rows slide up with the panel edge
+                        Box(Modifier.onSizeChanged { panelIntrusion.intValue = it.height }) {
+                            panel()
+                        }
                         bar()
                     } else {
                         bar()
@@ -301,19 +311,21 @@ internal fun AppShell(vm: AppViewModel) {
                 topBar = { if (!toolbarAtBottom) barWithPanel() },
                 bottomBar = { if (toolbarAtBottom) barWithPanel() },
             ) { innerPadding ->
-                CalendarViewSwitcher(
-                    vm = vm,
-                    currentView = state.currentView,
-                    prefs = prefs,
-                    animationsEnabled = animationsEnabled,
-                    onTitleChange = { title = it },
-                    // consume alongside padding (M3 Scaffold contract) so a future
-                    // in-screen insets read can't double-apply what's reserved here.
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding),
-                )
+                CompositionLocalProvider(LocalBottomPanelIntrusion provides panelIntrusion) {
+                    CalendarViewSwitcher(
+                        vm = vm,
+                        currentView = state.currentView,
+                        prefs = prefs,
+                        animationsEnabled = animationsEnabled,
+                        onTitleChange = { title = it },
+                        // consume alongside padding (M3 Scaffold contract) so a future
+                        // in-screen insets read can't double-apply what's reserved here.
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding),
+                    )
+                }
             }
         }
 
