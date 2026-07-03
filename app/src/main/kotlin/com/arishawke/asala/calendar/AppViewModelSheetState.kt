@@ -85,9 +85,13 @@ fun AppViewModel.closeEditor() {
 // replaced rather than silently dropping the share, per the design decision
 // that an explicit share always wins over an unsaved draft.
 fun AppViewModel.openCreateEditorFromShare(text: String) {
+    // share wins over any open surface
+    closeEventDetail()
     if (editEventIdBacker.value != null) closeEditor()
     openCreateEditor()
     pendingShareTextBacker.update { text }
+    // bump forces a fresh editor store when a share lands on an already-open create editor
+    shareGenerationBacker.update { it + 1 }
 }
 
 fun AppViewModel.deleteEvent(

@@ -62,6 +62,7 @@ internal fun AppOverlays(
     val deleteFailed by vm.deleteFailed.collectAsStateWithLifecycle()
     val editId by vm.editEventId.collectAsStateWithLifecycle()
     val editInstanceMillis by vm.editInstanceMillis.collectAsStateWithLifecycle()
+    val shareGeneration by vm.shareGeneration.collectAsStateWithLifecycle()
     val searchOpen by vm.searchOpen.collectAsStateWithLifecycle()
     val drawerHiddenAccounts by vm.drawerHiddenAccountsFlow.collectAsStateWithLifecycle()
 
@@ -138,8 +139,10 @@ internal fun AppOverlays(
     BackHandler(enabled = editId != null) { vm.closeEditor() }
     editId?.let { id ->
         val effectiveId = if (id == -1L) null else id
-        // own ViewModelStore per open so form state starts fresh; cleared on close
-        key(id, editInstanceMillis) {
+        // own ViewModelStore per open so form state starts fresh; cleared on close.
+        // shareGeneration is folded in so a share into an already-open create
+        // editor still forces a fresh store (id/editInstanceMillis alone don't change)
+        key(id, editInstanceMillis, shareGeneration) {
             ScopedViewModelStore {
                 EventEditScreen(
                     eventId = effectiveId,

@@ -431,6 +431,11 @@ class AppViewModel(
     internal val pendingShareTextBacker = MutableStateFlow<String?>(null)
     val pendingShareText: StateFlow<String?> = pendingShareTextBacker.asStateFlow()
 
+    // bumped on every share so AppOverlays' key() sees a change even when
+    // editEventId/editInstanceMillis stay (-1L, null). monotonic, never reset.
+    internal val shareGenerationBacker = MutableStateFlow(0)
+    val shareGeneration: StateFlow<Int> = shareGenerationBacker.asStateFlow()
+
     // recurring drag-reschedule held until the user picks a scope. null when
     // none in flight; non-recurring drags save immediately, bypassing this.
     internal val pendingRescheduleBacker = MutableStateFlow<PendingReschedule?>(null)
