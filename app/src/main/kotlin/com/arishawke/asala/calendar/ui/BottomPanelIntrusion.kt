@@ -18,17 +18,13 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.snapshotFlow
 
-// animated height in px of the header panel expanding above a bottom
-// toolbar, 0 whenever the toolbar is on top. provided at the shell root;
-// defaults to a constant 0 in previews / tests.
+// animated px height of the header panel above a bottom toolbar; 0 with a
+// top toolbar and in previews / tests.
 val LocalBottomPanelIntrusion: ProvidableCompositionLocal<State<Int>> =
     compositionLocalOf { mutableIntStateOf(0) }
 
-// scrolls by each frame's intrusion delta so the visible rows stay anchored
-// to the rising / falling panel edge. top mode pushes content down by
-// growing top padding, which visibly translates the same rows; a bottom
-// panel only crops a top-anchored scrollable, reading as an overlay. this
-// is the bottom-mode mirror of that push. deltas start from the value at
+// follows the panel's animated height by delta so rows slide up with its
+// edge, mirroring top mode's padding push. deltas start from the value at
 // composition, so a page created under an open panel does not jump.
 @Composable
 internal fun CompensateBottomPanelIntrusion(scrollable: ScrollableState) {
