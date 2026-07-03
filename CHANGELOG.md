@@ -20,6 +20,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   the year view's day-number circles, all-day bars, the mini month panel, the
   timeline's hour labels, and the schedule view's day and time columns all
   resize with it so nothing clips or overlaps at larger sizes.
+- Sharing text from another app (a message, a browser selection, a note) now
+  opens Asala's event editor prefilled: the shared text runs through the same
+  parser as the Quick add field and sits there for review, and nothing is
+  saved until you tap Save.
 
 ### Fixed
 - Editing an event that carries more than one reminder no longer drops the

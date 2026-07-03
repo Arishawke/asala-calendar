@@ -320,7 +320,7 @@ class EventEditViewModel(
     private val initialStartTime: LocalTime? = null,
     // raw share-sheet text (already normalized/capped by ShareTextNormalizer).
     // create mode only; EventEditScreen never threads this into an edit or
-    // duplicate open (see Step 6).
+    // duplicate open (see EventEditScreen).
     private val shareText: String? = null,
 ) : ViewModel() {
     private val _form = MutableStateFlow(
