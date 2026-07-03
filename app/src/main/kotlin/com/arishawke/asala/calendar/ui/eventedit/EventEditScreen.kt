@@ -85,6 +85,11 @@ fun EventEditScreen(
     val initialStartTime = remember(eventId) {
         if (eventId == null) appViewModel.editInitialStartTime.value else null
     }
+    // raw share-sheet text, read once at open; edit-existing (eventId != null)
+    // never consumes it, matching initialStartDate/initialStartTime above.
+    val shareText = remember(eventId) {
+        if (eventId == null) appViewModel.pendingShareText.value else null
+    }
     val vm: EventEditViewModel = viewModel(
         factory = EventEditViewModel.Factory(
             appContext = ctx.applicationContext,
@@ -99,6 +104,7 @@ fun EventEditScreen(
             hiddenCalendarIds = hiddenCalendarIds,
             initialStartDate = initialStartDate,
             initialStartTime = initialStartTime,
+            shareText = shareText,
         ),
     )
     val state by vm.form.collectAsStateWithLifecycle()
@@ -206,6 +212,7 @@ fun EventEditScreen(
                     onChange = { newState -> vm.updateForm { newState } },
                     palette = palette,
                     is24Hour = is24Hour,
+                    quickAddInitialText = vm.initialQuickAddText,
                 )
             }
         }

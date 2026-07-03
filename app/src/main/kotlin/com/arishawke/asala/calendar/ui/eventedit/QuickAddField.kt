@@ -42,9 +42,10 @@ fun QuickAddField(
     onChange: (EventEditFormState) -> Unit,
     is24Hour: Boolean,
     modifier: Modifier = Modifier,
+    initialText: String = "",
 ) {
     val locale = LocalLocale.current.platformLocale
-    var text by rememberSaveable { mutableStateOf("") }
+    var text by rememberSaveable { mutableStateOf(initialText) }
     val parsed = remember(text, locale) {
         if (text.isBlank()) null else EventTextParser.parse(text, LocalDateTime.now(), locale)
     }

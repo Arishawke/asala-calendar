@@ -22,6 +22,7 @@ import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
 import com.arishawke.asala.calendar.data.RemindersRepository
 import com.arishawke.asala.calendar.data.StorageMode
+import com.arishawke.asala.calendar.ui.eventedit.naturallanguage.EventTextParser
 import com.arishawke.asala.calendar.ui.eventedit.naturallanguage.ParsedEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,8 +31,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.Locale
 
 data class EventEditFormState(
     val calendars: List<CalendarItem> = emptyList(),
@@ -280,6 +283,20 @@ sealed interface SaveResult {
 internal fun shouldGateEditorUntilLoaded(editingEventId: Long?, duplicateFromEventId: Long?): Boolean =
     editingEventId != null || duplicateFromEventId != null
 
+// applies a normalized shared-text parse to a freshly seeded new-event form.
+// null/blank text is a no-op, matching the parser's own contract; edit and
+// duplicate opens never pass share text (see EventEditScreen), so the
+// wholesale-replace paths in the init block below never observe this seed.
+internal fun seedFormWithShareText(
+    base: EventEditFormState,
+    shareText: String?,
+    now: LocalDateTime,
+    locale: Locale,
+): EventEditFormState {
+    if (shareText.isNullOrBlank()) return base
+    return base.withParsed(EventTextParser.parse(shareText, now, locale))
+}
+
 @Suppress("LongParameterList")
 class EventEditViewModel(
     private val eventRepo: EventRepository,
@@ -301,17 +318,30 @@ class EventEditViewModel(
     private val initialStartDate: LocalDate? = null,
     // pre-fill time from a timeline empty-slot tap. null = next round hour.
     private val initialStartTime: LocalTime? = null,
+    // raw share-sheet text (already normalized/capped by ShareTextNormalizer).
+    // create mode only; EventEditScreen never threads this into an edit or
+    // duplicate open (see Step 6).
+    private val shareText: String? = null,
 ) : ViewModel() {
     private val _form = MutableStateFlow(
-        EventEditFormState.forNewEvent(
-            defaultDurationMinutes = defaultDurationMinutes,
-            defaultTimedReminderMinutes = defaultTimedReminderMinutes,
-            defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
-            initialStartDate = initialStartDate,
-            initialStartTime = initialStartTime,
+        seedFormWithShareText(
+            base = EventEditFormState.forNewEvent(
+                defaultDurationMinutes = defaultDurationMinutes,
+                defaultTimedReminderMinutes = defaultTimedReminderMinutes,
+                defaultAllDayReminderMinutes = defaultAllDayReminderMinutes,
+                initialStartDate = initialStartDate,
+                initialStartTime = initialStartTime,
+            ),
+            shareText = shareText,
+            now = LocalDateTime.now(),
+            locale = Locale.getDefault(),
         ),
     )
     val form: StateFlow<EventEditFormState> = _form.asStateFlow()
+
+    // raw shared text for QuickAddField's initial value; the parse above
+    // already applied to the form, so this is display-only, not re-parsed.
+    val initialQuickAddText: String = shareText.orEmpty()
 
     // cleared at the start of each save() so a successful retry hides the banner.
     private val _saveError = MutableStateFlow(false)
@@ -469,6 +499,7 @@ class EventEditViewModel(
         private val hiddenCalendarIds: Set<Long> = emptySet(),
         private val initialStartDate: LocalDate? = null,
         private val initialStartTime: LocalTime? = null,
+        private val shareText: String? = null,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -488,6 +519,7 @@ class EventEditViewModel(
                 hiddenCalendarIds = hiddenCalendarIds,
                 initialStartDate = initialStartDate,
                 initialStartTime = initialStartTime,
+                shareText = shareText,
             ) as T
         }
     }

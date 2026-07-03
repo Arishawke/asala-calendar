@@ -45,6 +45,7 @@ import com.arishawke.asala.calendar.ui.calendars.RecolorDialog
 import com.arishawke.asala.calendar.ui.theme.PaletteId
 import com.arishawke.asala.calendar.ui.theme.Spacing
 
+@Suppress("LongParameterList")
 @Composable
 fun EventForm(
     state: EventEditFormState,
@@ -52,13 +53,19 @@ fun EventForm(
     palette: PaletteId,
     modifier: Modifier = Modifier,
     is24Hour: Boolean = false,
+    quickAddInitialText: String = "",
 ) {
     Column(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         if (state.isNewEvent) {
-            QuickAddField(state = state, onChange = onChange, is24Hour = is24Hour)
+            QuickAddField(
+                state = state,
+                onChange = onChange,
+                is24Hour = is24Hour,
+                initialText = quickAddInitialText,
+            )
         }
         OutlinedTextField(
             value = state.title,
