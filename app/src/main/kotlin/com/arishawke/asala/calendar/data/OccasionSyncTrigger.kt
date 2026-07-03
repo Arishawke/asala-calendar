@@ -50,7 +50,8 @@ suspend fun syncOccasionsIfEnabled(context: Context, skipIfFresh: Boolean = fals
     val prefs = userPreferences.prefs.first()
     if (!prefs.contactOccasionsEnabled || !hasContactsPermission(appContext)) return
     val elapsed = SystemClock.elapsedRealtime()
-    if (skipIfFresh && lastSyncElapsedMillis != 0L &&
+    if (skipIfFresh &&
+        lastSyncElapsedMillis != 0L &&
         elapsed - lastSyncElapsedMillis < RESUME_SYNC_MIN_INTERVAL_MILLIS
     ) {
         return
