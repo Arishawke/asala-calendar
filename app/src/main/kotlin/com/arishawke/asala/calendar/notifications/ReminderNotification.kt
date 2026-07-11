@@ -143,10 +143,7 @@ private fun snoozeDefaultPendingIntent(
     val intent =
         Intent(context, NotificationActionReceiver::class.java).apply {
             action = ReminderConstants.ACTION_SNOOZE_DEFAULT
-            putExtra(ReminderConstants.EXTRA_ALERT_ID, alertId)
-            putExtra(ReminderConstants.EXTRA_EVENT_ID, eventId)
-            putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
-        }
+        }.putSnoozeSourceExtras(alertId, eventId, instanceMillis, minutesBefore)
     return PendingIntent.getBroadcast(
         context,
         PendingIntentRequestCodes.forSnoozeDefault(eventId, instanceMillis, minutesBefore),
@@ -167,10 +164,7 @@ private fun snoozePickerPendingIntent(
     val intent =
         Intent(context, SnoozePickerActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            putExtra(ReminderConstants.EXTRA_ALERT_ID, alertId)
-            putExtra(ReminderConstants.EXTRA_EVENT_ID, eventId)
-            putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
-        }
+        }.putSnoozeSourceExtras(alertId, eventId, instanceMillis, minutesBefore)
     return PendingIntent.getActivity(
         context,
         PendingIntentRequestCodes.forSnoozePicker(eventId, instanceMillis, minutesBefore),

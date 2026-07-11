@@ -12,10 +12,15 @@ package com.arishawke.asala.calendar.notifications
 // miss on a provider hiccup or when alertId is -1 (the original insert failed);
 // null tells the caller to bail rather than schedule a phantom alarm.
 internal object SnoozeResolution {
-    fun resolve(alertId: Long, alertLookup: (Long) -> Pair<Long, Int>?, intentEventId: Long): Pair<Long, Int>? {
+    fun resolve(
+        alertId: Long,
+        alertLookup: (Long) -> Pair<Long, Int>?,
+        intentEventId: Long,
+        intentOriginalMinutes: Int,
+    ): Pair<Long, Int>? {
         val resolved = if (alertId > 0) alertLookup(alertId) else null
         val eventId = resolved?.first ?: intentEventId
-        val originalMinutes = resolved?.second ?: 0
+        val originalMinutes = resolved?.second ?: intentOriginalMinutes
         if (eventId <= 0) return null
         return eventId to originalMinutes
     }

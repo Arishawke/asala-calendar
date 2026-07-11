@@ -64,6 +64,7 @@ class SnoozePickerActivity : ComponentActivity() {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
         val instanceMillis = intent.getLongExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, -1L)
+        val originalMinutes = intent.snoozeOriginalMinutes()
 
         setContent {
             AsalaCalendarTheme {
@@ -71,7 +72,7 @@ class SnoozePickerActivity : ComponentActivity() {
                 SnoozePickerDialog(
                     initialMinutes = defaultMinutes,
                     onPicked = { chosen ->
-                        sendBackToReceiver(alertId, eventId, instanceMillis, chosen)
+                        sendBackToReceiver(alertId, eventId, instanceMillis, originalMinutes, chosen)
                         finish()
                     },
                     onDismiss = { finish() },
@@ -80,14 +81,17 @@ class SnoozePickerActivity : ComponentActivity() {
         }
     }
 
-    private fun sendBackToReceiver(alertId: Long, eventId: Long, instanceMillis: Long, minutes: Int) {
+    private fun sendBackToReceiver(
+        alertId: Long,
+        eventId: Long,
+        instanceMillis: Long,
+        originalMinutes: Int,
+        minutes: Int,
+    ) {
         val intent = Intent(this, NotificationActionReceiver::class.java).apply {
             action = ReminderConstants.ACTION_SNOOZE
-            putExtra(ReminderConstants.EXTRA_ALERT_ID, alertId)
-            putExtra(ReminderConstants.EXTRA_EVENT_ID, eventId)
-            putExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, instanceMillis)
             putExtra(ReminderConstants.EXTRA_SNOOZE_MINUTES, minutes)
-        }
+        }.putSnoozeSourceExtras(alertId, eventId, instanceMillis, originalMinutes)
         // component is already set; the explicit package is belt-and-suspenders
         // so the rebroadcast can never resolve outside this app.
         intent.setPackage(packageName)

@@ -108,6 +108,57 @@ class ReminderSchedulerDiffTest {
         assertEquals(1, plan.size)
     }
 
+    // The provider default sentinel and an authored at-time reminder both mean
+    // 9am day-of. They must share one alarm identity or fire-time normalization
+    // makes the second notification replace the first under the same shade id.
+    @Test
+    fun `all-day default sentinel and zero offset collapse to one alarm key`() {
+        val start =
+            java.time.LocalDate
+                .of(2026, 6, 1)
+                .atStartOfDay(java.time.ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        val plan =
+            ReminderScheduler.computePlan(
+                now = start - 24 * 60 * 60_000L,
+                zone = ny,
+                reminders = listOf(
+                    reminder(11L, start, -1, allDay = true),
+                    reminder(11L, start, 0, allDay = true),
+                ),
+            )
+        assertEquals(1, plan.size)
+        assertEquals(0, plan.single().minutesBefore)
+    }
+
+    // An in-place upgrade can load a persisted pre-fix key that still carries
+    // the raw sentinel. The first replan must cancel it and persist the canonical
+    // zero key, or both PendingIntent slots remain armed for one reminder.
+    @Test
+    fun `legacy all-day default key is replaced by the canonical zero key`() {
+        val start =
+            java.time.LocalDate
+                .of(2026, 6, 1)
+                .atStartOfDay(java.time.ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        val triggerAt = ReminderTimeMath.computeAlarmTime(start, allDay = true, minutesBefore = -1, zone = ny)
+        val legacy = AlarmKey(11L, start, -1, triggerAt)
+        val decision =
+            replanDecision(
+                previousPlan = setOf(legacy),
+                now = start - 24 * 60 * 60_000L,
+                zone = ny,
+                reminders = listOf(reminder(11L, start, -1, allDay = true)),
+            )
+
+        assertTrue(decision is ReplanDecision.Apply)
+        decision as ReplanDecision.Apply
+        assertEquals(setOf(legacy), decision.toCancel)
+        assertEquals(0, decision.newPlan.single().minutesBefore)
+    }
+
     @Test
     fun `duplicate reminder rows produce only one alarm key`() {
         val start = now + 60 * 60_000L

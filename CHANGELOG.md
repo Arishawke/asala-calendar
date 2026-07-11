@@ -48,9 +48,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Two reminders on the same event occurrence now appear as two separate
   notifications. They used to share one notification id, so whichever fired
   second replaced the first in the shade instead of stacking beside it.
+- An all-day event carrying both a synced default reminder and an "at time"
+  reminder now schedules one 9 AM notification. Those equivalent reminder rows
+  used to arm separately and then collapse onto the same notification entry.
 - Snoozing an all-day event's default reminder (one set by a synced calendar
   rather than chosen in the editor) now cancels the original notification
   instead of occasionally leaving it in the shade next to the snoozed one.
+- Snoozing now clears the correct reminder notification even if the system
+  calendar provider cannot create or reread its alert tracking row. Both snooze
+  actions carry the firing reminder's offset as a fallback instead of assuming
+  it fired at the event time.
 - Contact birthdays and anniversaries now show when the app is in sync-only
   storage mode. The two generated calendars are feature-owned, so they are no
   longer hidden with the rest of the on-device calendars, and they stay

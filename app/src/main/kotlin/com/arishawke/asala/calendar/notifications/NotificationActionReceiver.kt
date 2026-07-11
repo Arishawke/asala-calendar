@@ -59,8 +59,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
         val instanceMillis = intent.getLongExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, -1L)
+        val originalMinutes = intent.snoozeOriginalMinutes()
         val minutes = UserPreferences(context.settingsDataStore).prefs.first().defaultSnoozeMinutes
-        applySnooze(context, alertId, eventId, instanceMillis, minutes)
+        applySnooze(context, alertId, eventId, instanceMillis, originalMinutes, minutes)
         SnoozeSession.lastChoiceMinutes = minutes
     }
 
@@ -69,12 +70,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val alertId = intent.getLongExtra(ReminderConstants.EXTRA_ALERT_ID, -1L)
         val eventId = intent.getLongExtra(ReminderConstants.EXTRA_EVENT_ID, -1L)
         val instanceMillis = intent.getLongExtra(ReminderConstants.EXTRA_INSTANCE_MILLIS, -1L)
+        val originalMinutes = intent.snoozeOriginalMinutes()
         val chosen = intent.getIntExtra(ReminderConstants.EXTRA_SNOOZE_MINUTES, -1)
         if (chosen <= 0) {
             Timber.w("ACTION_SNOOZE without minutes; ignoring")
             return
         }
-        applySnooze(context, alertId, eventId, instanceMillis, chosen)
+        applySnooze(context, alertId, eventId, instanceMillis, originalMinutes, chosen)
         SnoozeSession.lastChoiceMinutes = chosen
     }
 

@@ -114,15 +114,18 @@ internal object ReminderScheduler {
         // at 9am local, so a same-day all-day reminder has a past instance start and
         // a future trigger. the trailing triggerAtMillis > now is the real guard.
         .map { r ->
+            // the all-day default sentinel and an authored zero offset both fire
+            // at 9am day-of; canonicalize before alarm and notification identity.
+            val minutesBefore = if (r.allDay && r.minutesBefore == -1) 0 else r.minutesBefore
             AlarmKey(
                 eventId = r.eventId,
                 instanceStartMillis = r.instanceStartMillis,
-                minutesBefore = r.minutesBefore,
+                minutesBefore = minutesBefore,
                 triggerAtMillis =
                 ReminderTimeMath.computeAlarmTime(
                     startMillis = r.instanceStartMillis,
                     allDay = r.allDay,
-                    minutesBefore = r.minutesBefore,
+                    minutesBefore = minutesBefore,
                     zone = zone,
                 ),
             )

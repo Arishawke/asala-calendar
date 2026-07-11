@@ -22,13 +22,22 @@ import com.arishawke.asala.calendar.PendingIntentFlags
 import com.arishawke.asala.calendar.data.TimeUnits
 import timber.log.Timber
 
-internal fun applySnooze(context: Context, alertId: Long, intentEventId: Long, instanceMillis: Long, minutes: Int) {
+@Suppress("LongParameterList", "LongMethod")
+internal fun applySnooze(
+    context: Context,
+    alertId: Long,
+    intentEventId: Long,
+    instanceMillis: Long,
+    intentOriginalMinutes: Int,
+    minutes: Int,
+) {
     // pure helper so the fallback path is covered by SnoozeResolutionTest
     val resolved =
         SnoozeResolution.resolve(
             alertId = alertId,
             alertLookup = { readAlert(context, it) },
             intentEventId = intentEventId,
+            intentOriginalMinutes = intentOriginalMinutes,
         )
     if (resolved == null) {
         Timber.w("applySnooze: no usable event id, bailing")

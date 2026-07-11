@@ -23,36 +23,38 @@ class SnoozeResolutionTest {
                 alertId = 7L,
                 alertLookup = { id -> if (id == 7L) 42L to 15 else null },
                 intentEventId = -1L,
+                intentOriginalMinutes = 30,
             )
         assertEquals(42L to 15, resolved)
     }
 
     // Provider hiccup or stale alertId: row lookup misses but the intent
-    // still carries the event id. Use it with originalMinutes=0 so the
-    // alarm still fires; the user does not lose the reminder because of
-    // a transient provider state.
+    // still carries the event id and firing offset. Use both so snooze cancels
+    // the right shade entry despite the transient provider state.
     @Test
-    fun `lookup miss falls back to intent event id with zero minutes`() {
+    fun `lookup miss falls back to intent event id and minutes`() {
         val resolved =
             SnoozeResolution.resolve(
                 alertId = 7L,
                 alertLookup = { null },
                 intentEventId = 42L,
+                intentOriginalMinutes = 30,
             )
-        assertEquals(42L to 0, resolved)
+        assertEquals(42L to 30, resolved)
     }
 
     // alertId<=0 means the original ensureCalendarAlert insert failed; do
-    // not even attempt the lookup. Trust the intent event id alone.
+    // not even attempt the lookup. Trust the intent fallback values.
     @Test
-    fun `negative alert id falls back to intent event id`() {
+    fun `negative alert id falls back to intent event id and minutes`() {
         val resolved =
             SnoozeResolution.resolve(
                 alertId = -1L,
                 alertLookup = { error("must not be called when alertId<=0") },
                 intentEventId = 42L,
+                intentOriginalMinutes = 60,
             )
-        assertEquals(42L to 0, resolved)
+        assertEquals(42L to 60, resolved)
     }
 
     // Worst case: alertId and intent event id are both invalid. Return
@@ -65,6 +67,7 @@ class SnoozeResolutionTest {
                 alertId = -1L,
                 alertLookup = { null },
                 intentEventId = -1L,
+                intentOriginalMinutes = 30,
             )
         assertNull(resolved)
     }
