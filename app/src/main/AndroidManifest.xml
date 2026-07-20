@@ -43,14 +43,6 @@
             android:excludeFromRecents="true"
             android:taskAffinity="" />
 
-        <!-- compose ui-tooling (pulled transitively by the calendar library)
-             injects PreviewActivity exported into the release manifest. it is a
-             reflection sink any app can launch and nothing here uses it, so drop
-             the entry: R8 then tree-shakes the now-unreferenced class out. -->
-        <activity
-            android:name="androidx.compose.ui.tooling.PreviewActivity"
-            tools:node="remove" />
-
         <receiver
             android:name=".notifications.ReminderAlarmReceiver"
             android:exported="false" />

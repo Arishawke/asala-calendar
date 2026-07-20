@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- release-only overlay. the compose ui-tooling artifact (pulled transitively
+         by the calendar library) injects an exported preview-runner activity that
+         any app could launch and nothing here uses. remove it from release; R8 then
+         drops the class. debug keeps it so on-device @Preview still works. -->
+    <application>
+        <activity
+            android:name="androidx.compose.ui.tooling.PreviewActivity"
+            tools:node="remove" />
+    </application>
+
+</manifest>
