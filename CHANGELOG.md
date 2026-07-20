@@ -94,6 +94,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   away), and the bottom toolbar's icons now respect a side navigation bar in
   landscape.
 
+### Security
+- Removed an unused preview-tooling activity (`PreviewActivity`) that a
+  transitive dependency was exporting in release builds, letting any app on the
+  device launch it. No app feature used it, and it is now dropped from the build.
+
 ## [0.23.0] - 2026-07-01
 
 ### Added
