@@ -283,6 +283,18 @@ sealed interface SaveResult {
 internal fun shouldGateEditorUntilLoaded(editingEventId: Long?, duplicateFromEventId: Long?): Boolean =
     editingEventId != null || duplicateFromEventId != null
 
+// an edit or duplicate open whose source event did not load: the form then holds
+// blank defaults, so save must be blocked. an edit save would overwrite the real
+// event with defaults, a duplicate save would insert an empty event. a genuine
+// new event (no source) never counts as a failed load.
+internal fun isFailedSourceLoad(
+    editingEventId: Long?,
+    duplicateFromEventId: Long?,
+    existingLoaded: Boolean,
+    duplicateLoaded: Boolean,
+): Boolean = (editingEventId != null && !existingLoaded) ||
+    (duplicateFromEventId != null && !duplicateLoaded)
+
 // applies a normalized shared-text parse to a freshly seeded new-event form.
 // null/blank text is a no-op, matching the parser's own contract; edit and
 // duplicate opens never pass share text (see EventEditScreen), so the
@@ -354,6 +366,13 @@ class EventEditViewModel(
     // can't edit a half-blank form whose edits would be overwritten on load.
     private val _loading = MutableStateFlow(shouldGateEditorUntilLoaded(editingEventId, duplicateFromEventId))
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
+    // an edit / duplicate open whose source event failed to load (deleted, or a
+    // transient provider read failure). the form then falls back to blank defaults,
+    // so the screen must not present it as savable: an edit save would clobber the
+    // real event with defaults, a duplicate save would insert a blank event.
+    private val _loadFailed = MutableStateFlow(false)
+    val loadFailed: StateFlow<Boolean> = _loadFailed.asStateFlow()
 
     // preserved so scope-aware save can supply parentDtstart and parentRrule
     private var loadedDetail: EventDetail? = null
@@ -445,6 +464,14 @@ class EventEditViewModel(
                         selectedCalendarId = cals.firstOrNull()?.id,
                     )
                 }
+            // an edit/duplicate open reached the blank-defaults fallback only
+            // because its source failed to load. flag it so save() cannot write.
+            _loadFailed.value = isFailedSourceLoad(
+                editingEventId = editingEventId,
+                duplicateFromEventId = duplicateFromEventId,
+                existingLoaded = existing != null,
+                duplicateLoaded = duplicateSource != null,
+            )
             _loading.value = false
         }
     }
@@ -461,6 +488,12 @@ class EventEditViewModel(
         instanceMillis: Long? = null,
     ): SaveResult {
         _saveError.update { false }
+        // never write from a failed-load form: an edit would overwrite the real
+        // event with blank defaults, a duplicate would insert an empty event.
+        if (_loadFailed.value) {
+            _saveError.update { true }
+            return SaveResult.Failure
+        }
         val result =
             EventSave.attempt(
                 form = _form.value,

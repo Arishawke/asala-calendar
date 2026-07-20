@@ -109,6 +109,7 @@ fun EventEditScreen(
     )
     val state by vm.form.collectAsStateWithLifecycle()
     val loading by vm.loading.collectAsStateWithLifecycle()
+    val loadFailed by vm.loadFailed.collectAsStateWithLifecycle()
     val saveError by vm.saveError.collectAsStateWithLifecycle()
     val notifGranted by appViewModel.notificationPermissionGranted.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -178,7 +179,7 @@ fun EventEditScreen(
                 },
                 actions = {
                     IconButton(
-                        enabled = state.isEndAfterStart && state.selectedCalendarId != null,
+                        enabled = !loadFailed && state.isEndAfterStart && state.selectedCalendarId != null,
                         onClick = { beginSave() },
                     ) {
                         Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_save))
@@ -200,7 +201,18 @@ fun EventEditScreen(
                         .padding(horizontal = Spacing.lg, vertical = Spacing.md),
                 )
             }
-            if (loading) {
+            if (loadFailed) {
+                // the source event failed to load; the form is blank defaults, so
+                // show an error instead of an editable form that would clobber the
+                // real event (or insert a blank one) on save.
+                Text(
+                    text = stringResource(R.string.error_load_failed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Spacing.lg, vertical = Spacing.md),
+                )
+            } else if (loading) {
                 // edit / duplicate fetch their data async; show a spinner until
                 // it lands rather than an editable blank form that gets replaced.
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

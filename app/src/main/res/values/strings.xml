@@ -152,6 +152,7 @@
     <string name="field_description">Description</string>
     <string name="error_end_before_start">End must be after start</string>
     <string name="error_save_failed">Couldn\'t save the event. Check the calendar selection and try again.</string>
+    <string name="error_load_failed">Couldn\'t open this event. Go back and try again.</string>
     <string name="error_delete_failed">Couldn\'t delete the event. The calendar may be read-only or the permission was revoked.</string>
     <string name="fab_new_event">New event</string>
 

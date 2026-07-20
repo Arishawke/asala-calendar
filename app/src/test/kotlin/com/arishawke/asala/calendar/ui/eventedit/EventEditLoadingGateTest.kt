@@ -35,4 +35,59 @@ class EventEditLoadingGateTest {
     fun `a brand-new event does not gate input`() {
         assertFalse(shouldGateEditorUntilLoaded(editingEventId = null, duplicateFromEventId = null))
     }
+
+    // an edit whose source event fails to load leaves the form at blank defaults.
+    // saving then would overwrite the real event with those defaults, so this must
+    // count as a failed load and block the save.
+    @Test
+    fun `an edit whose source did not load is a failed load`() {
+        assertTrue(
+            isFailedSourceLoad(
+                editingEventId = 42L,
+                duplicateFromEventId = null,
+                existingLoaded = false,
+                duplicateLoaded = false,
+            ),
+        )
+    }
+
+    // a duplicate whose source fails to load would insert a blank event; block it.
+    @Test
+    fun `a duplicate whose source did not load is a failed load`() {
+        assertTrue(
+            isFailedSourceLoad(
+                editingEventId = null,
+                duplicateFromEventId = 7L,
+                existingLoaded = false,
+                duplicateLoaded = false,
+            ),
+        )
+    }
+
+    // the normal edit path (source loaded) is not a failed load.
+    @Test
+    fun `an edit whose source loaded is not a failed load`() {
+        assertFalse(
+            isFailedSourceLoad(
+                editingEventId = 42L,
+                duplicateFromEventId = null,
+                existingLoaded = true,
+                duplicateLoaded = false,
+            ),
+        )
+    }
+
+    // a brand-new event has no source to load, so it is never a failed load even
+    // though both loaded flags are false.
+    @Test
+    fun `a brand-new event is not a failed load`() {
+        assertFalse(
+            isFailedSourceLoad(
+                editingEventId = null,
+                duplicateFromEventId = null,
+                existingLoaded = false,
+                duplicateLoaded = false,
+            ),
+        )
+    }
 }
