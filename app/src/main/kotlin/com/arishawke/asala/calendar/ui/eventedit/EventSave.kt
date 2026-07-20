@@ -11,6 +11,7 @@ package com.arishawke.asala.calendar.ui.eventedit
 import com.arishawke.asala.calendar.data.EventDraft
 import com.arishawke.asala.calendar.data.RecurrenceRule
 import com.arishawke.asala.calendar.data.RecurringEditScope
+import com.arishawke.asala.calendar.data.ReminderRow
 import com.arishawke.asala.calendar.data.allEventsAnchorRange
 import java.time.ZoneId
 import java.util.TimeZone
@@ -44,14 +45,15 @@ internal object EventSave {
         // on an in-place edit whose set is unchanged, so a multi-reminder event
         // does not lose rows to the delete-then-insert. empty for new events.
         loadedReminderMinutes: List<Int> = emptyList(),
-        // negative-offset rows carried on the loaded event: not authorable, written
-        // back verbatim with the visible set so an edit does not drop them.
-        preservedReminderMinutes: List<Int> = emptyList(),
+        // rows carried on the loaded event that the editor cannot author (the -1
+        // synced default sentinel and server-owned methods): written back verbatim
+        // with the visible set so an edit does not drop or clobber them.
+        preservedReminders: List<ReminderRow> = emptyList(),
         insertEvent: suspend (EventDraft) -> Long?,
         // returns the id reminders attach to: original for AllEvents, or the
         // new exception/split id for the recurring scopes. null on failure.
         updateEvent: suspend (Long, EventDraft, RecurringEditScope, Long?, String?, Boolean) -> Long?,
-        setReminders: suspend (Long, List<Int>) -> Boolean,
+        setReminders: suspend (Long, List<Int>, List<ReminderRow>) -> Boolean,
     ): SaveResult {
         val calId = form.selectedCalendarId ?: return SaveResult.Failure
         val zone = ZoneId.systemDefault()
@@ -193,8 +195,9 @@ internal object EventSave {
         return if (editingEventId == null) {
             val id = insertEvent(draft) ?: return SaveResult.Failure
             // event exists even if the reminder write fails; surface failure
-            // so the user knows the reminder did not stick.
-            if (!setReminders(id, form.reminderMinutes.distinct())) return SaveResult.Failure
+            // so the user knows the reminder did not stick. new events carry no
+            // preserved rows (a duplicate's preserved default is deferred).
+            if (!setReminders(id, form.reminderMinutes.distinct(), emptyList())) return SaveResult.Failure
             SaveResult.Success(id)
         } else {
             // effectiveId is the row reminders attach to: original for
@@ -211,7 +214,7 @@ internal object EventSave {
             val reminderUnchanged = effectiveId == editingEventId &&
                 form.reminderMinutes.normalizedReminders() == loadedReminderMinutes.normalizedReminders()
             if (!reminderUnchanged &&
-                !setReminders(effectiveId, (form.reminderMinutes + preservedReminderMinutes).distinct())
+                !setReminders(effectiveId, form.reminderMinutes.distinct(), preservedReminders)
             ) {
                 return SaveResult.Failure
             }

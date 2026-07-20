@@ -8,7 +8,9 @@
  */
 package com.arishawke.asala.calendar.ui.eventedit
 
+import android.provider.CalendarContract
 import com.arishawke.asala.calendar.data.RecurringEditScope
+import com.arishawke.asala.calendar.data.ReminderRow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -17,9 +19,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 // The reminder-preservation contract on the edit path. setReminders deletes every
-// reminder row then inserts one per distinct value, so EventSave must skip the
-// write when the form's non-negative set equals the loaded set, and otherwise
-// write exactly the visible set plus any preserved negative rows.
+// reminder row then reinserts the editable offsets as METHOD_ALERT plus any
+// preserved rows verbatim, so EventSave must skip the write when the form's visible
+// set equals the loaded set, and otherwise pass the visible set and the preserved
+// rows (with their methods) intact.
 class EventSaveReminderTest {
     private fun form(selectedCalendarId: Long? = 1L): EventEditFormState = EventEditFormState(
         selectedCalendarId = selectedCalendarId,
@@ -46,7 +49,7 @@ class EventSaveReminderTest {
                 loadedReminderMinutes = listOf(30, 10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminders = { _, _ ->
+                setReminders = { _, _, _ ->
                     reminderCalled = true
                     true
                 },
@@ -68,7 +71,7 @@ class EventSaveReminderTest {
                 loadedReminderMinutes = listOf(10, 30),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminders = { _, _ ->
+                setReminders = { _, _, _ ->
                     called = true
                     true
                 },
@@ -90,8 +93,8 @@ class EventSaveReminderTest {
                 loadedReminderMinutes = listOf(10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminders = { _, m ->
-                    wrote = m
+                setReminders = { _, editable, _ ->
+                    wrote = editable
                     true
                 },
             )
@@ -113,9 +116,9 @@ class EventSaveReminderTest {
                 loadedReminderMinutes = listOf(10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminders = { _, m ->
+                setReminders = { _, editable, _ ->
                     called = true
-                    wrote = m
+                    wrote = editable
                     true
                 },
             )
@@ -124,11 +127,18 @@ class EventSaveReminderTest {
         assertEquals(emptyList<Int>(), wrote)
     }
 
-    // A synced event's negative-offset rows are not authorable; a changed visible
-    // set must write them back verbatim so the edit does not drop them.
+    // A synced event's non-authorable rows (the -1 default sentinel, a server-owned
+    // email method) must be written back verbatim with their methods so a changed
+    // visible set does not drop or clobber them.
     @Test
-    fun `edit writes the visible set plus preserved negative rows`() = runBlocking {
-        var wrote: List<Int>? = null
+    fun `edit writes the visible set and preserves foreign rows with their methods`() = runBlocking {
+        var wroteEditable: List<Int>? = null
+        var wrotePreserved: List<ReminderRow>? = null
+        val preserved =
+            listOf(
+                ReminderRow(-1, CalendarContract.Reminders.METHOD_DEFAULT),
+                ReminderRow(30, CalendarContract.Reminders.METHOD_EMAIL),
+            )
         val result =
             EventSave.attempt(
                 form = form().copy(reminderMinutes = listOf(10, 60)),
@@ -137,16 +147,18 @@ class EventSaveReminderTest {
                 instanceMillis = null,
                 parentRrule = null,
                 loadedReminderMinutes = listOf(10),
-                preservedReminderMinutes = listOf(-1),
+                preservedReminders = preserved,
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminders = { _, m ->
-                    wrote = m
+                setReminders = { _, editable, foreign ->
+                    wroteEditable = editable
+                    wrotePreserved = foreign
                     true
                 },
             )
         assertEquals(SaveResult.Success(7L), result)
-        assertEquals(listOf(10, 60, -1), wrote)
+        assertEquals(listOf(10, 60), wroteEditable)
+        assertEquals(preserved, wrotePreserved)
     }
 
     // A ThisInstance edit creates a NEW exception row with no reminders, so the
@@ -166,9 +178,9 @@ class EventSaveReminderTest {
                 loadedReminderMinutes = listOf(10),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { _, _, _, _, _, _ -> newExceptionId },
-                setReminders = { id, m ->
+                setReminders = { id, editable, _ ->
                     reminderId = id
-                    wrote = m
+                    wrote = editable
                     true
                 },
             )
@@ -189,8 +201,8 @@ class EventSaveReminderTest {
                 parentRrule = null,
                 insertEvent = { 42L },
                 updateEvent = { _, _, _, _, _, _ -> error("must not be called on new path") },
-                setReminders = { _, m ->
-                    wrote = m
+                setReminders = { _, editable, _ ->
+                    wrote = editable
                     true
                 },
             )
@@ -213,8 +225,8 @@ class EventSaveReminderTest {
                 loadedReminderMinutes = emptyList(),
                 insertEvent = { error("must not be called on edit path") },
                 updateEvent = { id, _, _, _, _, _ -> id },
-                setReminders = { _, m ->
-                    wrote = m
+                setReminders = { _, editable, _ ->
+                    wrote = editable
                     true
                 },
             )

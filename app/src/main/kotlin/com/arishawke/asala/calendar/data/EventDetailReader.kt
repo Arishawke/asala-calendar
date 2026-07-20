@@ -20,14 +20,17 @@ import java.util.TimeZone
 internal fun resolveEventTimezone(stored: String?, allDay: Boolean): String =
     stored ?: if (allDay) "UTC" else TimeZone.getDefault().id
 
-internal data class ReminderSplit(val editable: List<Int>, val preserved: List<Int>)
+internal data class ReminderSplit(val editable: List<Int>, val preserved: List<ReminderRow>)
 
-// editable reminders are the non-negative offsets, sorted ascending for a stable
-// display and set comparison. negative offsets (the -1 synced default sentinel)
-// are not authorable, so carry them verbatim to write back on save.
-internal fun splitReminderRows(minutes: List<Int>): ReminderSplit {
-    val (negative, nonNegative) = minutes.partition { it < 0 }
-    return ReminderSplit(editable = nonNegative.sorted(), preserved = negative)
+// editable reminders are the app-authorable rows: METHOD_ALERT with a non-negative
+// offset, surfaced as sorted minutes for a stable display and set comparison.
+// everything else (the -1 synced default sentinel, and any server-owned
+// METHOD_EMAIL/SMS/ALARM row) is not authorable, so carry it verbatim with its
+// method to write back unchanged on save.
+internal fun splitReminderRows(rows: List<ReminderRow>): ReminderSplit {
+    val (authorable, foreign) =
+        rows.partition { it.method == CalendarContract.Reminders.METHOD_ALERT && it.minutes >= 0 }
+    return ReminderSplit(editable = authorable.map { it.minutes }.sorted(), preserved = foreign)
 }
 
 // reads one Events row plus all of its reminder rows. recurring rows store DURATION
@@ -132,7 +135,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
     val reminderRows =
         query(
             CalendarContract.Reminders.CONTENT_URI,
-            arrayOf(CalendarContract.Reminders.MINUTES),
+            arrayOf(CalendarContract.Reminders.MINUTES, CalendarContract.Reminders.METHOD),
             "${CalendarContract.Reminders.EVENT_ID} = ?",
             arrayOf(eventId.toString()),
             // ordered so the editable list is ascending and the read is
@@ -140,9 +143,10 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             "${CalendarContract.Reminders.MINUTES} ASC, ${CalendarContract.Reminders._ID} ASC",
         )?.use { c ->
             val minutesIdx = c.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES)
-            buildList { while (c.moveToNext()) add(c.getInt(minutesIdx)) }
+            val methodIdx = c.getColumnIndexOrThrow(CalendarContract.Reminders.METHOD)
+            buildList { while (c.moveToNext()) add(ReminderRow(c.getInt(minutesIdx), c.getInt(methodIdx))) }
         }.orEmpty()
 
     val split = splitReminderRows(reminderRows)
-    event.copy(reminderMinutes = split.editable, preservedReminderMinutes = split.preserved)
+    event.copy(reminderMinutes = split.editable, preservedReminders = split.preserved)
 }

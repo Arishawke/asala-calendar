@@ -26,6 +26,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   saved until you tap Save.
 
 ### Fixed
+- Editing an event no longer changes reminders that belong to a synced calendar.
+  A calendar's email or default reminder used to be silently converted to a
+  device notification on the next edit (and could then sync that change back);
+  the editor now leaves those reminders exactly as they were and only writes the
+  ones you can see and change.
 - The "Repeats every N" and "After N times" fields in the event editor can
   now actually be retyped: deleting the last digit used to be silently
   undone, snapping the old value back. Both fields now allow clearing while

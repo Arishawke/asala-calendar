@@ -26,9 +26,10 @@ data class EventDetail(
     val displayColor: Int,
     val calendarDisplayName: String,
     val reminderMinutes: List<Int> = emptyList(),
-    // negative-offset rows (e.g. the -1 synced default sentinel): not authorable,
-    // carried verbatim and written back on save so an edit does not drop them.
-    val preservedReminderMinutes: List<Int> = emptyList(),
+    // rows the editor cannot author (the -1 synced default sentinel and any
+    // server-owned METHOD_EMAIL/SMS/ALARM row): carried verbatim with their method
+    // and written back on save so an edit does not drop or clobber them.
+    val preservedReminders: List<ReminderRow> = emptyList(),
     val status: Int = CalendarContract.Events.STATUS_CONFIRMED,
     // BUSY/FREE/TENTATIVE. carried through edits so a server-set value
     // (e.g. DAVx5) isn't clobbered by a local title edit.

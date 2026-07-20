@@ -17,31 +17,42 @@ import timber.log.Timber
 
 class RemindersRepository(private val contentResolver: ContentResolver) {
     /**
-     * Replaces all reminders for the event with one row per distinct value. False
-     * means the provider rejected an insert (permission revoked / account removed
-     * mid-save); the caller should surface that, not assume the reminders are set.
+     * Replaces all reminders for the event. Editable offsets are written as
+     * METHOD_ALERT; preserved rows (the -1 synced default sentinel and any
+     * server-owned METHOD_EMAIL/SMS/ALARM row) are written back with their own
+     * method so a synced calendar's reminder is not clobbered. Dedupes by the full
+     * (minutes, method) row. False means the provider rejected an insert (permission
+     * revoked / account removed mid-save); the caller should surface that, not
+     * assume the reminders are set.
      */
-    suspend fun setReminders(eventId: Long, minutes: List<Int>): Boolean = withContext(Dispatchers.IO) {
-        providerCall("setReminders", onError = false) {
-            contentResolver.delete(
-                CalendarContract.Reminders.CONTENT_URI,
-                "${CalendarContract.Reminders.EVENT_ID} = ?",
-                arrayOf(eventId.toString()),
-            )
-            var allInserted = true
-            for (m in minutes.distinct()) {
-                val cv =
-                    ContentValues().apply {
-                        put(CalendarContract.Reminders.EVENT_ID, eventId)
-                        put(CalendarContract.Reminders.MINUTES, m)
-                        put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+    suspend fun setReminders(eventId: Long, editable: List<Int>, preserved: List<ReminderRow> = emptyList()): Boolean =
+        withContext(Dispatchers.IO) {
+            providerCall("setReminders", onError = false) {
+                contentResolver.delete(
+                    CalendarContract.Reminders.CONTENT_URI,
+                    "${CalendarContract.Reminders.EVENT_ID} = ?",
+                    arrayOf(eventId.toString()),
+                )
+                val rows =
+                    (editable.map { ReminderRow(it, CalendarContract.Reminders.METHOD_ALERT) } + preserved).distinct()
+                var allInserted = true
+                for (row in rows) {
+                    val cv =
+                        ContentValues().apply {
+                            put(CalendarContract.Reminders.EVENT_ID, eventId)
+                            put(CalendarContract.Reminders.MINUTES, row.minutes)
+                            put(CalendarContract.Reminders.METHOD, row.method)
+                        }
+                    if (contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, cv) == null) {
+                        Timber.w(
+                            "setReminders: provider rejected reminder insert for event %d minutes %d",
+                            eventId,
+                            row.minutes,
+                        )
+                        allInserted = false
                     }
-                if (contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, cv) == null) {
-                    Timber.w("setReminders: provider rejected reminder insert for event %d minutes %d", eventId, m)
-                    allInserted = false
                 }
+                allInserted
             }
-            allInserted
         }
-    }
 }
