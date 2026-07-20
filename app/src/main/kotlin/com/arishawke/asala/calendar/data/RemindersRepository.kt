@@ -56,10 +56,7 @@ class RemindersRepository(private val contentResolver: ContentResolver) {
         }
 }
 
-// the exact rows written by setReminders. editable offsets become METHOD_ALERT;
-// preserved rows keep their own method. deduped by the full (minutes, method) row,
-// so a synced email reminder and an authored alert at the same minute both survive.
-// extracted as a pure function so the row identity is unit-testable without a
-// ContentResolver.
+// editable offsets become METHOD_ALERT, preserved rows keep their method, deduped
+// by the full (minutes, method) row so a same-minute email and alert both survive.
 internal fun buildReminderRows(editable: List<Int>, preserved: List<ReminderRow>): List<ReminderRow> =
     (editable.map { ReminderRow(it, CalendarContract.Reminders.METHOD_ALERT) } + preserved).distinct()

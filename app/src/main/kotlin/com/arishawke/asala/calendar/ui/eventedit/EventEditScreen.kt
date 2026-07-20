@@ -202,9 +202,7 @@ fun EventEditScreen(
                 )
             }
             if (loadFailed) {
-                // the source event failed to load; the form is blank defaults, so
-                // show an error instead of an editable form that would clobber the
-                // real event (or insert a blank one) on save.
+                // source failed to load: show an error, not the blank-defaults form.
                 Text(
                     text = stringResource(R.string.error_load_failed),
                     style = MaterialTheme.typography.bodyMedium,

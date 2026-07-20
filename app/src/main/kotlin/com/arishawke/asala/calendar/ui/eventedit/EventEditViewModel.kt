@@ -283,10 +283,9 @@ sealed interface SaveResult {
 internal fun shouldGateEditorUntilLoaded(editingEventId: Long?, duplicateFromEventId: Long?): Boolean =
     editingEventId != null || duplicateFromEventId != null
 
-// an edit or duplicate open whose source event did not load: the form then holds
-// blank defaults, so save must be blocked. an edit save would overwrite the real
-// event with defaults, a duplicate save would insert an empty event. a genuine
-// new event (no source) never counts as a failed load.
+// an edit/duplicate open whose source event did not load leaves the form at blank
+// defaults. save must be blocked: an edit would overwrite the real event, a
+// duplicate would insert a blank one. a new event (no source) never counts.
 internal fun isFailedSourceLoad(
     editingEventId: Long?,
     duplicateFromEventId: Long?,
@@ -367,10 +366,8 @@ class EventEditViewModel(
     private val _loading = MutableStateFlow(shouldGateEditorUntilLoaded(editingEventId, duplicateFromEventId))
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
-    // an edit / duplicate open whose source event failed to load (deleted, or a
-    // transient provider read failure). the form then falls back to blank defaults,
-    // so the screen must not present it as savable: an edit save would clobber the
-    // real event with defaults, a duplicate save would insert a blank event.
+    // set when the source event failed to load (see isFailedSourceLoad): gates
+    // save and the form so a blank-defaults form cannot be written.
     private val _loadFailed = MutableStateFlow(false)
     val loadFailed: StateFlow<Boolean> = _loadFailed.asStateFlow()
 
@@ -464,8 +461,6 @@ class EventEditViewModel(
                         selectedCalendarId = cals.firstOrNull()?.id,
                     )
                 }
-            // an edit/duplicate open reached the blank-defaults fallback only
-            // because its source failed to load. flag it so save() cannot write.
             _loadFailed.value = isFailedSourceLoad(
                 editingEventId = editingEventId,
                 duplicateFromEventId = duplicateFromEventId,
@@ -488,8 +483,7 @@ class EventEditViewModel(
         instanceMillis: Long? = null,
     ): SaveResult {
         _saveError.update { false }
-        // never write from a failed-load form: an edit would overwrite the real
-        // event with blank defaults, a duplicate would insert an empty event.
+        // a failed-load form holds blank defaults; never write it.
         if (_loadFailed.value) {
             _saveError.update { true }
             return SaveResult.Failure

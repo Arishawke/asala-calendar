@@ -9,9 +9,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-// the row identity setReminders writes: editable offsets as METHOD_ALERT, preserved
-// rows verbatim, deduped by the full (minutes, method) row. these pin the corruption
-// fix so a regression to distinctBy { minutes } or a hardcoded METHOD_ALERT fails.
+// pins the row identity setReminders writes, so a regression to minute-only dedup
+// or a forced METHOD_ALERT fails here.
 class ReminderRowBuildTest {
     private val alert = CalendarContract.Reminders.METHOD_ALERT
     private val default = CalendarContract.Reminders.METHOD_DEFAULT
