@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-07-20
+
 ### Added
 - Anniversary events now show a heart icon everywhere birthday events show the
   cake: timeline blocks, all-day bars, day and schedule lists, and the event
