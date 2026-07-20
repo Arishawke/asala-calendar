@@ -26,6 +26,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   saved until you tap Save.
 
 ### Fixed
+- A transient failure to read an event's reminders can no longer wipe them. The
+  editor used to treat a failed reminder read as "no reminders," so adding one
+  and saving deleted the real ones; it now declines to open the event instead.
 - Editing an event no longer changes reminders that belong to a synced calendar.
   A calendar's email or default reminder used to be silently converted to a
   device notification on the next edit (and could then sync that change back);

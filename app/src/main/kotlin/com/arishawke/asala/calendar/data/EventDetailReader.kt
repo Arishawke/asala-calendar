@@ -132,7 +132,7 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             )
         } ?: return@withContext null
 
-    val reminderRows =
+    val reminderRows: List<ReminderRow> =
         query(
             CalendarContract.Reminders.CONTENT_URI,
             arrayOf(CalendarContract.Reminders.MINUTES, CalendarContract.Reminders.METHOD),
@@ -145,7 +145,11 @@ internal suspend fun ContentResolver.readEventDetail(eventId: Long): EventDetail
             val minutesIdx = c.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES)
             val methodIdx = c.getColumnIndexOrThrow(CalendarContract.Reminders.METHOD)
             buildList { while (c.moveToNext()) add(ReminderRow(c.getInt(minutesIdx), c.getInt(methodIdx))) }
-        }.orEmpty()
+        }
+            // a null cursor is a query failure, not zero rows. treating it as empty
+            // would let a later edit's replace-all delete the real unseen rows (the
+            // D1 lesson), so fail the whole load and let the editor decline to open.
+            ?: return@withContext null
 
     val split = splitReminderRows(reminderRows)
     event.copy(reminderMinutes = split.editable, preservedReminders = split.preserved)
