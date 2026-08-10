@@ -69,7 +69,7 @@ jobs:
         # OWASP Dependency-Check setup. Tracking upstream:
         # gradle/actions issue #815 may ship this scoping as a future
         # default for Android.
-        uses: gradle/actions/dependency-submission@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+        uses: gradle/actions/dependency-submission@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
         env:
           # The action has no input for the snapshot sha/ref; it reads these
           # env vars. On a PR, pin them to the head commit so dependency-review
