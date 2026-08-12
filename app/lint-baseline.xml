@@ -187,17 +187,6 @@
     <issue
         id="ComposeCompositionLocalUsage"
         message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
-        errorLine1="// the app&apos;s two provisioned occasion calendars (birthdays, anniversaries), or"
-        errorLine2="^">
-        <location
-            file="src/main/kotlin/com/arishawke/asala/calendar/ui/LocalOccasionCalendarIds.kt"
-            line="14"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeCompositionLocalUsage"
-        message="`CompositionLocal`s are implicit dependencies and creating new ones should be avoided. See https://slackhq.github.io/compose-lints/rules/#compositionlocals for more information."
         errorLine1="// animated px height of the header panel above a bottom toolbar; 0 with a"
         errorLine2="^">
         <location
