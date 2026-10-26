@@ -5,11 +5,7 @@
 </p>
 
 <p align="center">
-A private, offline-first calendar for Android, dressed in Material 3.
-</p>
-
-<p align="center">
-  <sub><em>Asala</em>: Qunari for &ldquo;soul.&rdquo;</sub>
+A private, offline-first calendar for Android.
 </p>
 
 <p align="center">
@@ -22,10 +18,7 @@ A private, offline-first calendar for Android, dressed in Material 3.
   <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="185" align="middle" /></a>
 </p>
 
-> [!WARNING]
-> **Personal project, heavy AI assistance.** Asala is a hobby Android app built with substantial AI assistance. It is not production software. Use at your own discretion.
-
-Asala keeps no calendar data of its own. Your events live in your phone's system calendar, shared with every other calendar app on the device, so nothing is locked inside Asala. And it ships with no internet permission at all: your events stay on your phone unless a sync account you set up sends them somewhere.
+Asala uses Android's system calendar and has no internet permission. Events may still sync through accounts configured on your device.
 
 ## Screenshots
 
@@ -46,37 +39,26 @@ Asala keeps no calendar data of its own. Your events live in your phone's system
 
 ## Features
 
-### What sets it apart
-
-- **Private and offline.** No telemetry, no trackers, no account to create. Your events never leave the device unless you set up a sync account yourself.
-- **Type events in plain words.** Write "lunch at Cafe Rio tomorrow at noon" in the new-event field and the title, location, date, and time fill in for you to review before saving.
-- **Continuous or paged month.** Read months as one endless vertical scroll, or swipe a page at a time.
-- **Search everything.** Find events by title, location, or notes across all your visible calendars, from a year back to two years ahead.
-- **All your calendars in one app.** Work, personal, local, and CalDAV (through the DAVx5 companion app), each event colored by the calendar it came from.
-- **Birthdays and anniversaries from your contacts.** An optional toggle turns the dates already on your phone into two on-device calendars, ages included, with their own reminder. Everything stays on the device.
-- **Six views.** Year, Month, Week, 3-Day, Day, and Schedule.
-- **Drag to reschedule.** Pick up an event in Day or Week and drop it on a new time.
-
-### The usuals
-
-- Create, edit, duplicate, and delete events, including all-day and repeating ones.
-- Reminders before events start, with snooze and separate defaults for timed and all-day events.
-- Per-event colors from a preset palette or a custom hex.
-- Material 3 throughout, with dynamic color on Android 12+ and Light, Dark, and AMOLED themes.
-- A mini-month split view in Week, 3-Day, Day, and Schedule: tap the header to peek a month with event dots and jump to any day.
-- A focus mode that dims non-working hours and days.
-- Follows your phone: the 24-hour setting, your device language for dates and month names, and optional ISO week numbers.
-- A tidy drawer to toggle calendars, hide whole accounts, recolor anything, and rename or delete local calendars.
-- Home-screen widgets: a scrolling agenda and a month grid, with light, dark, and translucent looks.
+- Year, month, week, 3-day, day, and schedule views.
+- Continuous or paged month view.
+- Create, edit, duplicate, delete, and repeat events.
+- Natural-language event entry.
+- Search by title, location, or notes.
+- Multiple reminders, snooze, and separate defaults for timed and all-day events.
+- Drag events to reschedule them.
+- Birthdays and anniversaries from your contacts.
+- Local, synced, and CalDAV calendars through Android's calendar provider.
+- Per-event colors, dynamic color, and light, dark, or AMOLED themes.
+- Agenda and month home-screen widgets.
+- Optional focus mode, ISO week numbers, and adjustable font size.
 
 ## Install
 
-Asala is on Google Play, and also ships through GitHub Releases.
+- [Google Play](https://play.google.com/store/apps/details?id=com.arishawke.asala.calendar)
+- [GitHub Releases](https://github.com/Arishawke/asala-calendar/releases) for the signed APK
+- [Obtainium](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar) for updates from GitHub Releases
 
-- **Google Play.** Install from [Google Play](https://play.google.com/store/apps/details?id=com.arishawke.asala.calendar); updates arrive automatically.
-- **Direct APK.** Download the latest `asala-calendar-<version>.apk` from [Releases](https://github.com/Arishawke/asala-calendar/releases) and install it. Builds are signed.
-- **Auto-update via Obtainium.** Tap the Obtainium button at the top of this page, or point [Obtainium](https://github.com/ImranR98/Obtainium) at this repository, and it notifies you when a new version ships.
-- **No in-app updater.** Asala never checks for or downloads updates itself. Updates arrive through your install source (Google Play, or GitHub via Obtainium), which is what keeps the app free of any internet or install permission.
+Asala is a personal project built with substantial AI assistance.
 
 ## License
 
