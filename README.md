@@ -14,7 +14,6 @@ A private, offline-first calendar for Android.
 </p>
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.arishawke.asala.calendar"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="200" align="middle" /></a>
   <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar"><img alt="Get it on Obtainium" src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" width="185" align="middle" /></a>
 </p>
 
@@ -54,7 +53,6 @@ Asala uses Android's system calendar and has no internet permission. Events may 
 
 ## Install
 
-- [Google Play](https://play.google.com/store/apps/details?id=com.arishawke.asala.calendar)
 - [GitHub Releases](https://github.com/Arishawke/asala-calendar/releases) for the signed APK
 - [Obtainium](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Arishawke/asala-calendar) for updates from GitHub Releases
 
