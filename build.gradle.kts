@@ -50,6 +50,7 @@ spotless {
                 "ktlint_standard_function-naming" to "disabled",
                 "ktlint_standard_property-naming" to "disabled",
                 "ktlint_standard_filename" to "disabled",
+                "ij_kotlin_line_break_after_multiline_when_entry" to "false",
             ),
         )
     }
@@ -63,6 +64,7 @@ val composeKtlintOverrides =
         "ktlint_standard_function-naming" to "disabled",
         "ktlint_standard_property-naming" to "disabled",
         "ktlint_standard_filename" to "disabled",
+        "ij_kotlin_line_break_after_multiline_when_entry" to "false",
     )
 
 subprojects {

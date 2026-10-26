@@ -58,7 +58,11 @@ val copyNoticeAsset =
 
 android {
     namespace = "com.arishawke.asala.calendar"
-    compileSdk = 36
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 0
+        }
+    }
 
     defaultConfig {
         applicationId = "com.arishawke.asala.calendar"
@@ -139,6 +143,8 @@ android {
         // Dependency hygiene belongs to Dependabot or a manual cadence, not
         // a build gate that breaks on a remote upstream version bump.
         disable += setOf("OldTargetApi", "GradleDependency", "AndroidGradlePluginVersion")
+        // compose-lints 1.5+ disables stability checks by default.
+        enable += setOf("ComposeUnstableReceiver", "ComposeUnstableCollections")
         // ADR-0004: a11y + i18n + rtl gates promoted from warning to error.
         // MissingTranslation is already error by default; do not re-promote.
         error += setOf("HardcodedText", "ContentDescription", "RtlHardcoded")

@@ -3,7 +3,7 @@ version: 2
 updates:
   # Android / Kotlin dependencies declared via Gradle.
   - package-ecosystem: gradle
-    directory: /app
+    directory: /
     schedule:
       interval: weekly
       day: monday

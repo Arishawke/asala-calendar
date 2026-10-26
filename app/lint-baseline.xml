@@ -1,5 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.1.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.1)" variant="all" version="9.1.1">
+<issues format="6" by="lint 9.3.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.3.1)" variant="all" version="9.3.1">
+
+    <issue
+        id="ComposeViewModelForwarding"
+        message="Forwarding a ViewModel through multiple @Composable functions should be avoided. Consider using state hoisting.&#xA;&#xA;See https://slackhq.github.io/compose-lints/rules/#hoist-all-the-things for more information."
+        errorLine1="                EventEditScreen("
+        errorLine2="                ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/AppOverlays.kt"
+            line="147"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelForwarding"
+        message="Forwarding a ViewModel through multiple @Composable functions should be avoided. Consider using state hoisting.&#xA;&#xA;See https://slackhq.github.io/compose-lints/rules/#hoist-all-the-things for more information."
+        errorLine1="                    CalendarViewSwitcher("
+        errorLine2="                    ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/AppShell.kt"
+            line="315"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelForwarding"
+        message="Forwarding a ViewModel through multiple @Composable functions should be avoided. Consider using state hoisting.&#xA;&#xA;See https://slackhq.github.io/compose-lints/rules/#hoist-all-the-things for more information."
+        errorLine1="        AppOverlays("
+        errorLine2="        ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/AppShell.kt"
+            line="332"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelForwarding"
+        message="Forwarding a ViewModel through multiple @Composable functions should be avoided. Consider using state hoisting.&#xA;&#xA;See https://slackhq.github.io/compose-lints/rules/#hoist-all-the-things for more information."
+        errorLine1="            CalendarView.Week -> WeekScreen("
+        errorLine2="                                 ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/CalendarViewSwitcher.kt"
+            line="103"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelForwarding"
+        message="Forwarding a ViewModel through multiple @Composable functions should be avoided. Consider using state hoisting.&#xA;&#xA;See https://slackhq.github.io/compose-lints/rules/#hoist-all-the-things for more information."
+        errorLine1="            CalendarView.ThreeDay -> ThreeDayScreen("
+        errorLine2="                                     ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/CalendarViewSwitcher.kt"
+            line="128"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="ComposeViewModelForwarding"
+        message="Forwarding a ViewModel through multiple @Composable functions should be avoided. Consider using state hoisting.&#xA;&#xA;See https://slackhq.github.io/compose-lints/rules/#hoist-all-the-things for more information."
+        errorLine1="            CalendarView.Day -> DayScreen("
+        errorLine2="                                ^">
+        <location
+            file="src/main/kotlin/com/arishawke/asala/calendar/ui/CalendarViewSwitcher.kt"
+            line="150"
+            column="33"/>
+    </issue>
 
     <issue
         id="ComposeViewModelInjection"
@@ -119,17 +185,6 @@
         <location
             file="src/main/kotlin/com/arishawke/asala/calendar/ui/year/YearScreen.kt"
             line="59"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="SlotReused"
-        message="Slots should be invoked in at most once place to meet lifecycle expectations. Slots should not be invoked in multiple places in source code, where the invoking location changes based on some condition. This will preserve the slot&apos;s internal state when the invoking location changes. See https://slackhq.github.io/compose-lints/rules/#do-not-invoke-slots-in-more-than-once-place for more information."
-        errorLine1="    bar: @Composable (WindowInsets) -> Unit,"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/arishawke/asala/calendar/ui/BarScaffold.kt"
-            line="36"
             column="5"/>
     </issue>
 
